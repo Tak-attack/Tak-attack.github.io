@@ -128,6 +128,15 @@
         font-family: "Noto Serif JP", serif; font-size: 18px; margin: 0; letter-spacing: .05em;
       }
       .sec-head p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+      /* Players header: the add-player button sits on its own row below
+         the description, full-width, so it is never squeezed into a
+         narrow vertical strip beside the long text. */
+      #sec-players-head { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; }
+      #sec-players-head > div { min-width: 0; }
+      #sec-players-head .btn {
+        width: 100%; align-self: stretch; justify-content: center;
+        white-space: nowrap; min-height: 44px; text-align: center;
+      }
 
       /* ---------- players setup ---------- */
       .players-panel {
@@ -283,8 +292,51 @@
       .cat-pts .u { font-size: 12px; color: var(--ink-soft); font-weight: 700; }
       .cat-pts.neg .n { color: var(--danger); }
       .cat-inputs { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 8px; }
+      /* Tap-counter categories — military, civic (blue cards) and science:
+         the "+1 on tap" counters sit in a 3-column grid, one row holds
+         exactly three counters and the column widths adjust automatically
+         to the container width. */
+      .cat-military .cat-inputs,
+      .cat-civic .cat-inputs,
+      .cat-science .cat-inputs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px 10px;
+        align-items: start;
+      }
+      .cat-military .field,
+      .cat-civic .field,
+      .cat-science .field { min-width: 0; width: 100%; }
+      .cat-military .field > span,
+      .cat-civic .field > span,
+      .cat-science .field > span { overflow-wrap: anywhere; line-height: 1.35; }
+      /* Civic direct-input is a single wide control, not a tap counter:
+         when it is the visible field it spans the whole grid row. */
+      .cat-civic .field[data-cmode="direct"] { grid-column: 1 / -1; }
+      .cat-civic .field[data-cmode="direct"] .combo { max-width: 340px; }
+      /* Tap buttons fill their grid cell — no fixed minimum width that
+         would push them into the neighbouring column. */
+      .cat-military .tap-row,
+      .cat-civic .tap-row,
+      .cat-science .tap-row { width: 100%; min-width: 0; }
+      .cat-military .tap-main,
+      .cat-civic .tap-main,
+      .cat-science .tap-main { min-width: 0; width: 100%; padding: 6px 6px; }
+      @media (max-width: 480px) {
+        .cat-military .cat-inputs,
+        .cat-civic .cat-inputs,
+        .cat-science .cat-inputs { gap: 10px 6px; }
+        .cat-military .tap-main,
+        .cat-civic .tap-main,
+        .cat-science .tap-main { gap: 4px; padding: 5px 4px; }
+        .cat-military .tap-num,
+        .cat-civic .tap-num,
+        .cat-science .tap-num { font-size: 22px; }
+        .cat-science .tap-main .tap-ico { width: 18px; height: 18px; }
+        .cat-science .tap-main .tap-ico svg { width: 18px; height: 18px; }
+      }
 
-      .field { display: flex; flex-direction: column; gap: 5px; }
+      .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
       .field > span { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
       .field > span b { color: var(--ink); }
       .stepper { display: inline-flex; align-items: stretch; align-self: flex-start; width: 149px; border: 1.5px solid var(--line-strong); border-radius: 10px; overflow: hidden; background: var(--panel); }
@@ -388,8 +440,19 @@
         background: var(--panel); color: var(--danger);
       }
       .tap-reset:active { background: var(--gold-soft); }
-      .tap-visual { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; align-items: center; }
+      .tap-visual { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; align-items: center; max-width: 100%; min-width: 0; }
       .tap-visual:empty { display: none; margin-top: 0; }
+      /* Icons under a tap counter stay inside that counter's own column:
+         when they would spill into the item on the right they wrap onto
+         the next line instead. Applies to the grid categories above and
+         to every other tap-visual strip. */
+      .cat-military .tap-visual,
+      .cat-civic .tap-visual,
+      .cat-science .tap-visual {
+        width: 100%; max-width: 100%; flex-wrap: wrap; overflow-wrap: anywhere;
+      }
+      .player-block { min-width: 0; }
+      .cat { min-width: 0; overflow: hidden; }
       .v-token {
         width: 28px; height: 28px; border-radius: 50%;
         display: grid; place-items: center; flex: none;
@@ -812,10 +875,10 @@
         {
           key: "military", name: "軍事", en: "MILITARY", hint: "紛争トークンをタップした回数で入力（勝利トークンは点数ごと、敗北トークンは1枚−1点）。タップするたびに下にトークンのアイコンが増えます。アイコンをタップすると1つ消えて枚数も減ります。間違えたらリセットで0に戻せます", milFormula: true,
           fields: [
-            { path: "mil.w1", label: "勝利 +1 トークン", max: 6, tap: true },
-            { path: "mil.w3", label: "勝利 +3 トークン", max: 6, tap: true },
-            { path: "mil.w5", label: "勝利 +5 トークン", max: 6, tap: true },
-            { path: "mil.lose", label: "敗北 −1 トークン", max: 6, tap: true }
+            { path: "mil.w1", label: "勝利 +1 トークン", tap: true },
+            { path: "mil.w3", label: "勝利 +3 トークン", tap: true },
+            { path: "mil.w5", label: "勝利 +5 トークン", tap: true },
+            { path: "mil.lose", label: "敗北 −1 トークン", tap: true }
           ]
         },
         {
@@ -977,7 +1040,7 @@
         if (f.tap) {
           return '<div class="field"' + modeAttrs + '><span>' + f.label + "</span>" +
             '<div class="tap-row">' +
-            '<button type="button" class="tap-main" data-tap="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="' + f.label + 'を1枚増やす">' +
+            '<button type="button" class="tap-main" data-tap="' + f.path + '" data-pidx="' + pidx + '"' + (f.max != null ? ' data-max="' + f.max + '"' : '') + ' aria-label="' + f.label + 'を1枚増やす">' +
             (f.icon ? '<span class="tap-ico">' + ICONS[f.icon] + "</span>" : "") +
             '<span class="tap-count"><span class="tap-line"><span class="tap-num" data-tapnum="' + f.path + '">0</span><span class="tap-unit">枚</span></span>' +
             '<span class="tap-hint">タップで＋1</span></span></button>' +
@@ -1393,7 +1456,9 @@
         } else if (btn.hasAttribute("data-tap")) {
           var path4 = btn.getAttribute("data-tap");
           var cur4 = getPath(p, path4); if (cur4 == null) cur4 = 0;
-          setPath(p, path4, clamp(cur4 + 1, 0, parseInt(btn.getAttribute("data-max"), 10)));
+          var max4 = parseInt(btn.getAttribute("data-max"), 10);
+          if (isNaN(max4)) max4 = Infinity;
+          setPath(p, path4, clamp(cur4 + 1, 0, max4));
           refresh();
         } else if (btn.hasAttribute("data-tapreset")) {
           setPath(p, btn.getAttribute("data-tapreset"), 0);
@@ -1402,7 +1467,7 @@
           /* tap a counted icon (military / civic cards / science): remove one and decrement */
           var tokenPath = btn.getAttribute("data-path");
           var tokenCur = getPath(p, tokenPath); if (tokenCur == null) tokenCur = 0;
-          setPath(p, tokenPath, clamp(tokenCur - 1, 0, 999));
+          setPath(p, tokenPath, clamp(tokenCur - 1, 0, Infinity));
           refresh();
         } else if (btn.hasAttribute("data-pileremove")) {
           /* tap a treasury icon: a pile removes 3 coins, a loose coin removes 1 */
