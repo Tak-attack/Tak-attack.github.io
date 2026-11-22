@@ -110,6 +110,8 @@
         border-radius: 999px; background: var(--surface); color: var(--text);
       }
       #helpBtn { width: 36px; height: 36px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; }
+      #fsBtn { width: 36px; height: 36px; }
+      #fsBtn svg { display: block; }
       #menuBtn { gap: 6px; padding: 6px 12px; font-size: 12px; font-weight: 700; min-height: 2rem; }
       .hdr-btn.active { background: var(--accent); color: var(--on-accent); }
       .burger { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
@@ -468,6 +470,7 @@
         .hdr { padding-left: 16px; padding-right: 16px; }
         #titleInput { font-size: 26px; }
         #helpBtn { width: 44px; height: 44px; font-size: 18px; }
+        #fsBtn { width: 44px; height: 44px; }
         #menuBtn { padding: 8px 16px; font-size: 14px; }
         #tableScroll { padding: 0 16px 8px; }
         .th-cat, .rh-total { padding: 8px 12px; font-size: 15px; }
@@ -585,6 +588,10 @@
         <div class="hdr-row">
           <input id="titleInput" aria-label="ゲーム名" placeholder="ゲーム名" />
           <button type="button" id="helpBtn" class="hdr-btn" aria-label="ヘルプを開く" aria-expanded="false"><span aria-hidden="true">？</span></button>
+          <button type="button" id="fsBtn" class="hdr-btn" aria-label="フルスクリーンにする" aria-pressed="false">
+            <svg id="fsIconExpand" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+            <svg id="fsIconCompress" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>
+          </button>
           <button type="button" id="menuBtn" class="hdr-btn" aria-label="メニューを開く" aria-expanded="false">
             <span aria-hidden="true" class="burger"><span></span><span></span><span></span></span>
             メニュー
@@ -839,6 +846,7 @@
         "履歴から、レシート風レイアウトで結果を印刷できます（レシートプリンター対応）。優勝者の合計には王冠が付きます"
       ]},
       { heading: "表示と操作感", items: [
+        "ヘッダーのボタン（？の隣）でフルスクリーン表示に切り替えられます。もう一度押すと元に戻ります",
         "テーマは4種（濃紺／ライト／ダーク／ペーパー）から選べます",
         "入力ウィンドウの透明度、キーを押したときの振動、シートのスライドアニメーションはメニューで調整できます",
         "キーパッド上端のバーを上下にドラッグすると、キーパッドの高さを変えられます（ダブルタップで元の高さに戻ります）"
@@ -1698,7 +1706,8 @@
     function resetScores() {
       state.cells = {};
       confirmReset = false;
-      scheduleSave();
+      if (confirmResetTimer) { clearTimeout(confirmResetTimer); confirmResetTimer = null; }
+      save(); // a deliberate clear writes through immediately, not on the debounce
       closeSheets();
       renderAll();
     }
@@ -2134,6 +2143,35 @@
       openSheetName = openSheetName === null ? "menu" : null;
       renderAll();
     });
+
+    /* fullscreen toggle: always shown; vendor-prefixed fallbacks so
+       mobile Edge / Safari can enter fullscreen too. A rejected request
+       (e.g. inside an embed that forbids it) is swallowed quietly. */
+    function fsActiveEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    function updateFsBtn() {
+      var on = !!fsActiveEl();
+      var btn = $("fsBtn");
+      btn.setAttribute("aria-pressed", String(on));
+      btn.setAttribute("aria-label", on ? "フルスクリーンを終了" : "フルスクリーンにする");
+      btn.classList.toggle("active", on);
+      $("fsIconExpand").hidden = on;
+      $("fsIconCompress").hidden = !on;
+    }
+    $("fsBtn").addEventListener("click", function () {
+      try {
+        if (fsActiveEl()) {
+          var exit = document.exitFullscreen || document.webkitExitFullscreen;
+          if (exit) { var ep = exit.call(document); if (ep && ep.catch) ep.catch(function () {}); }
+        } else {
+          var el = document.documentElement;
+          var req = el.requestFullscreen || el.webkitRequestFullscreen;
+          if (req) { var rp = req.call(el); if (rp && rp.catch) rp.catch(function () {}); }
+        }
+      } catch (e) { /* fullscreen unavailable in this browser/context */ }
+      setTimeout(updateFsBtn, 350);
+    });
+    document.addEventListener("fullscreenchange", updateFsBtn);
+    document.addEventListener("webkitfullscreenchange", updateFsBtn);
     $("menuClose").addEventListener("click", function () { closeSheets(); renderAll(); });
     $("presetClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
     $("themeClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
@@ -2198,9 +2236,11 @@
         }
       }
     });
-    $("menuSheet").addEventListener("focusout", function (e) {
-      if (e.target.id === "menuReset") { confirmReset = false; renderMenu(); }
-    });
+    /* NOTE: no focusout cancellation for the 全消去 confirm state.
+       Re-rendering the menu after the first tap drops focus from the
+       button, and a focusout reset made the second (confirming) tap
+       unreachable — the button appeared to do nothing. The 4s timer
+       in the click handler is the only auto-cancel. */
 
     /* preset sheet delegation */
     $("presetList").addEventListener("click", function (e) {
