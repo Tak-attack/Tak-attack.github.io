@@ -1,1084 +1,2367 @@
 <!doctype html>
 <html lang="ja">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<meta name="color-scheme" content="light dark" />
-<link rel="icon" href="data:," />
-<title>ボードゲーム専用電卓（Boardgame Score Calc）</title>
-<style>
-  :root{ color-scheme: light dark; }
-  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body{ height:100%; }
-  body{
-    margin:0; font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
-    overflow:hidden; overscroll-behavior:none; position:fixed; inset:0; width:100%;
-  }
-  button{ font-family:inherit; cursor:pointer; }
-  button, [role="button"], select, input:not([type="checkbox"]){ min-height:2.25rem; }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>ボードゲーム専用電卓（Boardgame Score Calc）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+      .minh0 { min-height: 0 !important; }
 
-  /* ---------- themes ---------- */
-  body[data-theme="navy"]{ --bg:#0c1a3d; --bg2:#12255a; --surface:#16295c; --surface2:#1d3470; --line:#33509c; --text:#eef2ff; --sub:#a9bce8; --accent:#f2b33d; --accent-text:#231a00; --key:#22397a; --key-op:#2c4a9e; --danger:#ff7a7a; --win-bg:rgba(22,41,92,.55); }
-  body[data-theme="light"]{ --bg:#eef1f5; --bg2:#e2e8f0; --surface:#ffffff; --surface2:#f2f5f9; --line:#c9d4e2; --text:#1c2733; --sub:#5d7186; --accent:#0b6bcb; --accent-text:#ffffff; --key:#e8eef6; --key-op:#d3e2f5; --danger:#c62f2f; --win-bg:rgba(255,255,255,.55); }
-  body[data-theme="dark"]{ --bg:#101214; --bg2:#17191d; --surface:#1e2228; --surface2:#262b33; --line:#3a424e; --text:#eceff3; --sub:#9aa7b5; --accent:#ffb020; --accent-text:#241a00; --key:#2a3038; --key-op:#37404c; --danger:#ff8585; --win-bg:rgba(30,34,40,.55); }
-  body[data-theme="paper"]{ --bg:#ece1c8; --bg2:#e3d5b4; --surface:#fffaf0; --surface2:#f7ecd4; --line:#cdbb92; --text:#38332a; --sub:#7a6f57; --accent:#b3541e; --accent-text:#fff8ec; --key:#f1e6cd; --key-op:#e7d7b2; --danger:#b02a1e; --win-bg:rgba(255,250,240,.55); }
-  body{ background:var(--bg); color:var(--text); }
-  body[data-opacity="standard"]{ --win-bg:var(--surface); }
-  body[data-opacity="transparent"]{ --win-bg:color-mix(in srgb, var(--surface) 16%, transparent); }
+      /* ---- theme token sets (ported from the original app) ---- */
+      :root, [data-theme="navy"] {
+        color-scheme: dark;
+        --bg: #0a1b38; --panel: #081630; --field: #0a1b38;
+        --surface: #16294f; --surface2: #1d3461;
+        --editor: #14324a; --editor-ring: #2f6f5e;
+        --sel: #243d6b; --plus: #314e85; --plus-text: #ffffff;
+        --text: #f2f0e9; --dim: #9fb0cc; --border: #2a4470;
+        --accent: #e9a426; --on-accent: #0a1b38; --cream: #f6efdd;
+        --danger: #c0392b; --danger-text: #e88a8a;
+        --keyhi: #f6efdd; --keyhi-text: #0a1b38;
+        --pop-dim: #31497a; --pop-dim-text: #f2f0e9;
+      }
+      [data-theme="light"] {
+        color-scheme: light;
+        --bg: #e8ecf0; --panel: #ffffff; --field: #e1e8ef;
+        --surface: #ccd8e4; --surface2: #b3c4d6;
+        --editor: #eef6f2; --editor-ring: #3d9a7d;
+        --sel: #a3c2ee; --plus: #84aede; --plus-text: #16283d;
+        --text: #1c2733; --dim: #5d6f83; --border: #aebccb;
+        --accent: #e9a426; --on-accent: #23180a; --cream: #1c2733;
+        --danger: #c0392b; --danger-text: #b03a30;
+        --keyhi: #1c2733; --keyhi-text: #f6efdd;
+        --pop-dim: #39434f; --pop-dim-text: #f2f0e9;
+      }
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #000000; --panel: #0a0a0a; --field: #161616;
+        --surface: #171717; --surface2: #232323;
+        --editor: #101613; --editor-ring: #3d8a72;
+        --sel: #2e2e2e; --plus: #3a3a3a; --plus-text: #f2f2f0;
+        --text: #f2f2f0; --dim: #9a9a97; --border: #2c2c2c;
+        --accent: #e9a426; --on-accent: #0a0a0a; --cream: #f6efdd;
+        --danger: #c0392b; --danger-text: #e88a8a;
+        --keyhi: #f6efdd; --keyhi-text: #0a0a0a;
+        --pop-dim: #333333; --pop-dim-text: #f2f2f0;
+      }
+      [data-theme="paper"] {
+        color-scheme: light;
+        --bg: #ecdfbe; --panel: #faf4e2; --field: #fffdf4;
+        --surface: #dec98f; --surface2: #cdb26e;
+        --editor: #f3ecd7; --editor-ring: #7d9b6a;
+        --sel: #d3b657; --plus: #bd9136; --plus-text: #fffdf4;
+        --text: #3d3423; --dim: #7d6c47; --border: #bfa87a;
+        --accent: #5d7d3c; --on-accent: #fbf7ea; --cream: #3d3423;
+        --danger: #b3402a; --danger-text: #b3402a;
+        --keyhi: #fffdf4; --keyhi-text: #3d3423;
+        --pop-dim: #6d7f52; --pop-dim-text: #fbf7ea;
+      }
+      .app-root[data-theme="paper"], html[data-theme="paper"] body {
+        background-image:
+          radial-gradient(rgba(122,102,58,.055) 1px, transparent 1.4px),
+          radial-gradient(rgba(122,102,58,.04) 1px, transparent 1.4px);
+        background-size: 22px 22px, 34px 34px;
+        background-position: 0 0, 9px 13px;
+      }
 
-  #loading{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--sub); font-size:1rem; z-index:200; }
+      html, body {
+        height: 100%; overflow: hidden; overscroll-behavior: none;
+        background-color: var(--bg); margin: 0;
+      }
+      body { font-family: system-ui, sans-serif; }
+      .font-rounded { font-family: "M PLUS Rounded 1c", system-ui, sans-serif; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+      button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; }
+      input { font: inherit; }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-  #app{ display:flex; flex-direction:column; height:100dvh; background:linear-gradient(180deg,var(--bg2),var(--bg)); }
+      /* app shell: pinned to viewport, small-viewport height */
+      .app-root {
+        position: fixed; top: 0; left: 0; right: 0;
+        height: 100vh; height: 100dvh; height: 100svh;
+        display: flex; flex-direction: column; overflow: hidden;
+        background-color: var(--bg); color: var(--text);
+      }
+      #loadingScreen {
+        position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+        background-color: var(--bg); color: var(--dim); z-index: 100;
+      }
 
-  /* ---------- header ---------- */
-  header{ display:flex; align-items:center; gap:.5rem; padding:.55rem .7rem; padding-top:calc(.55rem + env(safe-area-inset-top)); flex:0 0 auto; }
-  #gameNameBtn{ flex:1 1 auto; min-width:0; text-align:left; background:var(--surface); color:var(--text); border:1.5px solid var(--line); border-radius:.7rem; padding:.45rem .8rem; font-size:1.08rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #gameNameBtn .placeholder{ color:var(--sub); font-weight:400; opacity:.75; }
-  .icon-btn{ flex:0 0 auto; width:2.75rem; height:2.75rem; min-height:2.75rem; border-radius:50%; border:1.5px solid var(--line); background:var(--surface); color:var(--text); display:flex; align-items:center; justify-content:center; font-size:1.15rem; font-weight:700; padding:0; }
-  .icon-btn svg{ width:1.3rem; height:1.3rem; display:block; }
-  .icon-btn.active{ background:var(--accent); color:var(--accent-text); border-color:var(--accent); }
+      /* ---- header ---- */
+      .hdr { flex: none; padding-left: 8px; padding-right: 8px; }
+      .hdr-row { margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+      #titleInput {
+        min-width: 0; flex: 1; background: transparent; border: none; outline: none;
+        font-family: "M PLUS Rounded 1c", system-ui, sans-serif;
+        font-size: 20px; font-weight: 800; line-height: 1.25; color: var(--text);
+      }
+      #titleInput::placeholder { font-weight: 800; color: var(--dim); opacity: .6; }
+      .hdr-btn {
+        flex: none; display: flex; align-items: center; justify-content: center;
+        border-radius: 999px; background: var(--surface); color: var(--text);
+      }
+      #helpBtn { width: 36px; height: 36px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; }
+      #fsBtn { width: 36px; height: 36px; }
+      #fsBtn svg { display: block; }
+      #menuBtn { gap: 6px; padding: 6px 12px; font-size: 12px; font-weight: 700; min-height: 2rem; }
+      .hdr-btn.active { background: var(--accent); color: var(--on-accent); }
+      .burger { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+      .burger span { display: block; height: 2px; width: 16px; border-radius: 999px; background: currentColor; }
 
-  /* ---------- table ---------- */
-  #tableWrap{ flex:1 1 auto; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:0 .7rem; }
-  #grid{ display:grid; gap:3px; width:100%; }
-  .cell{ background:var(--surface); border:1px solid var(--line); border-radius:.45rem; display:flex; align-items:center; justify-content:center; min-height:3rem; padding:.2rem .3rem; text-align:center; overflow:hidden; }
-  .cell.head{ background:var(--surface2); position:sticky; top:0; z-index:3; }
-  .cell.corner{ position:sticky; left:0; top:0; z-index:5; font-size:.8rem; color:var(--sub); justify-content:center; }
-  .cell.label{ position:sticky; left:0; z-index:2; justify-content:flex-start; text-align:left; background:var(--surface2); font-size:.92rem; font-weight:600; }
-  .cell.label .lname{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .cell.total{ background:var(--surface2); font-weight:800; font-size:1.15rem; position:sticky; bottom:0; z-index:3; }
-  .cell.total-label{ position:sticky; left:0; bottom:0; z-index:4; justify-content:flex-start; background:var(--surface2); font-weight:800; }
-  .cell.score{ font-size:1.2rem; font-weight:700; background:var(--surface); border:1px solid var(--line); color:var(--text); width:100%; }
-  .cell.score.selected{ outline:3px solid var(--accent); outline-offset:-1px; }
-  .cell.score .expr{ font-size:.85rem; color:var(--sub); font-weight:400; word-break:break-all; }
-  .frac{ font-size:.62em; color:var(--sub); font-weight:400; margin-left:.05em; }
-  .pframe{ display:inline-block; border:3px solid #999; border-radius:.55rem; padding:.18rem .45rem; font-weight:800; font-size:1rem; line-height:1.25; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:var(--surface); }
-  .badge{ flex:0 0 auto; font-size:.62rem; font-weight:800; border-radius:.35rem; padding:.08rem .3rem; margin-left:.35rem; letter-spacing:.02em; }
-  .badge.tb{ background:var(--accent); color:var(--accent-text); }
-  .minus-mark{ color:#e53935; font-weight:900; margin-left:.3rem; font-size:1.05rem; }
-  .crown{ font-size:.95rem; margin-right:.15rem; }
-  #winnerNote{ padding:.35rem .9rem 0; font-size:.88rem; color:var(--accent); font-weight:700; min-height:1.2rem; }
-  body[data-theme="light"] #winnerNote, body[data-theme="paper"] #winnerNote{ color:var(--accent); }
+      /* ---- score table ---- */
+      #tableScroll { margin-top: 6px; min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px; }
+      #tableX { overflow-x: auto; overscroll-behavior-x: contain; border-radius: 12px; border: 1px solid var(--border); }
+      .srow { display: grid; width: 100%; }
+      .srow-head { background: var(--surface); }
+      .srow-cat { border-top: 1px solid var(--border); }
+      .srow-total { border-top: 2px solid var(--accent); background: var(--surface2); }
+      .th-cat {
+        position: sticky; left: 0; z-index: 10; background: var(--surface);
+        padding: 4px 6px; text-align: left; font-size: 11px; font-weight: 700; color: var(--dim);
+      }
+      .rh-cat {
+        position: sticky; left: 0; z-index: 10; display: flex; align-items: center;
+        background: var(--bg); padding: 2px 6px; text-align: left;
+      }
+      .rh-total {
+        position: sticky; left: 0; z-index: 10; background: var(--surface2);
+        padding: 4px 6px; text-align: left; font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 12px; font-weight: 800;
+      }
+      .cat-name-btn {
+        display: block; width: 100%; padding: 4px 0; text-align: left;
+        font-size: 11px; font-weight: 700; line-height: 1.25;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .cat-name-editing {
+        display: block; width: 100%; border-radius: 6px; background: var(--sel);
+        padding: 4px; text-align: left; font-size: 11px; font-weight: 700; line-height: 1.25;
+        box-shadow: 0 0 0 2px var(--accent);
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .neg-mark { margin-right: 2px; font-weight: 800; color: var(--danger-text); }
+      .tb-badge {
+        margin-right: 4px; border-radius: 4px; background: var(--surface2); padding: 1px 4px;
+        vertical-align: middle; font-size: 8px; font-weight: 800; color: var(--dim);
+      }
+      .th-player { min-width: 0; padding: 4px 2px; }
+      .pill {
+        display: flex; width: 100%; align-items: center; justify-content: center;
+        border-radius: 999px; border: 2px solid; padding: 4px 2px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-weight: 800; color: var(--text);
+        font-size: 12px;
+      }
+      .pill.sel { background: var(--sel); }
+      .pill.editing { background: var(--sel); box-shadow: 0 0 0 2px var(--accent); }
+      .pill > span { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+      .pill.few { font-size: 14px; }
+      .add-player-btn {
+        width: 100%; border-radius: 999px; background: var(--surface2); padding: 2px 4px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800;
+        line-height: 1.25; color: var(--accent);
+      }
+      .add-player-btn:disabled { opacity: .3; }
+      .cell-wrap { min-width: 0; padding: 2px; }
+      .cell-btn {
+        display: flex; min-height: 36px; width: 100%; flex-direction: column; justify-content: center;
+        border-radius: 8px; padding: 2px 6px; text-align: left; background: color-mix(in srgb, var(--surface) 60%, transparent);
+      }
+      .cell-btn.sel { background: var(--sel); box-shadow: 0 0 0 2px var(--accent); }
+      .cell-val { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; }
+      .cell-val.neg { color: var(--danger-text); }
+      .cell-val .frac { font-size: 11px; font-weight: 700; opacity: .45; }
+      .cell-val .empty { color: var(--dim); }
+      .cell-formula { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; line-height: 1.25; color: var(--dim); }
+      .total-cell { min-width: 0; padding: 4px; text-align: center; }
+      .total-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; }
+      .total-val { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; }
+      .total-val.leader { color: var(--accent); }
+      .crown { color: var(--accent); }
+      .tb-win { font-size: 8px; font-weight: 700; line-height: 1.25; color: var(--dim); }
+      .wide-btn {
+        margin-top: 6px; width: 100%; border-radius: 8px; padding: 6px 0;
+        font-size: 12px; font-weight: 700; color: var(--dim);
+      }
+      #addCatBtn { border: 1px dashed var(--border); }
+      #addCatBtn:disabled { opacity: .3; }
+      #saveHistBtn {
+        background: var(--surface); font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 14px; font-weight: 800; color: var(--accent); padding: 8px 0;
+      }
+      .table-hint { margin-top: 4px; text-align: center; font-size: 11px; line-height: 1.4; color: var(--dim); }
 
-  #actions{ flex:0 0 auto; display:flex; flex-wrap:wrap; gap:.5rem; padding:.55rem .7rem calc(.7rem + env(safe-area-inset-bottom)); }
-  .act-btn{ flex:1 1 30%; background:var(--surface); color:var(--text); border:1.5px solid var(--line); border-radius:.7rem; padding:.55rem .4rem; font-size:.92rem; font-weight:700; }
-  .act-btn.primary{ background:var(--accent); color:var(--accent-text); border-color:var(--accent); }
+      /* ---- sheets (shared) ---- */
+      .sheet { flex: none; border-top: 1px solid var(--border); background: var(--panel); padding: 10px 12px env(safe-area-inset-bottom, 0px); }
+      .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .sheet-title { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; }
+      .close-btn { border-radius: 999px; background: var(--surface); padding: 4px 12px; font-size: 12px; font-weight: 700; color: var(--text); min-height: 2rem; }
+      .sheet-desc { margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--dim); }
+      .cat-label { padding: 6px 2px 0; font-size: 11px; font-weight: 700; color: var(--dim); }
+      .cat-label:first-child { padding-top: 0; }
 
-  /* ---------- keypad ---------- */
-  #keypadWrap{ position:fixed; left:0; right:0; bottom:0; z-index:60; display:none; flex-direction:column; align-items:center; pointer-events:none; }
-  #keypadWrap.open{ display:flex; }
-  body[data-anim="on"] #keypadWrap.open{ animation:slideUp .22s ease-out; }
-  @keyframes slideUp{ from{ transform:translateY(24px); opacity:.4; } to{ transform:translateY(0); opacity:1; } }
-  #floatWin{ pointer-events:auto; width:min(94vw,30rem); background:var(--win-bg); border:1.5px solid var(--line); border-radius:.9rem; padding:.5rem .7rem; margin-bottom:.45rem; box-shadow:0 6px 24px rgba(0,0,0,.25); backdrop-filter:blur(2px); }
-  #floatWin .fw-top{ display:flex; align-items:center; gap:.5rem; }
-  #fwCell{ font-size:.8rem; color:var(--sub); flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  #fwExpr{ font-size:1.05rem; min-height:1.5rem; word-break:break-all; margin-top:.15rem; }
-  #fwResult{ font-size:1.45rem; font-weight:800; min-height:1.9rem; }
-  #fwResult .lbl{ font-size:.8rem; color:var(--sub); font-weight:400; margin-right:.4rem; }
-  .switch{ display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; font-weight:700; min-height:2.25rem; padding:.2rem .2rem; }
-  .switch input{ width:1.3rem; height:1.3rem; accent-color:var(--accent); }
-  #fwClose{ background:var(--accent); color:var(--accent-text); border:none; border-radius:.6rem; padding:.35rem .8rem; font-weight:800; font-size:.95rem; }
-  #keypadBox{ pointer-events:auto; width:100%; background:var(--surface); border-top:1.5px solid var(--line); padding:0 .5rem calc(.5rem + env(safe-area-inset-bottom)); }
-  #kpHandle{ height:1.4rem; display:flex; align-items:center; justify-content:center; touch-action:none; cursor:grab; }
-  #kpHandle::before{ content:""; width:3.2rem; height:.32rem; border-radius:1rem; background:var(--line); }
-  #kpGrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:.4rem; max-width:34rem; margin:0 auto; }
-  .key{ height:var(--keyh,54px); border:1px solid var(--line); border-radius:.65rem; background:var(--key); color:var(--text); font-size:1.3rem; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; padding:0; }
-  .key.op{ background:var(--key-op); font-size:1.15rem; }
-  .key:active{ filter:brightness(1.25); }
-  .key.span-r2{ grid-row:span 2; height:auto; }
-  .key.span-c2{ grid-column:span 2; }
-  #kpFooter{ display:flex; justify-content:flex-end; max-width:34rem; margin:.45rem auto 0; }
-  #nextBtn{ background:var(--accent); color:var(--accent-text); border:none; border-radius:.7rem; padding:.6rem 1.1rem; font-size:1rem; font-weight:800; touch-action:none; user-select:none; }
+      @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .sheet-slide-up { animation: slide-up 240ms cubic-bezier(.22,.9,.3,1); }
+      @keyframes pop-in { from { transform: scale(.92); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+      .pop-in { animation: pop-in 90ms ease-out; }
+      @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+      .cursor-blink { animation: blink 1.1s step-end infinite; }
+      @media (prefers-reduced-motion: reduce) {
+        .cursor-blink, .pop-in, .sheet-slide-up { animation: none; }
+      }
 
-  /* ---------- sheets ---------- */
-  #overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:80; display:none; }
-  #overlay.open{ display:block; }
-  .sheet{ position:fixed; left:0; right:0; bottom:0; z-index:90; background:var(--surface); color:var(--text); border-radius:1.1rem 1.1rem 0 0; border-top:1.5px solid var(--line); max-height:88dvh; display:none; flex-direction:column; padding-bottom:env(safe-area-inset-bottom); }
-  .sheet.open{ display:flex; }
-  body[data-anim="on"] .sheet.open{ animation:slideUp .22s ease-out; }
-  .sheet-head{ display:flex; align-items:center; gap:.5rem; padding:.8rem 1rem .4rem; }
-  .sheet-head h2{ font-size:1.1rem; margin:0; flex:1 1 auto; }
-  .sheet-close{ width:2.5rem; height:2.5rem; border-radius:50%; border:1.5px solid var(--line); background:var(--surface2); color:var(--text); font-size:1.05rem; }
-  .sheet-body{ overflow-y:auto; overscroll-behavior:contain; padding:.4rem 1rem 1.1rem; }
-  .sheet-body h3{ font-size:.85rem; color:var(--sub); margin:1rem 0 .45rem; letter-spacing:.04em; }
-  .sheet-body h3:first-child{ margin-top:.2rem; }
-  .seg{ display:flex; flex-wrap:wrap; gap:.4rem; }
-  .seg button{ flex:1 1 auto; background:var(--surface2); color:var(--text); border:1.5px solid var(--line); border-radius:.6rem; padding:.5rem .5rem; font-size:.92rem; font-weight:600; }
-  .seg button.sel{ background:var(--accent); color:var(--accent-text); border-color:var(--accent); }
-  .row-btn{ display:flex; align-items:center; gap:.6rem; width:100%; text-align:left; background:var(--surface2); color:var(--text); border:1.5px solid var(--line); border-radius:.7rem; padding:.65rem .8rem; font-size:.98rem; font-weight:600; margin-bottom:.45rem; }
-  .row-btn .grow{ flex:1 1 auto; }
-  .row-btn small{ color:var(--sub); font-weight:400; display:block; font-size:.8rem; }
-  .danger{ color:var(--danger) !important; border-color:var(--danger) !important; }
-  .armed{ background:var(--danger) !important; color:#fff !important; border-color:var(--danger) !important; }
-  .txt-input{ width:100%; background:var(--surface2); color:var(--text); border:1.5px solid var(--line); border-radius:.6rem; padding:.55rem .7rem; font-size:1rem; margin-bottom:.6rem; }
-  .swatches{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.3rem 0 .7rem; }
-  .swatch{ width:2.6rem; height:2.6rem; border-radius:50%; border:3px solid transparent; padding:0; position:relative; }
-  .swatch.sel{ border-color:var(--text); }
-  .swatch.auto{ width:auto; border-radius:1.3rem; padding:0 .8rem; background:var(--surface2); color:var(--text); border:1.5px solid var(--line); font-size:.85rem; font-weight:700; }
-  .swatch.auto.sel{ background:var(--accent); color:var(--accent-text); }
-  .radio-row{ display:flex; gap:.4rem; margin-bottom:.6rem; }
-  .radio-row label{ flex:1; display:flex; align-items:center; justify-content:center; gap:.35rem; background:var(--surface2); border:1.5px solid var(--line); border-radius:.6rem; padding:.55rem .3rem; font-size:.92rem; font-weight:600; min-height:2.75rem; }
-  .radio-row input{ width:1.15rem; height:1.15rem; accent-color:var(--accent); }
-  .help-list{ margin:.2rem 0 .6rem; padding-left:1.2rem; }
-  .help-list li{ margin-bottom:.35rem; line-height:1.55; font-size:.95rem; }
-  table.detail{ border-collapse:collapse; width:100%; font-size:.9rem; }
-  table.detail th, table.detail td{ border:1px solid var(--line); padding:.35rem .4rem; text-align:center; }
-  table.detail th{ background:var(--surface2); }
-  table.detail td.lbl, table.detail th.lbl{ text-align:left; }
-  table.detail tr.total td{ font-weight:800; border-top:3px solid var(--text); }
-  #toast{ position:fixed; left:50%; bottom:6.5rem; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:.55rem 1rem; border-radius:2rem; font-size:.9rem; font-weight:700; z-index:120; display:none; box-shadow:0 4px 16px rgba(0,0,0,.3); }
-  #toast.show{ display:block; }
+      /* ---- menu sheet ---- */
+      .menu-list { margin: 10px 0 4px; display: flex; flex-direction: column; gap: 6px; }
+      /* on short screens the menu list scrolls inside the sheet so the
+         全消去 row at the bottom always stays reachable */
+      #menuSheet { display: flex; flex-direction: column; max-height: calc(100dvh - 120px); }
+      #menuSheet .menu-list { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+      .menu-row {
+        display: flex; width: 100%; align-items: center; gap: 12px; border-radius: 12px;
+        background: var(--surface); padding: 12px 14px; text-align: left;
+      }
+      .menu-row.danger-confirm { background: var(--danger); color: #fff; }
+      .menu-icon {
+        display: flex; height: 32px; width: 32px; flex: none; align-items: center; justify-content: center;
+        border-radius: 8px; background: var(--surface2); font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 16px; font-weight: 800; color: var(--accent);
+      }
+      .menu-row.danger-confirm .menu-icon { background: rgba(255,255,255,.2); color: #fff; }
+      .menu-texts { min-width: 0; flex: 1; }
+      .menu-name { display: block; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .menu-sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--dim); }
+      .menu-row.danger-confirm .menu-sub { color: rgba(255,255,255,.8); }
+      .chev { flex: none; font-size: 14px; font-weight: 700; color: var(--dim); }
+      .onoff {
+        flex: none; border-radius: 999px; padding: 4px 10px; font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 11px; font-weight: 800; line-height: 1; background: var(--surface2); color: var(--dim);
+      }
+      .onoff.on { background: var(--accent); color: var(--on-accent); }
+      .seg { display: flex; flex: none; border-radius: 999px; background: var(--surface2); padding: 2px; }
+      .seg button {
+        display: flex; align-items: center; justify-content: center; border-radius: 999px;
+        padding: 4px 8px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 11px; font-weight: 800;
+        line-height: 1; color: var(--dim); min-height: 0;
+      }
+      .seg button.on { background: var(--accent); color: var(--on-accent); }
+      .seg button.icon-btn { padding: 4px 10px; font-size: 14px; opacity: .5; background: transparent; color: inherit; }
+      .seg button.icon-btn.on { background: var(--accent); opacity: 1; }
+      .swatches { display: flex; flex: none; margin-left: -6px; }
+      .swatches span { height: 20px; width: 20px; border-radius: 999px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); margin-left: -6px; }
+      .swatches span:first-child { margin-left: 0; }
 
-  /* ---------- print receipt ---------- */
-  #printRoot{ display:none; }
-  .receipt{ background:#fff; color:#000; width:80mm; max-width:100%; margin:0 auto; padding:6mm 4mm; font-family:"Hiragino Sans","Noto Sans JP",sans-serif; }
-  .receipt h2{ font-size:15pt; margin:0 0 2mm; text-align:center; word-break:break-all; }
-  .receipt .meta{ font-size:9.5pt; text-align:center; margin-bottom:3mm; }
-  .receipt table{ border-collapse:collapse; width:100%; font-size:9.5pt; }
-  .receipt th, .receipt td{ border:.6pt solid #000; padding:1.2mm 1mm; text-align:center; word-break:break-all; }
-  .receipt td.lbl, .receipt th.lbl{ text-align:left; }
-  .receipt tr.total td{ font-weight:700; border-top:2.2pt solid #000; }
-  @media print{
-    body > *:not(#printRoot){ display:none !important; }
-    #printRoot{ display:block !important; }
-    body{ position:static; overflow:visible; background:#fff; }
-    @page{ size:80mm auto; margin:0; }
-  }
-</style>
-</head>
-<body data-theme="navy" data-opacity="semi" data-anim="on">
-<div id="loading">読み込み中…</div>
+      /* ---- preset / history sheets ---- */
+      .sheet-scroll { margin-top: 8px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 6px; }
+      #presetList { max-height: 38dvh; }
+      #historyList { max-height: 48dvh; margin-bottom: 4px; }
+      .preset-row { display: flex; align-items: center; gap: 8px; border-radius: 12px; background: var(--surface); padding: 8px 12px; }
+      .preset-main { min-width: 0; flex: 1; }
+      .preset-name-line { display: flex; align-items: center; gap: 6px; }
+      .preset-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .builtin-badge { flex: none; border-radius: 999px; background: var(--surface2); padding: 2px 6px; font-size: 9px; font-weight: 700; color: var(--dim); }
+      .preset-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--dim); }
+      .small-btn { flex: none; border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; background: var(--surface2); color: var(--dim); min-height: 2rem; }
+      .small-btn.confirm { background: var(--danger); color: #fff; }
+      .load-btn { flex: none; border-radius: 8px; padding: 6px 12px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; background: var(--accent); color: var(--on-accent); min-height: 2rem; }
+      .load-btn.confirm { background: var(--danger); color: #fff; }
+      .empty-note { border-radius: 12px; background: color-mix(in srgb, var(--surface) 60%, transparent); padding: 10px 12px; font-size: 14px; color: var(--dim); }
+      .preset-save-row { margin: 10px 0 4px; display: flex; gap: 8px; }
+      .text-input {
+        min-width: 0; flex: 1; border-radius: 12px; background: var(--field); padding: 10px 12px;
+        font-size: 16px; font-weight: 700; color: var(--text); outline: none;
+        border: none; box-shadow: inset 0 0 0 1px var(--border);
+      }
+      .text-input::placeholder { font-size: 14px; font-weight: 400; color: var(--dim); }
+      .save-preset-btn {
+        flex: none; border-radius: 12px; background: var(--accent); padding: 10px 16px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--on-accent);
+      }
+      .save-preset-btn:disabled { opacity: .3; }
 
-<div id="app" style="visibility:hidden">
-  <header>
-    <button id="gameNameBtn" type="button"><span class="placeholder">ゲーム名</span></button>
-    <button class="icon-btn" id="helpBtn" type="button" aria-label="ヘルプ">？</button>
-    <button class="icon-btn" id="fsBtn" type="button" aria-label="フルスクリーン" style="display:none">
-      <svg id="fsExpand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></svg>
-      <svg id="fsShrink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M9 4v4a1 1 0 0 1-1 1H4M20 9h-4a1 1 0 0 1-1-1V4M15 20v-4a1 1 0 0 1 1-1h4M4 15h4a1 1 0 0 1 1 1v4"/></svg>
-    </button>
-    <button class="icon-btn" id="menuBtn" type="button" aria-label="メニュー">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-    </button>
-  </header>
-  <div id="winnerNote"></div>
-  <div id="tableWrap"><div id="grid"></div><div id="kpSpacer" style="height:0"></div></div>
-  <div id="actions">
-    <button class="act-btn" id="addItemBtn" type="button">＋ 項目を追加</button>
-    <button class="act-btn" id="addPlayerBtn" type="button">＋ プレイヤーを追加</button>
-    <button class="act-btn primary" id="saveHistBtn" type="button">この結果を履歴に保存</button>
-  </div>
-</div>
+      /* theme sheet */
+      .theme-grid { margin: 8px 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .theme-btn {
+        display: flex; align-items: center; gap: 10px; border-radius: 12px; padding: 10px 12px;
+        text-align: left; background: var(--surface); box-shadow: inset 0 0 0 1px var(--border);
+      }
+      .theme-btn.active { background: var(--sel); box-shadow: inset 0 0 0 2px var(--accent); }
+      .theme-btn .tname { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .theme-btn .inuse { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--dim); }
 
-<div id="keypadWrap">
-  <div id="floatWin">
-    <div class="fw-top">
-      <span id="fwCell"></span>
-      <label class="switch"><input type="checkbox" id="quickSwitch" />クイック</label>
-      <button id="fwClose" type="button">決定</button>
+      /* history sheet */
+      .hist-row { border-radius: 12px; background: var(--surface); padding: 8px 12px; }
+      .hist-top { display: flex; align-items: center; gap: 8px; }
+      .hist-main { min-width: 0; flex: 1; text-align: left; }
+      .hist-title-line { display: flex; align-items: baseline; gap: 8px; }
+      .hist-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .hist-title.blank { color: var(--dim); opacity: .7; }
+      .hist-date { flex: none; font-size: 11px; color: var(--dim); }
+      .hist-winner { margin-top: 2px; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--dim); }
+      .hist-print-row { margin-top: 8px; display: flex; justify-content: flex-end; }
+      .mini-wrap { margin-top: 8px; overflow-x: auto; overscroll-behavior-x: contain; border-radius: 8px; border: 1px solid var(--border); }
+      .mini-row { display: grid; width: 100%; }
+      .mini-head { background: var(--surface2); }
+      .mini-cat-row { border-top: 1px solid var(--border); }
+      .mini-total { border-top: 2px solid var(--accent); background: var(--surface2); }
+      .mini-th-cat {
+        position: sticky; left: 0; z-index: 10; background: var(--surface2);
+        padding: 4px 6px; text-align: left; font-size: 11px; font-weight: 700; color: var(--dim);
+      }
+      .mini-rh {
+        position: sticky; left: 0; z-index: 10; display: flex; align-items: center;
+        background: var(--surface); padding: 4px 6px; text-align: left;
+      }
+      .mini-rh-total { background: var(--surface2); font-family: "M PLUS Rounded 1c", sans-serif; font-size: 12px; font-weight: 800; }
+      .mini-cat-name { display: block; font-size: 11px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .mini-th-player { min-width: 0; padding: 4px; }
+      .mini-pill {
+        display: flex; align-items: center; justify-content: center; border-radius: 999px; border: 2px solid;
+        padding: 2px 2px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 12px; font-weight: 800;
+      }
+      .mini-pill > span { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+      .mini-cell { min-width: 0; padding: 4px; text-align: center; }
+      .mini-val { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .mini-val.neg { color: var(--danger-text); }
+      .mini-val .frac { font-size: 10px; font-weight: 700; opacity: .45; }
+      .mini-val .empty { color: var(--dim); }
+
+      /* ---- editor sheet ---- */
+      .editor-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+      .editor-label { font-size: 14px; font-weight: 700; color: var(--dim); }
+      .editor-note { font-size: 12px; color: var(--dim); }
+      #editorInput {
+        margin-top: 6px; width: 100%; border-radius: 12px; background: var(--field); padding: 10px 12px;
+        font-size: 16px; font-weight: 700; color: var(--text); outline: none; border: none;
+        box-shadow: 0 0 0 2px var(--accent);
+      }
+      .color-box { margin-top: 8px; border-radius: 12px; background: var(--surface); padding: 8px 12px; }
+      .color-box .cb-title { display: block; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .color-row { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+      .auto-color-btn {
+        border-radius: 999px; padding: 6px 12px; font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 12px; font-weight: 800; background: var(--surface2); color: var(--text); min-height: 2rem;
+      }
+      .auto-color-btn.on { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 2px var(--accent); }
+      .swatch { height: 36px; width: 36px; flex: none; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--dim); min-height: 0; }
+      .swatch.on { box-shadow: 0 0 0 2px var(--text), 0 0 0 4px var(--surface); }
+      .color-note { margin-top: 6px; display: block; font-size: 11px; line-height: 1.4; color: var(--dim); }
+      .switch-row {
+        margin-top: 8px; display: flex; width: 100%; align-items: center; gap: 10px;
+        border-radius: 12px; background: var(--surface); padding: 8px 12px; text-align: left;
+      }
+      .switch-track { position: relative; height: 24px; width: 44px; flex: none; border-radius: 999px; background: var(--surface2); transition: background-color .15s; }
+      .switch-track .knob { position: absolute; top: 2px; left: 2px; height: 20px; width: 20px; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: left .15s; }
+      .switch-track.on-danger { background: var(--danger); }
+      .switch-track.on-accent { background: var(--accent); }
+      .switch-track.on-danger .knob, .switch-track.on-accent .knob { left: 22px; }
+      .switch-texts { min-width: 0; }
+      .switch-name { display: block; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .switch-sub { display: block; font-size: 11px; line-height: 1.4; color: var(--dim); }
+      .editor-btns { margin: 8px 0 4px; display: flex; gap: 8px; }
+      .del-btn { border-radius: 12px; background: var(--danger); padding: 10px 16px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
+      .del-btn:disabled { opacity: .3; }
+      .cancel-btn { border-radius: 12px; background: var(--surface); padding: 10px 16px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
+      .done-btn { flex: 1; border-radius: 12px; background: var(--accent); padding: 10px 16px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--on-accent); }
+
+      /* ---- help sheet ---- */
+      #helpScroll { margin: 8px 0 4px; max-height: 52dvh; overflow-y: auto; overscroll-behavior: contain; }
+      .help-section { margin-bottom: 12px; }
+      .help-section:last-child { margin-bottom: 4px; }
+      .help-h { padding: 0 2px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 13px; font-weight: 800; color: var(--accent); margin: 0; }
+      .help-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+      .help-list li { display: flex; gap: 4px; padding: 0 2px; font-size: 13px; line-height: 1.45; }
+      .help-list .dot { flex: none; color: var(--dim); }
+
+      /* ---- keypad ---- */
+      :root { --keyrow: 74px; }
+      #keypadSheet { position: relative; padding-top: 0; padding-left: 8px; padding-right: 8px; }
+      #kpHandle {
+        display: flex; height: 24px; width: 100%; cursor: ns-resize; touch-action: none;
+        user-select: none; -webkit-user-select: none; align-items: center; justify-content: center; outline: none;
+      }
+      #kpHandle .bar { height: 6px; width: 48px; border-radius: 999px; background: var(--dim); opacity: .5; }
+      #kpHandle.dragging .bar { opacity: 1; }
+      #kpGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding-bottom: 2px; }
+      .key {
+        position: relative; display: flex; align-items: center; justify-content: center; border-radius: 16px;
+        background: var(--surface); font-family: "M PLUS Rounded 1c", sans-serif; font-size: 28px; font-weight: 800;
+        color: var(--text); user-select: none; -webkit-user-select: none; min-height: 0;
+      }
+      .key.op { background: var(--surface2); color: var(--accent); }
+      .key.plus { background: var(--plus); color: var(--plus-text); font-size: 32px; grid-row: span 2; }
+      .key.paren { font-size: 22px; font-weight: 700; }
+      .key.square { font-size: 20px; }
+      .key.zero { grid-column: span 2; touch-action: none; }
+      .key.flick { touch-action: none; }
+      .key.held { background: var(--keyhi); color: var(--keyhi-text); }
+      .key.quick-held { background: var(--accent); color: var(--on-accent); }
+      .key .hint { position: absolute; bottom: 4px; font-size: 10px; font-weight: 700; line-height: 1; color: var(--dim); }
+      .flick-bubble {
+        position: absolute; z-index: 50; display: flex; height: 44px; min-width: 44px; align-items: center;
+        justify-content: center; white-space: nowrap; border-radius: 16px; padding: 0 8px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 24px; font-weight: 800;
+        box-shadow: 0 10px 24px rgba(0,0,0,.35); background: var(--pop-dim); color: var(--pop-dim-text);
+        pointer-events: none;
+      }
+      .flick-bubble.active { background: var(--keyhi); color: var(--keyhi-text); }
+      .flick-bubble.small { font-size: 16px; }
+      .bubble-up { left: 50%; top: 0; transform: translate(-50%, -55%); }
+      .bubble-down { left: 50%; bottom: 0; transform: translate(-50%, 55%); }
+      .bubble-left { left: 0; top: 50%; transform: translate(-55%, -50%); }
+      .next-wrap { height: 100%; }
+      .next-btn {
+        position: relative; display: flex; height: 100%; width: 100%; touch-action: none;
+        user-select: none; -webkit-user-select: none; flex-direction: column; align-items: center;
+        justify-content: center; gap: 2px; border-radius: 16px; background: var(--accent);
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--on-accent);
+        min-height: 0;
+      }
+      .next-circle {
+        display: flex; height: 32px; width: 32px; align-items: center; justify-content: center;
+        border-radius: 999px; border: 2.5px solid var(--on-accent); font-size: 14px; font-weight: 800;
+      }
+      .next-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px; line-height: 1.25; }
+      .next-hint { font-size: 9px; font-weight: 700; line-height: 1; opacity: .6; }
+
+      /* floating formula window */
+      .float-window {
+        position: absolute; left: 12px; right: 12px; bottom: 100%; z-index: 40; margin-bottom: 8px;
+        border-radius: 24px; border: 1px solid var(--editor-ring); background: var(--editor);
+        padding: 12px 16px; box-shadow: 0 20px 40px rgba(0,0,0,.35);
+      }
+      .float-top { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+      .float-pill { flex: none; border-radius: 999px; border: 2px solid; padding: 2px 8px; }
+      .float-cat { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; color: var(--dim); }
+      .float-badge { flex: none; border-radius: 999px; padding: 2px 8px; font-size: 10px; font-weight: 700; }
+      .float-badge.neg { background: var(--danger); color: #fff; }
+      .float-badge.tb { background: var(--surface2); color: var(--text); }
+      .quick-switch {
+        flex: none; border-radius: 999px; padding: 6px 12px; font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 11px; font-weight: 800; line-height: 1; background: var(--surface); color: var(--dim); min-height: 0;
+      }
+      .quick-switch.on { background: var(--accent); color: var(--on-accent); }
+      .float-done {
+        margin-left: auto; flex: none; border-radius: 999px; background: var(--accent); padding: 6px 14px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; color: var(--on-accent); min-height: 0;
+      }
+      .float-formula {
+        margin-top: 6px; min-height: 40px; font-family: "M PLUS Rounded 1c", sans-serif;
+        font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: .02em; word-break: break-all;
+      }
+      .float-placeholder { font-size: 20px; font-weight: 400; color: var(--dim); }
+      .float-pending { color: var(--accent); }
+      .float-pending .under { color: var(--dim); }
+      .float-cursor { margin-left: 2px; font-weight: 300; color: var(--dim); }
+      .float-result-row { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; }
+      .float-eq { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 24px; font-weight: 700; color: var(--dim); }
+      .float-result { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 48px; font-weight: 800; line-height: 1; color: var(--cream); }
+      .float-quick-hint { margin: 2px 0 0; text-align: right; font-size: 11px; line-height: 1.4; color: var(--dim); }
+
+      @media (min-width: 768px) {
+        :root { --keyrow: 100px; }
+        .hdr { padding-left: 16px; padding-right: 16px; }
+        #titleInput { font-size: 26px; }
+        #helpBtn { width: 44px; height: 44px; font-size: 18px; }
+        #fsBtn { width: 44px; height: 44px; }
+        #menuBtn { padding: 8px 16px; font-size: 14px; }
+        #tableScroll { padding: 0 16px 8px; }
+        .th-cat, .rh-total { padding: 8px 12px; font-size: 15px; }
+        .cat-name-btn, .cat-name-editing { padding: 8px 0; font-size: 15px; }
+        .cat-name-editing { padding: 8px 4px; }
+        .tb-badge { font-size: 10px; }
+        .th-player { padding: 8px 4px; }
+        .pill { padding: 6px 2px; font-size: 16px; }
+        .pill.few { font-size: 18px; }
+        .add-player-btn { padding: 4px; font-size: 20px; }
+        .cell-btn { min-height: 54px; padding: 4px 10px; }
+        .cell-val { font-size: 22px; }
+        .cell-val .frac { font-size: 15px; }
+        .cell-formula { font-size: 12px; }
+        .total-val { font-size: 22px; }
+        .tb-win { font-size: 10px; }
+        .wide-btn { padding: 10px 0; font-size: 14px; }
+        #saveHistBtn { padding: 12px 0; font-size: 16px; }
+        .table-hint { font-size: 13px; }
+        .sheet { padding-left: 16px; padding-right: 16px; }
+        #keypadSheet { padding-left: 16px; padding-right: 16px; }
+        #kpGrid { gap: 6px; }
+        .key { font-size: 36px; }
+        .key.plus { font-size: 42px; }
+        .key.paren { font-size: 28px; }
+        .key.square { font-size: 24px; }
+        .float-window { padding-left: 20px; padding-right: 20px; }
+        .float-formula { min-height: 52px; font-size: 38px; }
+        .float-placeholder { font-size: 26px; }
+        .float-eq { font-size: 30px; }
+        .float-result { font-size: 64px; }
+        .float-quick-hint { font-size: 13px; }
+        .next-btn { font-size: 18px; }
+        .next-circle { height: 40px; width: 40px; font-size: 16px; }
+        .mini-th-cat, .mini-rh { padding: 8px 12px; }
+        .mini-cat-name { font-size: 14px; }
+        .mini-th-player { padding: 8px 4px; }
+        .mini-pill { padding: 4px 2px; font-size: 14px; }
+        .mini-cell { padding: 8px 4px; }
+        .mini-val { font-size: 16px; }
+        .mini-val .frac { font-size: 12px; }
+      }
+      @media (min-width: 768px) and (max-height: 1024px) {
+        :root { --keyrow: 68px; }
+        .float-window { padding: 10px 16px; }
+        .float-window .float-formula { min-height: 34px; font-size: 26px; }
+        .float-window .float-placeholder { font-size: 17px; }
+        .float-window .float-eq { font-size: 22px; }
+        .float-window .float-result { font-size: 38px; }
+        .next-circle { width: 30px; height: 30px; font-size: 13px; }
+      }
+      @media (min-width: 768px) and (max-height: 820px) {
+        :root { --keyrow: 52px; }
+        .float-window { padding: 8px 14px; }
+        .float-window .float-formula { min-height: 30px; font-size: 24px; }
+        .float-window .float-placeholder { font-size: 16px; }
+        .float-window .float-eq { font-size: 20px; }
+        .float-window .float-result { font-size: 34px; }
+        .next-circle { width: 24px; height: 24px; font-size: 11px; border-width: 2px; }
+        .next-hint { display: none; }
+      }
+
+      /* ---- receipt (print) ---- */
+      .receipt-print {
+        display: none; color: #000; background: #fff;
+        font-family: ui-monospace, "Courier New", monospace;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .receipt-print .receipt-title { font-size: 20px; font-weight: 800; line-height: 1.3; margin: 0; }
+      .receipt-print .receipt-meta { font-size: 12px; margin: 2px 0 0; }
+      .receipt-print .receipt-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; }
+      .receipt-print .receipt-table th, .receipt-print .receipt-table td { padding: 4px 2px; vertical-align: baseline; }
+      .receipt-print .receipt-cat-head { width: 30%; }
+      .receipt-print .receipt-cat-head, .receipt-print .receipt-name-head { border-top: 2.5px solid #000; border-bottom: 2.5px solid #000; }
+      .receipt-print .receipt-name-head { text-align: right; font-size: 13px; font-weight: 800; overflow-wrap: anywhere; }
+      .receipt-print .receipt-cat { text-align: left; font-size: 12.5px; font-weight: 400; overflow-wrap: anywhere; }
+      .receipt-print .receipt-val { text-align: right; font-size: 14px; font-weight: 700; }
+      .receipt-print .receipt-table tbody tr:not(.receipt-total-row) td,
+      .receipt-print .receipt-table tbody tr:not(.receipt-total-row) th { border-bottom: 1px solid #999; }
+      .receipt-print .receipt-total-row th, .receipt-print .receipt-total-row td { border-top: 2.5px solid #000; padding-top: 6px; }
+      .receipt-print .receipt-total-label { text-align: left; font-size: 16px; font-weight: 800; }
+      .receipt-print .receipt-total-val { text-align: right; font-size: 16px; font-weight: 800; }
+      .receipt-print .receipt-crown { display: inline-block; width: 13px; height: 13px; margin-right: 3px; vertical-align: -1px; color: #000; }
+      .receipt-preview { background: #fff; }
+      .receipt-preview .receipt-print { display: block; width: 100%; padding: 14px 12px; }
+      #printPreview {
+        position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column;
+        background: var(--bg); padding-left: 12px; padding-right: 12px; color: var(--text);
+        padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      #printPreview .pv-inner { margin: 0 auto; display: flex; min-height: 0; width: 100%; max-width: 384px; flex: 1; flex-direction: column; padding: 12px 0; }
+      #printPreview .pv-paper { margin-top: 8px; min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,.35); }
+      #printPreview .pv-print-btn {
+        margin-top: 12px; width: 100%; border-radius: 12px; background: var(--accent); padding: 12px 16px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--on-accent);
+      }
+      #printPreview .pv-note { margin-top: 6px; text-align: center; font-size: 11px; line-height: 1.4; color: var(--dim); }
+      @media print {
+        @page { size: 80mm auto; margin: 2mm; }
+        html, body { height: auto; overflow: visible; background-color: #fff; }
+        .app-root { position: static !important; height: auto !important; overflow: visible !important; background: #fff !important; }
+        .app-root > *:not(.receipt-print) { display: none !important; }
+        .receipt-print { display: block; width: 100%; max-width: 72mm; margin: 0 auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loadingScreen" role="status" aria-label="読み込み中">
+      <p class="font-rounded" style="font-size:14px;font-weight:700">読み込み中…</p>
     </div>
-    <div id="fwExpr"></div>
-    <div id="fwResult"></div>
-  </div>
-  <div id="keypadBox">
-    <div id="kpHandle" title="ドラッグで高さ調整"></div>
-    <div id="kpGrid"></div>
-    <div id="kpFooter"><button id="nextBtn" type="button">次のプレイヤーへ →</button></div>
-  </div>
-</div>
 
-<div id="overlay"></div>
-<section class="sheet" id="sheet" aria-modal="true">
-  <div class="sheet-head"><h2 id="sheetTitle"></h2><button class="sheet-close" id="sheetClose" type="button" aria-label="閉じる">✕</button></div>
-  <div class="sheet-body" id="sheetBody"></div>
-</section>
-<div id="toast"></div>
-<div id="printRoot"></div>
+    <div id="app" class="app-root" data-theme="navy" hidden>
+      <!-- header -->
+      <div class="hdr pt-safe">
+        <div class="hdr-row">
+          <input id="titleInput" aria-label="ゲーム名" placeholder="ゲーム名" />
+          <button type="button" id="helpBtn" class="hdr-btn" aria-label="ヘルプを開く" aria-expanded="false"><span aria-hidden="true">？</span></button>
+          <button type="button" id="fsBtn" class="hdr-btn" aria-label="フルスクリーンにする" aria-pressed="false">
+            <svg id="fsIconExpand" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+            <svg id="fsIconCompress" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>
+          </button>
+          <button type="button" id="menuBtn" class="hdr-btn" aria-label="メニューを開く" aria-expanded="false">
+            <span aria-hidden="true" class="burger"><span></span><span></span><span></span></span>
+            メニュー
+          </button>
+        </div>
+      </div>
 
-<script>
-"use strict";
-/* ================= data ================= */
-var LS_KEY = "boardgame-score-calc-v1";
-var COLORS = [
-  {id:"red",    name:"赤",       hex:"#e53935"},
-  {id:"blue",   name:"青",       hex:"#1e6fd9"},
-  {id:"yellow", name:"黄",       hex:"#d9a400"},
-  {id:"green",  name:"緑",       hex:"#2e9e4f"},
-  {id:"orange", name:"オレンジ", hex:"#f07d1a"},
-  {id:"purple", name:"紫",       hex:"#7b4fc9"},
-  {id:"pink",   name:"ピンク",   hex:"#ec5fa0"},
-  {id:"black",  name:"黒",       hex:"#26262b"}
-];
-function colorHex(id){ for(var i=0;i<COLORS.length;i++) if(COLORS[i].id===id) return COLORS[i].hex; return "#999"; }
-var BUILTINS = [
-  { name:"空欄", items:[{name:"",type:"normal"},{name:"",type:"normal"},{name:"",type:"normal"},{name:"",type:"normal"},{name:"",type:"normal"}] },
-  { name:"アルナックの失われし遺跡", items:[["研究"],["寺院"],["偶像"],["守護者"],["アイテム/遺物"],["恐怖","minus"]].map(mkItem) },
-  { name:"ウイングスパン", items:[["鳥カード"],["ボーナスカード"],["ラウンド終了時目的"],["卵"],["鳥カード上の餌"],["差し込んだ鳥カード"]].map(mkItem) },
-  { name:"アグリコラ", items:[["畑"],["牧場"],["小麦"],["野菜"],["羊"],["猪"],["牛"],["未使用スペース"],["柵で囲まれた厩"],["レンガ/石の部屋"],["家族コマ"],["カード得点"],["ボーナス得点"],["物乞い","minus"]].map(mkItem) },
-  { name:"オーディンの祝祭", items:[["船"],["移住"],["探検ボード"],["建物"],["動物"],["職業カード"],["銀貨"],["最終収入"],["イングランドの王冠"],["ホームボード","minus"],["探検ボード","minus"],["倉庫と家","minus"],["シングの罰則","minus"]].map(mkItem) },
-  { name:"ヌースフィヨルド", items:[["船"],["建物"],["株券"],["金貨"],["空きスペース","minus"],["未発行株","minus"]].map(mkItem) },
-  { name:"フォレストシャッフル", items:[["樹"],["湿原"],["上"],["左/右"],["下"],["洞窟"]].map(mkItem) },
-  { name:"アークノヴァ・サンクチュアリ", items:[["動物タイル"],["建物タイル"],["計画タイル"],["空き地"],["保全功績"],["保全/育児嚢マーカー(2点)"],["ゲーム終了マーカー"],["ソロプレイマーカー"]].map(mkItem) }
-];
-function mkItem(a){ return { name:a[0], type:a[1]||"normal" }; }
+      <!-- score table -->
+      <div id="tableScroll">
+        <section aria-label="得点表">
+          <div id="tableX">
+            <div id="grid" role="table" aria-label="得点表"></div>
+          </div>
+          <button type="button" id="addCatBtn" class="wide-btn" aria-label="項目を追加">+ 項目を追加</button>
+          <button type="button" id="saveHistBtn" class="wide-btn" aria-label="この結果を履歴に保存">この結果を履歴に保存</button>
+          <p class="table-hint">セルをタップするとテンキーが出ます。名前・項目名はタップで編集できます</p>
+          <div id="tableSpacer" aria-hidden="true" style="height:0"></div>
+        </section>
+      </div>
 
-var uidC = 1;
-function uid(p){ return p + "-" + (Date.now().toString(36)) + "-" + (uidC++); }
+      <!-- keypad sheet -->
+      <div id="keypadSheet" class="sheet" hidden>
+        <div id="floatWin" class="float-window">
+          <div class="float-top">
+            <span id="floatPill" class="float-pill"></span>
+            <span id="floatCat" class="float-cat"></span>
+            <span id="floatBadgeNeg" class="float-badge neg" hidden>マイナス項目</span>
+            <span id="floatBadgeTb" class="float-badge tb" hidden>タイブレーク（得点に含めない）</span>
+            <button type="button" id="quickSwitch" class="quick-switch" role="switch" aria-checked="false" aria-label="クイック入力（数字キーを押すたびに、その数字が得点として足される）">クイック <span aria-hidden="true" id="quickState">OFF</span></button>
+            <button type="button" id="floatDone" class="float-done" aria-label="入力を終える">完了</button>
+          </div>
+          <div id="floatFormula" class="float-formula"></div>
+          <div class="float-result-row">
+            <span class="float-eq">=</span>
+            <span id="floatResult" class="float-result">—</span>
+          </div>
+          <p id="floatQuickHint" class="float-quick-hint" hidden></p>
+        </div>
+        <div id="kpHandle" role="slider" tabindex="0" aria-label="キーパッドの高さ（上下にドラッグで調整、ダブルタップでリセット）" aria-valuemin="60" aria-valuemax="150" aria-valuenow="100" aria-valuetext="高さ 100%">
+          <span aria-hidden="true" class="bar"></span>
+        </div>
+        <div id="kpGrid" role="group" aria-label="テンキー"></div>
+      </div>
 
-function blankSheet(){
-  return {
-    gameName:"",
-    players:[0,1,2,3].map(function(){ return { id:uid("p"), name:"", color:null }; }),
-    items:[0,1,2,3,4].map(function(){ return { id:uid("i"), name:"", type:"normal" }; }),
-    scores:{} /* itemId -> playerId -> {expr} */
-  };
-}
-var state = blankSheet();
-var settings = { theme:"navy", opacity:"semi", anim:true, keypadType:"keyboard", vibration:true, kpScale:1, quick:false };
-var userPresets = []; /* {id,name,items,playerCount} */
-var historyList = []; /* newest first, max 200 */
+      <!-- menu sheet -->
+      <div id="menuSheet" class="sheet" hidden>
+        <div class="sheet-head">
+          <span class="sheet-title">メニュー</span>
+          <button type="button" class="close-btn" id="menuClose" aria-label="メニューを閉じる">閉じる</button>
+        </div>
+        <div class="menu-list" id="menuList"></div>
+      </div>
 
-function save(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify({ state:state, settings:settings, userPresets:userPresets, history:historyList })); }catch(e){}
-}
-function load(){
-  try{
-    var raw = localStorage.getItem(LS_KEY);
-    if(!raw) return;
-    var d = JSON.parse(raw);
-    if(d.state && d.state.players && d.state.items) state = d.state;
-    if(d.settings) settings = Object.assign(settings, d.settings);
-    if(Array.isArray(d.userPresets)) userPresets = d.userPresets;
-    if(Array.isArray(d.history)) historyList = d.history;
-  }catch(e){}
-}
+      <!-- preset sheet -->
+      <div id="presetSheet" class="sheet" hidden>
+        <div class="sheet-head">
+          <span class="sheet-title">プリセット</span>
+          <button type="button" class="close-btn" id="presetClose" aria-label="プリセットを閉じる">閉じる</button>
+        </div>
+        <p class="sheet-desc">ゲーム名・プレイヤー・項目の並びを保存して、ゲームごとに切り替えられます。読み込むと今の得点は消えます。</p>
+        <div class="sheet-scroll" id="presetList"></div>
+        <div class="preset-save-row">
+          <input id="presetNameInput" class="text-input" aria-label="プリセット名" placeholder="プリセット名（例：カタン）" maxlength="40" />
+          <button type="button" id="presetSaveBtn" class="save-preset-btn" aria-label="今の表をプリセットとして保存">今の表を保存</button>
+        </div>
+      </div>
 
-/* ================= expression eval (no eval) ================= */
-function evaluate(expr){
-  if(!expr) return null;
-  var s = String(expr).replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/\s/g,"");
-  if(!s) return null;
-  var pos = 0;
-  function peek(){ return s[pos]; }
-  function parseExpr(){
-    var v = parseTerm(); if(v===null) return null;
-    while(peek()==="+"||peek()==="-"){ var op=s[pos++]; var r=parseTerm(); if(r===null) return null; v = op==="+"? v+r : v-r; }
-    return v;
-  }
-  function parseTerm(){
-    var v = parseFactor(); if(v===null) return null;
-    while(peek()==="*"||peek()==="/"){ var op=s[pos++]; var r=parseFactor(); if(r===null) return null; v = op==="*"? v*r : (r===0? NaN : v/r); }
-    return v;
-  }
-  function parseFactor(){
-    var v = parsePrimary(); if(v===null) return null;
-    while(peek()==="²"){ pos++; v = v*v; }
-    return v;
-  }
-  function parsePrimary(){
-    var c = peek();
-    if(c==="-"){ pos++; var n=parsePrimary(); return n===null? null : -n; }
-    if(c==="+"){ pos++; return parsePrimary(); }
-    if(c==="("){ pos++; var v=parseExpr(); if(peek()!==")") return null; pos++; return v; }
-    var m = /^[0-9]*\.?[0-9]+/.exec(s.slice(pos));
-    if(!m) return null;
-    pos += m[0].length;
-    return parseFloat(m[0]);
-  }
-  var v = parseExpr();
-  if(v===null || pos!==s.length || typeof v!=="number" || !isFinite(v)) return null;
-  return v;
-}
-function cellExpr(itemId, playerId){
-  var row = state.scores[itemId]; if(!row) return "";
-  var c = row[playerId]; return c? (c.expr||"") : "";
-}
-function cellValue(itemId, playerId){ return evaluate(cellExpr(itemId, playerId)); }
-function setCell(itemId, playerId, expr){
-  if(!state.scores[itemId]) state.scores[itemId] = {};
-  if(expr===""||expr===null||expr===undefined) delete state.scores[itemId][playerId];
-  else state.scores[itemId][playerId] = { expr:String(expr) };
-}
+      <!-- theme sheet -->
+      <div id="themeSheet" class="sheet" hidden>
+        <div class="sheet-head">
+          <span class="sheet-title">テーマ</span>
+          <button type="button" class="close-btn" id="themeClose" aria-label="テーマ選択を閉じる">閉じる</button>
+        </div>
+        <p class="sheet-desc">画面の色合いを切り替えます。選んだテーマは保存されて、次回もそのまま使えます。</p>
+        <div class="theme-grid" id="themeGrid" role="group" aria-label="テーマ一覧"></div>
+      </div>
 
-/* ================= formatting / totals ================= */
-function fmtHTML(v){
-  if(v===null||v===undefined||isNaN(v)) return "";
-  var t = Math.trunc(v);
-  var sign = t<0? "-" : (v<0 && t===0 ? "-" : "");
-  var digits = String(Math.abs(t));
-  if(digits.length>5) digits = digits.slice(0,5);
-  var frac = Math.abs(v - Math.trunc(v));
-  frac = Math.round(frac*10000)/10000;
-  var out = sign + digits;
-  if(frac>0 && frac<1){
-    var fs = String(frac);
-    var dec = fs.indexOf(".")>=0? fs.split(".")[1] : "";
-    if(dec) out += '<span class="frac">.' + dec + "</span>";
-  }
-  return out;
-}
-function fmtText(v){
-  if(v===null||v===undefined||isNaN(v)) return "";
-  var t = Math.trunc(v);
-  var digits = String(Math.abs(t)); if(digits.length>5) digits = digits.slice(0,5);
-  var frac = Math.round(Math.abs(v-Math.trunc(v))*10000)/10000;
-  var out = (t<0?"-":"") + digits;
-  if(frac>0&&frac<1){ var fs=String(frac); if(fs.indexOf(".")>=0) out += "." + fs.split(".")[1]; }
-  return out;
-}
-function truncVal(v){ return (v===null||v===undefined||isNaN(v))? 0 : Math.trunc(v); }
-function playerTotal(pid){
-  var sum = 0;
-  state.items.forEach(function(it){
-    if(it.type==="tb") return;
-    var v = truncVal(cellValue(it.id, pid));
-    sum += it.type==="minus"? -v : v;
-  });
-  return sum;
-}
-function computeWinners(){
-  var totals = state.players.map(function(p){ return playerTotal(p.id); });
-  if(totals.length && totals.every(function(t){ return t===0; })){
-    return { totals:totals, winners:[], tbDecided:false };
-  }
-  var max = Math.max.apply(null, totals);
-  var tied = state.players.filter(function(p,i){ return totals[i]===max; });
-  var tbDecided = false;
-  if(tied.length>1){
-    var tbItems = state.items.filter(function(it){ return it.type==="tb"; });
-    for(var k=0;k<tbItems.length;k++){
-      var vals = tied.map(function(p){ return truncVal(cellValue(tbItems[k].id, p.id)); });
-      var m = Math.max.apply(null, vals);
-      var nt = tied.filter(function(p,i){ return vals[i]===m; });
-      if(nt.length<tied.length){ tied = nt; tbDecided = true; }
-      if(tied.length===1) break;
-    }
-  }
-  return { totals:totals, winners:tied, tbDecided:tbDecided && tied.length===1 };
-}
-function playerDisplayName(p, idx){ return p.name? p.name : (idx+1)+"P"; }
-function playerColor(p, idx){
-  if(p.color) return colorHex(p.color);
-  var used = {};
-  state.players.forEach(function(q){ if(q.color) used[q.color]=true; });
-  var free = COLORS.filter(function(c){ return !used[c.id]; });
-  var autoCount = 0;
-  for(var i=0;i<idx;i++){ if(!state.players[i].color) autoCount++; }
-  var c = free.length? free[autoCount % free.length] : COLORS[idx % COLORS.length];
-  return c.hex;
-}
+      <!-- history sheet -->
+      <div id="historySheet" class="sheet" hidden>
+        <div class="sheet-head">
+          <span class="sheet-title">スコア履歴</span>
+          <button type="button" class="close-btn" id="historyClose" aria-label="スコア履歴を閉じる">閉じる</button>
+        </div>
+        <p class="sheet-desc">終わったゲームの結果を日時つきで残せます。行をタップすると項目ごとの内訳が見られます。</p>
+        <div class="sheet-scroll" id="historyList"></div>
+      </div>
 
-/* ================= render table ================= */
-var gridEl = document.getElementById("grid");
-var wrapEl = document.getElementById("tableWrap");
-var selected = null; /* {itemId, playerId} */
+      <!-- editor sheet -->
+      <div id="editorSheet" class="sheet" hidden>
+        <div class="editor-head">
+          <span class="editor-label" id="editorLabel">項目名を編集中</span>
+          <span class="editor-note" id="editorNote"></span>
+        </div>
+        <input id="editorInput" />
+        <div id="colorBox" class="color-box" hidden>
+          <span class="cb-title">色</span>
+          <div class="color-row" id="colorRow" role="group" aria-label="プレイヤーの色を選ぶ"></div>
+          <span class="color-note" id="colorNote"></span>
+        </div>
+        <div id="catSwitches" hidden>
+          <button type="button" id="negSwitch" class="switch-row" role="switch" aria-checked="false" aria-label="マイナス項目として計算する">
+            <span aria-hidden="true" class="switch-track" id="negTrack"><span class="knob"></span></span>
+            <span class="switch-texts">
+              <span class="switch-name">マイナス項目にする</span>
+              <span class="switch-sub">オンにすると、この項目の点数が合計から引かれます（失点トークンなど）</span>
+            </span>
+          </button>
+          <button type="button" id="tbSwitch" class="switch-row" role="switch" aria-checked="false" aria-label="タイブレーク項目にする（得点には含めない）">
+            <span aria-hidden="true" class="switch-track" id="tbTrack"><span class="knob"></span></span>
+            <span class="switch-texts">
+              <span class="switch-name">タイブレーク項目にする</span>
+              <span class="switch-sub">オンにすると、この項目は合計に含まれず、同点のときに値が大きい人が勝ちになります（コインの枚数など）</span>
+            </span>
+          </button>
+        </div>
+        <div class="editor-btns">
+          <button type="button" id="editorDelete" class="del-btn">削除</button>
+          <button type="button" id="editorCancel" class="cancel-btn" aria-label="編集をキャンセル">キャンセル</button>
+          <button type="button" id="editorDone" class="done-btn" aria-label="入力を完了する">完了</button>
+        </div>
+      </div>
 
-function render(){
-  document.getElementById("gameNameBtn").innerHTML = state.gameName
-    ? escapeHtml(state.gameName)
-    : '<span class="placeholder">ゲーム名</span>';
-  var n = state.players.length;
-  var minW = n<=4? 64 : n<=6? 56 : 48;
-  gridEl.style.minWidth = (96 + n*(minW+3)) + "px";
-  gridEl.style.gridTemplateColumns = "minmax(92px,1.15fr) repeat(" + n + ", minmax(" + minW + "px, 1fr))";
-  var html = "";
-  html += '<div class="cell corner">項目 ＼ プレイヤー</div>';
-  state.players.forEach(function(p, i){
-    html += '<div class="cell head" data-act="edit-player" data-pid="' + p.id + '"><span class="pframe" style="border-color:' + playerColor(p,i) + '">' + escapeHtml(playerDisplayName(p,i)) + "</span></div>";
-  });
-  state.items.forEach(function(it, ri){
-    var label = it.name? escapeHtml(it.name) : (ri+1)+".";
-    var badge = "";
-    if(it.type==="minus") badge = '<span class="minus-mark">−</span>';
-    if(it.type==="tb") badge = '<span class="badge tb">TB</span>';
-    html += '<div class="cell label" data-act="edit-item" data-iid="' + it.id + '"><span class="lname">' + label + "</span>" + badge + "</div>";
-    state.players.forEach(function(p){
-      var expr = cellExpr(it.id, p.id);
-      var v = evaluate(expr);
-      var inner = "";
-      if(expr){ inner = (v!==null)? fmtHTML(v) : '<span class="expr">' + escapeHtml(expr) + "</span>"; }
-      var sel = selected && selected.itemId===it.id && selected.playerId===p.id ? " selected" : "";
-      html += '<button type="button" class="cell score' + sel + '" data-act="cell" data-iid="' + it.id + '" data-pid="' + p.id + '">' + inner + "</button>";
-    });
-  });
-  var w = computeWinners();
-  html += '<div class="cell total-label">合計</div>';
-  state.players.forEach(function(p, i){
-    var isWin = w.winners.indexOf(p)>=0 && state.players.length>0;
-    html += '<div class="cell total">' + (isWin? '<span class="crown">👑</span>' : "") + fmtHTML(w.totals[i]) + "</div>";
-  });
-  gridEl.innerHTML = html;
-  var note = "";
-  if(hasAnyScore() && w.winners.length){
-    var names = w.winners.map(function(p){ return playerDisplayName(p, state.players.indexOf(p)); }).join("・");
-    note = "🏆 " + names + (w.tbDecided? "（タイブレークで決着）" : (w.winners.length>1? "（同点）" : ""));
-  }
-  document.getElementById("winnerNote").textContent = note;
-}
-function hasAnyScore(){
-  for(var iid in state.scores){ for(var pid in state.scores[iid]){ if(state.scores[iid][pid].expr) return true; } }
-  return false;
-}
-function escapeHtml(s){
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
+      <!-- help sheet -->
+      <div id="helpSheet" class="sheet" hidden role="dialog" aria-label="ヘルプ">
+        <div class="sheet-head">
+          <span class="sheet-title">ヘルプ</span>
+          <button type="button" class="close-btn" id="helpClose" aria-label="ヘルプを閉じる">閉じる</button>
+        </div>
+        <div id="helpScroll"></div>
+      </div>
 
-gridEl.addEventListener("click", function(e){
-  var t = e.target.closest("[data-act]"); if(!t) return;
-  var act = t.getAttribute("data-act");
-  if(act==="cell"){ openKeypad(t.getAttribute("data-iid"), t.getAttribute("data-pid")); }
-  else if(act==="edit-player"){ openPlayerEdit(t.getAttribute("data-pid")); }
-  else if(act==="edit-item"){ openItemEdit(t.getAttribute("data-iid")); }
-});
-document.getElementById("gameNameBtn").addEventListener("click", openGameEdit);
-document.getElementById("addItemBtn").addEventListener("click", function(){
-  var it = { id:uid("i"), name:"", type:"normal" };
-  state.items.push(it); save(); render(); openItemEdit(it.id);
-});
-document.getElementById("addPlayerBtn").addEventListener("click", function(){
-  if(state.players.length>=8){ toast("プレイヤーは最大8人です"); return; }
-  var p = { id:uid("p"), name:"", color:null };
-  state.players.push(p); save(); render(); openPlayerEdit(p.id);
-});
-document.getElementById("saveHistBtn").addEventListener("click", saveToHistory);
+      <!-- print-only receipt (only thing on paper) -->
+      <div id="receiptPrint" class="receipt-print" aria-hidden="true"></div>
 
-var toastTimer = null;
-function toast(msg){
-  var el = document.getElementById("toast");
-  el.textContent = msg; el.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2200);
-}
-function vibrate(ms){ if(settings.vibration && navigator.vibrate) navigator.vibrate(ms||12); }
+      <!-- receipt preview overlay -->
+      <div id="printPreview" hidden role="dialog" aria-modal="true" aria-label="レシート印刷プレビュー">
+        <div class="pv-inner">
+          <div class="sheet-head">
+            <span class="sheet-title">印刷プレビュー</span>
+            <button type="button" class="close-btn" id="pvClose" aria-label="印刷プレビューを閉じる">閉じる</button>
+          </div>
+          <div class="receipt-preview pv-paper" id="pvPaper"></div>
+          <button type="button" class="pv-print-btn" id="pvPrint">このレシートを印刷</button>
+          <p class="pv-note">印刷ダイアログが開かない場合は、このページをブラウザで開いてから印刷してください</p>
+        </div>
+      </div>
+    </div>
 
-/* ================= keypad ================= */
-var kpWrap = document.getElementById("keypadWrap");
-var kpGrid = document.getElementById("kpGrid");
-var editExpr = "";
-var quickValue = 0;
-var quickPending = null; /* tens digit or null */
-var kpOpen = false;
+    <script>
+    "use strict";
+    /* ================================================================
+       ボードゲーム専用電卓（ブラウザ保存型）
+       Original app spec ported to a single static page.
+       All data lives in this browser's localStorage.
+       ================================================================ */
 
-function buildKeypad(){
-  var nums = settings.keypadType==="phone"
-    ? [["1","2","3"],["4","5","6"],["7","8","9"]]
-    : [["7","8","9"],["4","5","6"],["1","2","3"]];
-  var html = "";
-  html += '<button type="button" class="key op" data-k="paren">（ ）</button>';
-  html += '<button type="button" class="key op" data-k="sq">x²</button>';
-  html += '<button type="button" class="key op" data-k="op" data-v="÷">÷</button>';
-  html += '<button type="button" class="key op" data-k="bs">⌫</button>';
-  var ops = ["×","−","+"];
-  for(var r=0;r<3;r++){
-    for(var c=0;c<3;c++) html += '<button type="button" class="key" data-k="num" data-v="' + nums[r][c] + '">' + nums[r][c] + "</button>";
-    if(r<2) html += '<button type="button" class="key op" data-k="op" data-v="' + ops[r] + '">' + ops[r] + "</button>";
-    else html += '<button type="button" class="key op span-r2" data-k="op" data-v="+">+</button>';
-  }
-  html += '<button type="button" class="key span-c2" data-k="zero" data-v="0">0</button>';
-  html += '<button type="button" class="key" data-k="dot">.</button>';
-  kpGrid.innerHTML = html;
-  kpGrid.querySelectorAll(".key").forEach(function(b){ attachKey(b); });
-  applyKpScale();
-}
-function applyKpScale(){
-  var h = Math.round(54 * (settings.kpScale||1));
-  kpGrid.style.setProperty("--keyh", h + "px");
-  document.documentElement.style.setProperty("--keyh", h + "px");
-  kpGrid.querySelectorAll(".key").forEach(function(b){ b.style.height = h + "px"; });
-  var plus = kpGrid.querySelector(".span-r2"); if(plus) plus.style.height = "auto";
-}
-function currentItem(){ return state.items.find(function(i){ return selected && i.id===selected.itemId; }); }
-function currentPlayerIdx(){ return state.players.findIndex(function(p){ return selected && p.id===selected.playerId; }); }
+    var PLAYER_COLORS = ["#E23B2E", "#2F6FDE", "#E3AC00", "#2F9E44", "#EE7219", "#8B4FC2", "#EF6FA7", "#262626"];
+    var PLAYER_COLOR_NAMES = ["赤", "青", "黄", "緑", "オレンジ", "紫", "ピンク", "黒"];
+    var LEGACY_PLAYER_COLORS = ["#E85D75", "#2A9D7A", "#E9A426", "#5B7FE8", "#9B6BD6", "#E67E22", "#38B6C9", "#8BC34A"];
+    var STORAGE_KEY = "boardgame-score-calc:v1";
 
-function openKeypad(itemId, playerId){
-  commitEdit();
-  selected = { itemId:itemId, playerId:playerId };
-  editExpr = cellExpr(itemId, playerId);
-  var v = evaluate(editExpr);
-  quickValue = v!==null? v : 0;
-  quickPending = null;
-  kpOpen = true;
-  document.getElementById("quickSwitch").checked = !!settings.quick;
-  kpWrap.classList.add("open");
-  render(); updateFloatWin();
-  requestAnimationFrame(function(){
-    setKpSpacer();
-    scrollSelectedIntoView();
-  });
-}
-function setKpSpacer(){
-  document.getElementById("kpSpacer").style.height = kpOpen? (kpWrap.offsetHeight + 16) + "px" : "0px";
-}
-function closeKeypad(){
-  commitEdit();
-  kpOpen = false; selected = null;
-  kpWrap.classList.remove("open");
-  setKpSpacer();
-  render();
-}
-function commitEdit(){
-  if(!kpOpen || !selected) return;
-  var exists = state.items.some(function(i){ return i.id===selected.itemId; }) && state.players.some(function(p){ return p.id===selected.playerId; });
-  if(!exists) return;
-  if(settings.quick){ setCell(selected.itemId, selected.playerId, quickValue===0 && quickPending===null ? "" : String(quickValue)); }
-  else setCell(selected.itemId, selected.playerId, editExpr);
-  save();
-}
-function scrollSelectedIntoView(){
-  if(!selected) return;
-  var cell = gridEl.querySelector('[data-act="cell"][data-iid="' + selected.itemId + '"][data-pid="' + selected.playerId + '"]');
-  if(!cell) return;
-  var targetTop = cell.offsetTop - wrapEl.clientHeight/3;
-  wrapEl.scrollTo({ top:Math.max(0,targetTop), behavior:"smooth" });
-  var targetLeft = cell.offsetLeft - wrapEl.clientWidth/3;
-  wrapEl.scrollTo({ left:Math.max(0,targetLeft), top:Math.max(0,targetTop), behavior:"smooth" });
-}
-function updateFloatWin(){
-  var it = currentItem(); var pi = currentPlayerIdx();
-  var p = state.players[pi];
-  document.getElementById("fwCell").textContent =
-    (p? playerDisplayName(p, pi) : "") + " × " + (it? (it.name || "項目") : "") + (it && it.type==="minus"? "（マイナス）":"") + (it && it.type==="tb"? "（TB）":"");
-  var exprEl = document.getElementById("fwExpr");
-  var resEl = document.getElementById("fwResult");
-  if(settings.quick){
-    exprEl.textContent = quickPending!==null? ("保留: " + quickPending + "_") : "数字タップでそのまま加算";
-    resEl.innerHTML = '<span class="lbl">現在</span>' + fmtHTML(quickValue);
-  } else {
-    exprEl.textContent = editExpr || "式を入力";
-    var v = evaluate(editExpr);
-    resEl.innerHTML = '<span class="lbl">結果</span>' + (v!==null? fmtHTML(v) : "—");
-  }
-}
-document.getElementById("fwClose").addEventListener("click", function(){ vibrate(); closeKeypad(); });
-document.getElementById("quickSwitch").addEventListener("change", function(e){
-  commitEdit();
-  settings.quick = e.target.checked;
-  if(settings.quick){ var v = evaluate(editExpr); quickValue = v!==null? v : 0; quickPending = null; }
-  else { editExpr = quickValue? String(quickValue) : ""; }
-  save(); updateFloatWin();
-});
-
-function endsWithValue(s){ return /[0-9.)²]$/.test(s.replace(/\s/g,"")); }
-function parenAction(){
-  var open = (editExpr.match(/\(/g)||[]).length;
-  var close = (editExpr.match(/\)/g)||[]).length;
-  if(open>close && endsWithValue(editExpr)) editExpr += ")";
-  else if(endsWithValue(editExpr)) editExpr += "×(";
-  else editExpr += "(";
-}
-function dotAction(){
-  var seg = editExpr.split(/[+\-−×÷()]/).pop();
-  if(seg.indexOf(".")>=0) return;
-  if(!/[0-9]$/.test(editExpr)) editExpr += "0";
-  editExpr += ".";
-}
-function keyAction(k, v, flick){
-  vibrate();
-  if(settings.quick){
-    if(k==="num" || k==="zero"){
-      var d = parseInt(v,10);
-      if(quickPending!==null){ quickValue += quickPending*10 + d; quickPending = null; }
-      else if(k==="zero"){ if(flick==="down"){ /* quick: dot ignored */ } else quickValue += 10; }
-      else quickValue += d;
-    } else if(k==="bs"){
-      if(flick==="up"){ quickValue = 0; quickPending = null; }
-      else if(quickPending!==null) quickPending = null;
-    }
-    updateFloatWin(); return;
-  }
-  switch(k){
-    case "num": editExpr += v; break;
-    case "zero":
-      if(flick==="down") dotAction(); else editExpr += "0";
-      break;
-    case "dot": dotAction(); break;
-    case "op":
-      if(editExpr==="" && v!=="−") break;
-      if(/[+\-−×÷]$/.test(editExpr)) editExpr = editExpr.slice(0,-1) + v;
-      else editExpr += v;
-      break;
-    case "paren": parenAction(); break;
-    case "sq": if(endsWithValue(editExpr)) editExpr += "²"; break;
-    case "bs":
-      if(flick==="up") editExpr = "";
-      else editExpr = editExpr.slice(0,-1);
-      break;
-  }
-  updateFloatWin();
-}
-function attachKey(btn){
-  var startX=0, startY=0, lpTimer=null, lpFired=false;
-  btn.addEventListener("pointerdown", function(e){
-    startX = e.clientX; startY = e.clientY; lpFired = false;
-    if(settings.quick && btn.getAttribute("data-k")==="num"){
-      var d = parseInt(btn.getAttribute("data-v"),10);
-      lpTimer = setTimeout(function(){
-        lpFired = true; quickPending = d; vibrate(35); updateFloatWin();
-      }, 450);
-    }
-  });
-  btn.addEventListener("pointerup", function(e){
-    if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
-    if(lpFired) return;
-    var dx = e.clientX - startX, dy = e.clientY - startY;
-    var flick = null;
-    if(dy < -26 && Math.abs(dy) > Math.abs(dx)) flick = "up";
-    else if(dy > 26 && Math.abs(dy) > Math.abs(dx)) flick = "down";
-    keyAction(btn.getAttribute("data-k"), btn.getAttribute("data-v"), flick);
-  });
-  btn.addEventListener("pointercancel", function(){ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } });
-  btn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
-}
-/* next / prev player */
-(function(){
-  var btn = document.getElementById("nextBtn");
-  var sx=0;
-  btn.addEventListener("pointerdown", function(e){ sx = e.clientX; });
-  btn.addEventListener("pointerup", function(e){
-    vibrate();
-    var dx = e.clientX - sx;
-    moveSelection(dx < -30? -1 : 1);
-  });
-})();
-function moveSelection(dir){
-  if(!selected) return;
-  commitEdit();
-  var cells = [];
-  state.items.forEach(function(it){ state.players.forEach(function(p){ cells.push({itemId:it.id, playerId:p.id}); }); });
-  var idx = cells.findIndex(function(c){ return c.itemId===selected.itemId && c.playerId===selected.playerId; });
-  var ni = (idx + dir + cells.length) % cells.length;
-  selected = cells[ni];
-  editExpr = cellExpr(selected.itemId, selected.playerId);
-  var v = evaluate(editExpr); quickValue = v!==null? v : 0; quickPending = null;
-  render(); updateFloatWin();
-  requestAnimationFrame(function(){
-    setKpSpacer();
-    scrollSelectedIntoView();
-  });
-}
-/* keypad height handle */
-(function(){
-  var handle = document.getElementById("kpHandle");
-  var startY=0, startScale=1, dragging=false, lastTap=0;
-  handle.addEventListener("pointerdown", function(e){
-    dragging = true; startY = e.clientY; startScale = settings.kpScale||1;
-    handle.setPointerCapture(e.pointerId);
-    var now = Date.now();
-    if(now - lastTap < 350){ settings.kpScale = 1; applyKpScale(); save(); refreshKpPadding(); }
-    lastTap = now;
-  });
-  handle.addEventListener("pointermove", function(e){
-    if(!dragging) return;
-    var s = startScale + (startY - e.clientY)/260;
-    settings.kpScale = Math.min(1.5, Math.max(0.6, s));
-    applyKpScale(); refreshKpPadding();
-  });
-  handle.addEventListener("pointerup", function(){ dragging=false; save(); });
-  handle.addEventListener("dblclick", function(){ settings.kpScale = 1; applyKpScale(); save(); refreshKpPadding(); });
-})();
-function refreshKpPadding(){ if(kpOpen) setKpSpacer(); }
-
-/* fullscreen */
-(function(){
-  var btn = document.getElementById("fsBtn");
-  var root = document.documentElement;
-  if(!(root.requestFullscreen || root.webkitRequestFullscreen)) { btn.style.display = "none"; return; }
-  btn.style.display = "flex";
-  btn.addEventListener("click", function(){
-    vibrate();
-    if(document.fullscreenElement){ document.exitFullscreen(); }
-    else if(root.requestFullscreen) root.requestFullscreen();
-    else if(root.webkitRequestFullscreen) root.webkitRequestFullscreen();
-  });
-  function onChange(){
-    var fs = !!document.fullscreenElement;
-    document.getElementById("fsExpand").style.display = fs? "none" : "block";
-    document.getElementById("fsShrink").style.display = fs? "block" : "none";
-    btn.classList.toggle("active", fs);
-  }
-  document.addEventListener("fullscreenchange", onChange);
-  document.addEventListener("webkitfullscreenchange", onChange);
-})();
-
-/* ================= sheets ================= */
-var overlay = document.getElementById("overlay");
-var sheet = document.getElementById("sheet");
-var sheetBody = document.getElementById("sheetBody");
-var sheetTitle = document.getElementById("sheetTitle");
-function openSheet(title, html){
-  sheetTitle.textContent = title;
-  sheetBody.innerHTML = html;
-  overlay.classList.add("open"); sheet.classList.add("open");
-  sheetBody.scrollTop = 0;
-}
-function closeSheet(){ overlay.classList.remove("open"); sheet.classList.remove("open"); }
-document.getElementById("sheetClose").addEventListener("click", closeSheet);
-overlay.addEventListener("click", closeSheet);
-
-function armable(btn, armedText, action){
-  btn.addEventListener("click", function(){
-    if(btn.getAttribute("data-armed")==="1"){ action(); }
-    else {
-      btn.setAttribute("data-armed","1");
-      btn.classList.add("armed");
-      btn.setAttribute("data-orig", btn.innerHTML);
-      btn.innerHTML = armedText;
-      vibrate();
-    }
-  });
-}
-
-/* ---- edit panels ---- */
-function openGameEdit(){
-  openSheet("ゲーム名を編集",
-    '<input class="txt-input" id="geName" type="text" placeholder="ゲーム名" value="' + escapeHtml(state.gameName) + '" />' +
-    '<button class="row-btn" id="geSave" type="button"><span class="grow">保存する</span></button>');
-  var inp = document.getElementById("geName");
-  document.getElementById("geSave").addEventListener("click", function(){
-    state.gameName = inp.value.trim(); save(); render(); closeSheet();
-  });
-  inp.addEventListener("keydown", function(e){ if(e.key==="Enter") document.getElementById("geSave").click(); });
-}
-function openPlayerEdit(pid){
-  var idx = state.players.findIndex(function(p){ return p.id===pid; });
-  if(idx<0) return;
-  var p = state.players[idx];
-  var sw = '<button type="button" class="swatch auto' + (p.color===null? " sel":"") + '" data-color="">おまかせ</button>';
-  COLORS.forEach(function(c){
-    sw += '<button type="button" class="swatch' + (p.color===c.id? " sel":"") + '" data-color="' + c.id + '" style="background:' + c.hex + '" aria-label="' + c.name + '"></button>';
-  });
-  openSheet("プレイヤー名を編集",
-    '<input class="txt-input" id="peName" type="text" maxlength="4" placeholder="' + (idx+1) + 'P" value="' + escapeHtml(p.name) + '" />' +
-    "<h3>プレイヤーカラー</h3><div class=\"swatches\">" + sw + "</div>" +
-    '<button class="row-btn" id="peSave" type="button"><span class="grow">保存する</span></button>' +
-    (state.players.length>1? '<button class="row-btn danger" id="peDel" type="button"><span class="grow">このプレイヤーを削除</span></button>' : ""));
-  var chosen = p.color;
-  sheetBody.querySelectorAll(".swatch").forEach(function(b){
-    b.addEventListener("click", function(){
-      chosen = b.getAttribute("data-color") || null;
-      sheetBody.querySelectorAll(".swatch").forEach(function(x){ x.classList.remove("sel"); });
-      b.classList.add("sel"); vibrate();
-    });
-  });
-  document.getElementById("peSave").addEventListener("click", function(){
-    p.name = document.getElementById("peName").value.slice(0,4);
-    p.color = chosen; save(); render(); closeSheet();
-  });
-  var del = document.getElementById("peDel");
-  if(del) armable(del, "もう一度タップで削除", function(){
-    state.players = state.players.filter(function(q){ return q.id!==pid; });
-    for(var iid in state.scores) delete state.scores[iid][pid];
-    if(selected && selected.playerId===pid) closeKeypad();
-    save(); render(); closeSheet(); toast("プレイヤーを削除しました");
-  });
-}
-function openItemEdit(iid){
-  var it = state.items.find(function(x){ return x.id===iid; });
-  if(!it) return;
-  openSheet("項目を編集",
-    '<input class="txt-input" id="ieName" type="text" placeholder="項目名（空欄で番号表示）" value="' + escapeHtml(it.name) + '" />' +
-    "<h3>特殊設定</h3>" +
-    '<div class="radio-row">' +
-    '<label><input type="radio" name="ieType" value="normal"' + (it.type==="normal"?" checked":"") + ">通常</label>" +
-    '<label><input type="radio" name="ieType" value="minus"' + (it.type==="minus"?" checked":"") + ">マイナス項目</label>" +
-    '<label><input type="radio" name="ieType" value="tb"' + (it.type==="tb"?" checked":"") + ">タイブレーク</label>" +
-    "</div>" +
-    '<p style="font-size:.85rem;color:var(--sub);line-height:1.5;margin:.1rem 0 .7rem">マイナス項目は合計から差し引かれます。タイブレーク項目は合計に入らず、同点のときに上から順に比べて順位を決めます。</p>' +
-    '<button class="row-btn" id="ieSave" type="button"><span class="grow">保存する</span></button>' +
-    (state.items.length>1? '<button class="row-btn danger" id="ieDel" type="button"><span class="grow">この項目を削除</span></button>' : ""));
-  document.getElementById("ieSave").addEventListener("click", function(){
-    it.name = document.getElementById("ieName").value;
-    var r = sheetBody.querySelector('input[name="ieType"]:checked');
-    it.type = r? r.value : "normal";
-    save(); render(); closeSheet();
-  });
-  var del = document.getElementById("ieDel");
-  if(del) armable(del, "もう一度タップで削除", function(){
-    state.items = state.items.filter(function(x){ return x.id!==iid; });
-    delete state.scores[iid];
-    if(selected && selected.itemId===iid) closeKeypad();
-    save(); render(); closeSheet(); toast("項目を削除しました");
-  });
-}
-
-/* ---- menu ---- */
-document.getElementById("menuBtn").addEventListener("click", openMenu);
-function segHTML(group, options, current){
-  var h = '<div class="seg" data-group="' + group + '">';
-  options.forEach(function(o){ h += '<button type="button" data-val="' + o[0] + '"' + (current===o[0]? ' class="sel"':"") + ">" + o[1] + "</button>"; });
-  return h + "</div>";
-}
-function openMenu(){
-  var html = "";
-  html += "<h3>表示</h3>";
-  html += '<p style="margin:.1rem 0 .35rem;font-size:.88rem;color:var(--sub)">テーマ</p>' +
-    segHTML("theme", [["navy","濃紺"],["light","ライト"],["dark","ダーク"],["paper","ペーパー"]], settings.theme);
-  html += '<p style="margin:.6rem 0 .35rem;font-size:.88rem;color:var(--sub)">窓の透明度</p>' +
-    segHTML("opacity", [["standard","標準"],["semi","半透明"],["transparent","透明"]], settings.opacity);
-  html += '<p style="margin:.6rem 0 .35rem;font-size:.88rem;color:var(--sub)">アニメーション</p>' +
-    segHTML("anim", [["on","ON"],["off","OFF"]], settings.anim? "on":"off");
-  html += "<h3>データ</h3>";
-  html += '<button class="row-btn" id="mPreset" type="button"><span class="grow">プリセット<small>ゲームごとの項目構成を読み込み・保存</small></span>›</button>';
-  html += '<button class="row-btn" id="mHistory" type="button"><span class="grow">履歴<small>保存した対戦結果を見る</small></span>›</button>';
-  html += "<h3>入力</h3>";
-  html += '<p style="margin:.1rem 0 .35rem;font-size:.88rem;color:var(--sub)">テンキータイプ</p>' +
-    segHTML("keypadType", [["keyboard","キーボード式（7-8-9上段）"],["phone","電話式（1-2-3上段）"]], settings.keypadType);
-  html += '<p style="margin:.6rem 0 .35rem;font-size:.88rem;color:var(--sub)">振動フィードバック</p>' +
-    segHTML("vibration", [["on","ON"],["off","OFF"]], settings.vibration? "on":"off");
-  html += '<button class="row-btn danger" id="mClear" type="button" style="margin-top:1.2rem"><span class="grow">全消去<small>表を初期状態（空欄）に戻します</small></span></button>';
-  openSheet("メニュー", html);
-  sheetBody.querySelectorAll(".seg").forEach(function(seg){
-    seg.querySelectorAll("button").forEach(function(b){
-      b.addEventListener("click", function(){
-        var g = seg.getAttribute("data-group"), v = b.getAttribute("data-val");
-        seg.querySelectorAll("button").forEach(function(x){ x.classList.remove("sel"); });
-        b.classList.add("sel"); vibrate();
-        if(g==="theme"){ settings.theme = v; applySettings(); }
-        if(g==="opacity"){ settings.opacity = v; applySettings(); }
-        if(g==="anim"){ settings.anim = v==="on"; applySettings(); }
-        if(g==="keypadType"){ settings.keypadType = v; buildKeypad(); if(kpOpen) refreshKpPadding(); }
-        if(g==="vibration"){ settings.vibration = v==="on"; }
-        save();
+    function uid() { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36); }
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
       });
-    });
-  });
-  document.getElementById("mPreset").addEventListener("click", openPresets);
-  document.getElementById("mHistory").addEventListener("click", openHistory);
-  armable(document.getElementById("mClear"), "もう一度タップで全消去", function(){
-    closeKeypad();
-    state = blankSheet();
-    save(); render(); closeSheet(); toast("全消去しました");
-  });
-}
-function applySettings(){
-  document.body.setAttribute("data-theme", settings.theme);
-  document.body.setAttribute("data-opacity", settings.opacity);
-  document.body.setAttribute("data-anim", settings.anim? "on":"off");
-}
+    }
 
-/* ---- help ---- */
-document.getElementById("helpBtn").addEventListener("click", function(){
-  var html = "";
-  html += "<h3>特徴</h3><ul class=\"help-list\">" +
-    "<li>プレイヤー（列）×項目（行）の得点表で、合計は自動計算。1位には王冠が付きます</li>" +
-    "<li>小数は切り捨てで計算し、小数部分は小さく薄く併記します</li>" +
-    "<li>マイナス項目（合計から差し引き）とタイブレーク項目（同点時に上から順に比較）を設定できます</li>" +
-    "<li>入力内容や設定はこのブラウザ内に自動保存されます</li></ul>";
-  html += "<h3>基本の使い方</h3><ul class=\"help-list\">" +
-    "<li>スコアのセルをタップするとテンキーが開きます。式を入力すると結果がその場で計算されます</li>" +
-    "<li>ゲーム名・プレイヤー名・項目名はタップで編集できます（プレイヤー名は4文字まで、色も選べます）</li>" +
-    "<li>「次のプレイヤーへ」で次のセルへ移動（左フリックで前へ）</li>" +
-    "<li>項目・プレイヤーは下のボタンから追加できます</li></ul>";
-  html += "<h3>テンキーの操作</h3><ul class=\"help-list\">" +
-    "<li>⌫：タップで1文字削除、上フリックで全消去（AC）</li>" +
-    "<li>0キー：下フリックで小数点を入力</li>" +
-    "<li>（ ）キー：状況に応じて開く／閉じるを自動判定します</li>" +
-    "<li>x²キー：直前の値を2乗します</li>" +
-    "<li>キーパッド上端のバーを上下にドラッグするとキーの高さを変えられます（ダブルタップで100%に戻ります）</li></ul>";
-  html += "<h3>クイックモード</h3><ul class=\"help-list\">" +
-    "<li>テンキー上の窓のスイッチで切替。数字をタップするたび、その数字がそのまま加算されます（0は10点）</li>" +
-    "<li>2桁の点数は、十の位の数字を長押し（「1_」のように保留表示）してから一の位をタップします</li>" +
-    "<li>保留は⌫でキャンセルできます</li></ul>";
-  html += "<h3>プリセット・履歴・印刷</h3><ul class=\"help-list\">" +
-    "<li>メニューからプリセットの読み込みや、今の構成の保存ができます</li>" +
-    "<li>「この結果を履歴に保存」で結果を残せます（最大200件）。履歴からは項目別の内訳確認と印刷ができます</li>" +
-    "<li>印刷は80mmレシート幅の白黒表形式です</li></ul>";
-  openSheet("ヘルプ", html);
-});
+    function defaultState() {
+      var players = [0, 1, 2, 3].map(function (i) {
+        return { id: uid() + "p" + i, name: "", color: PLAYER_COLORS[i] };
+      });
+      var categories = [0, 1, 2, 3, 4].map(function (i) {
+        return { id: uid() + "c" + i, name: "", negative: false, tiebreak: false };
+      });
+      return {
+        title: "ゲーム名",
+        players: players,
+        categories: categories,
+        cells: {},
+        selected: { playerId: players[0].id, categoryId: categories[0].id },
+        presets: [],
+        history: [],
+        keypadLayout: "keyboard",
+        theme: "navy",
+        quickMode: false,
+        haptics: true,
+        floatOpacity: "semi",
+        animations: true,
+        keypadScale: 1
+      };
+    }
 
-/* ---- presets ---- */
-function applyPreset(name, items, playerCount){
-  closeKeypad();
-  var pc = playerCount || 4;
-  var players = [];
-  for(var i=0;i<pc;i++) players.push({ id:uid("p"), name:"", color:null });
-  state = {
-    gameName: name==="空欄"? "" : name,
-    players: players,
-    items: items.map(function(it){ return { id:uid("i"), name:it.name, type:it.type||"normal" }; }),
-    scores:{}
-  };
-  save(); render(); closeSheet(); toast("プリセット「" + name + "」を読み込みました");
-}
-function openPresets(){
-  var html = "<h3>組み込みプリセット</h3>";
-  BUILTINS.forEach(function(b, i){
-    html += '<button class="row-btn preset-load" type="button" data-kind="builtin" data-idx="' + i + '"><span class="grow">' + escapeHtml(b.name) + "<small>項目" + b.items.length + "・4人</small></span></button>";
-  });
-  html += "<h3>マイプリセット</h3>";
-  if(!userPresets.length) html += '<p style="color:var(--sub);font-size:.9rem">まだ保存したプリセットはありません。</p>';
-  userPresets.forEach(function(pr){
-    html += '<div style="display:flex;gap:.4rem;margin-bottom:.45rem">' +
-      '<button class="row-btn preset-load" type="button" data-kind="user" data-id="' + pr.id + '" style="flex:1;margin-bottom:0"><span class="grow">' + escapeHtml(pr.name) + "<small>項目" + pr.items.length + "・" + pr.playerCount + "人</small></span></button>" +
-      '<button class="row-btn danger preset-del" type="button" data-id="' + pr.id + '" style="flex:0 0 auto;width:auto">削除</button></div>';
-  });
-  html += "<h3>現在の構成を保存</h3>" +
-    '<input class="txt-input" id="prName" type="text" placeholder="プリセット名" />' +
-    '<button class="row-btn" id="prSave" type="button"><span class="grow">この構成をプリセットとして保存</span></button>' +
-    '<p style="font-size:.83rem;color:var(--sub)">保存されるのは項目構成と人数のみで、スコアや名前は含まれません。読み込み・削除は2回タップの確認式です。</p>';
-  openSheet("プリセット", html);
-  sheetBody.querySelectorAll(".preset-load").forEach(function(b){
-    armable(b, "もう一度タップで読み込み", function(){
-      if(b.getAttribute("data-kind")==="builtin"){
-        var bp = BUILTINS[parseInt(b.getAttribute("data-idx"),10)];
-        applyPreset(bp.name, bp.items, 4);
+    function builtinPlayers(prefix) {
+      return [0, 1, 2, 3].map(function (i) {
+        return { id: prefix + "-p" + i, name: "", color: PLAYER_COLORS[i] };
+      });
+    }
+    function builtinCategories(prefix, defs) {
+      return defs.map(function (d, i) {
+        return { id: prefix + "-c" + i, name: d.name, negative: !!d.negative, tiebreak: !!d.tiebreak };
+      });
+    }
+    function N(name) { return { name: name }; }
+    function NM(name) { return { name: name, negative: true }; }
+    var BUILTIN_PRESETS = [
+      { id: "builtin-blank", name: "空欄", title: "ゲーム名", players: builtinPlayers("builtin-blank"),
+        categories: builtinCategories("builtin-blank", [N(""), N(""), N(""), N(""), N("")]) },
+      { id: "builtin-arnak", name: "アルナックの失われし遺跡", title: "アルナックの失われし遺跡", players: builtinPlayers("builtin-arnak"),
+        categories: builtinCategories("builtin-arnak", [N("研究"), N("寺院"), N("偶像"), N("守護者"), N("アイテム/遺物"), NM("恐怖")]) },
+      { id: "builtin-wingspan", name: "ウイングスパン", title: "ウイングスパン", players: builtinPlayers("builtin-wingspan"),
+        categories: builtinCategories("builtin-wingspan", [N("鳥カード"), N("ボーナスカード"), N("ラウンド終了時目的"), N("卵"), N("鳥カード上の餌"), N("差し込んだ鳥カード")]) },
+      { id: "builtin-agricola", name: "アグリコラ", title: "アグリコラ", players: builtinPlayers("builtin-agricola"),
+        categories: builtinCategories("builtin-agricola", [N("畑"), N("牧場"), N("小麦"), N("野菜"), N("羊"), N("猪"), N("牛"), N("未使用スペース"), N("柵で囲まれた厩"), N("レンガ/石の部屋"), N("家族コマ"), N("カード得点"), N("ボーナス得点"), NM("物乞い")]) },
+      { id: "builtin-odin", name: "オーディンの祝祭", title: "オーディンの祝祭", players: builtinPlayers("builtin-odin"),
+        categories: builtinCategories("builtin-odin", [N("船"), N("移住"), N("探検ボード"), N("建物"), N("動物"), N("職業カード"), N("銀貨"), N("最終収入"), N("イングランドの王冠"), NM("ホームボード"), NM("探検ボード"), NM("倉庫と家"), NM("シングの罰則")]) },
+      { id: "builtin-nusfjord", name: "ヌースフィヨルド", title: "ヌースフィヨルド", players: builtinPlayers("builtin-nusfjord"),
+        categories: builtinCategories("builtin-nusfjord", [N("船"), N("建物"), N("株券"), N("金貨"), NM("空きスペース"), NM("未発行株")]) },
+      { id: "builtin-forest-shuffle", name: "フォレストシャッフル", title: "フォレストシャッフル", players: builtinPlayers("builtin-forest-shuffle"),
+        categories: builtinCategories("builtin-forest-shuffle", [N("樹"), N("湿原"), N("上"), N("左/右"), N("下"), N("洞窟")]) },
+      { id: "builtin-ark-nova-sanctuary", name: "アークノヴァ・サンクチュアリ", title: "アークノヴァ・サンクチュアリ", players: builtinPlayers("builtin-ark-nova-sanctuary"),
+        categories: builtinCategories("builtin-ark-nova-sanctuary", [N("動物タイル"), N("建物タイル"), N("計画タイル"), N("空き地"), N("保全功績"), N("保全/育児嚢マーカー(2点)"), N("ゲーム終了マーカー"), N("ソロプレイマーカー")]) }
+    ];
+
+    var HELP_SECTIONS = [
+      { heading: "得点表", items: [
+        "プレイヤー×項目の表で得点を管理します。項目名・プレイヤー名・ゲーム名はタップで編集でき、空欄のままなら項目は「1.」「2.」のように数字のみ、プレイヤーは「1P」、ゲーム名は「ゲーム名」と汎用表示されます",
+        "プレイヤーの色は名前の編集で定番8色（赤・青・黄・緑・オレンジ・紫・ピンク・黒）から選べます。未選択なら「おまかせ」で、この順に空いている色が自動で割り当てられます。名前は最大4文字まで表示され、列の幅は人数に合わせて自動調整されます",
+        "合計は最下段に自動計算されます。1位のプレイヤーには王冠が付きます（同点なら全員）"
+      ]},
+      { heading: "入力とテンキー", items: [
+        "セルをタップするとテンキーと計算式ウィンドウが出ます。四則演算・（）・x²が使えます",
+        "フリック入力：0キーの下フリックで小数点、⌫キーの上フリックでAC（全消去）、「次のプレイヤーへ」の左フリックで前のプレイヤーへ戻れます",
+        "数字の並びはメニューでキーボード式／電話式に切り替えできます",
+        "小数は切り捨てで表示・計算されます（小数部分は薄く併記され、合計には入りません）"
+      ]},
+      { heading: "クイックモード", items: [
+        "数字をタップするたび、その数字がそのまま得点に加算されます（4・5・5・9と押せば 4+5+5+9=23点）。0キーは10点です",
+        "2桁の得点は、十の位の数字キーを長押ししてから次の数字をタップすると確定します",
+        "ON／OFFの切替は、入力中に出ている計算式ウィンドウの中にあります"
+      ]},
+      { heading: "項目の特殊設定", items: [
+        "マイナス項目：合計から差し引かれる項目です（失点など）。項目の編集で設定します",
+        "タイブレーク項目：合計には入らず、同点のときに上から順に比べて勝者を決める項目です"
+      ]},
+      { heading: "保存とプリセット", items: [
+        "入力内容は自動で保存されます",
+        "プリセット：表の構成（ゲーム名・プレイヤー・項目）を保存・読込・削除できます。組み込みプリセット（空欄／アルナックの失われし遺跡／ウイングスパン／アグリコラ／オーディンの祝祭／ヌースフィヨルド／フォレストシャッフル／アークノヴァ・サンクチュアリ）も入っています",
+        "履歴：終わったゲームの結果を最大200件まで保存できます。ゲーム名・日時・優勝者・項目ごとの内訳を確認できます"
+      ]},
+      { heading: "印刷", items: [
+        "履歴から、レシート風レイアウトで結果を印刷できます（レシートプリンター対応）。優勝者の合計には王冠が付きます"
+      ]},
+      { heading: "表示と操作感", items: [
+        "ヘッダーのボタン（？の隣）でフルスクリーン表示に切り替えられます。もう一度押すと元に戻ります",
+        "テーマは4種（濃紺／ライト／ダーク／ペーパー）から選べます",
+        "入力ウィンドウの透明度、キーを押したときの振動、シートのスライドアニメーションはメニューで調整できます",
+        "キーパッド上端のバーを上下にドラッグすると、キーパッドの高さを変えられます（ダブルタップで元の高さに戻ります）"
+      ]}
+    ];
+
+    var THEMES = [
+      { id: "navy", label: "濃紺", swatches: ["#0a1b38", "#16294f", "#e9a426"] },
+      { id: "light", label: "ライト", swatches: ["#e8ecf0", "#ccd8e4", "#e9a426"] },
+      { id: "dark", label: "ダーク", swatches: ["#000000", "#232323", "#e9a426"] },
+      { id: "paper", label: "ペーパー", swatches: ["#ecdfbe", "#dec98f", "#5d7d3c"] }
+    ];
+
+    /* ---------------- expression evaluation (ported) ---------------- */
+    function tokenize(s) {
+      var toks = []; var i = 0;
+      while (i < s.length) {
+        var c = s[i];
+        if ((c >= "0" && c <= "9") || c === ".") {
+          var str = ""; var dot = false;
+          while (i < s.length) {
+            var d = s[i];
+            if (d >= "0" && d <= "9") { str += d; i++; }
+            else if (d === "." && !dot) { dot = true; str += d; i++; }
+            else break;
+          }
+          var v = parseFloat(str);
+          if (Number.isNaN(v)) return null;
+          toks.push({ t: "num", v: v });
+        } else if (c === "+" || c === "-" || c === "×" || c === "÷") { toks.push({ t: "op", v: c }); i++; }
+        else if (c === "(") { toks.push({ t: "lp" }); i++; }
+        else if (c === ")") { toks.push({ t: "rp" }); i++; }
+        else if (c === "²") { toks.push({ t: "sq" }); i++; }
+        else if (c === " ") { i++; }
+        else return null;
+      }
+      return toks;
+    }
+    function Parser(toks) { this.toks = toks; this.pos = 0; }
+    Parser.prototype.peek = function () { return this.toks[this.pos]; };
+    Parser.prototype.parseExpr = function () {
+      var v = this.parseTerm(); if (v === null) return null;
+      for (;;) {
+        var tk = this.peek();
+        if (tk && tk.t === "op" && (tk.v === "+" || tk.v === "-")) {
+          this.pos++;
+          var r = this.parseTerm(); if (r === null) return null;
+          v = tk.v === "+" ? v + r : v - r;
+        } else break;
+      }
+      return v;
+    };
+    Parser.prototype.parseTerm = function () {
+      var v = this.parseFactor(); if (v === null) return null;
+      for (;;) {
+        var tk = this.peek();
+        if (tk && tk.t === "op" && (tk.v === "×" || tk.v === "÷")) {
+          this.pos++;
+          var r = this.parseFactor(); if (r === null) return null;
+          if (tk.v === "÷") { if (r === 0) return null; v = v / r; } else v = v * r;
+        } else break;
+      }
+      return v;
+    };
+    Parser.prototype.parseFactor = function () {
+      var tk = this.peek();
+      if (tk && tk.t === "op" && tk.v === "-") { this.pos++; var v1 = this.parseFactor(); return v1 === null ? null : -v1; }
+      if (tk && tk.t === "op" && tk.v === "+") { this.pos++; return this.parseFactor(); }
+      var v = this.parsePrimary(); if (v === null) return null;
+      while (this.peek() && this.peek().t === "sq") { this.pos++; v = v * v; }
+      return v;
+    };
+    Parser.prototype.parsePrimary = function () {
+      var tk = this.peek(); if (!tk) return null;
+      if (tk.t === "num") { this.pos++; return tk.v; }
+      if (tk.t === "lp") {
+        this.pos++;
+        var v = this.parseExpr(); if (v === null) return null;
+        if (!this.peek() || this.peek().t !== "rp") return null;
+        this.pos++; return v;
+      }
+      return null;
+    };
+    function evaluate(raw) {
+      var s = raw;
+      while (s.length > 0 && "+-×÷(".indexOf(s[s.length - 1]) >= 0) s = s.slice(0, -1);
+      if (!s) return null;
+      var open = (s.match(/\(/g) || []).length;
+      var close = (s.match(/\)/g) || []).length;
+      if (close > open) return null;
+      s = s + Array(open - close + 1).join(")");
+      var toks = tokenize(s);
+      if (!toks || toks.length === 0) return null;
+      var p = new Parser(toks);
+      var v = p.parseExpr();
+      if (v === null || p.pos !== toks.length) return null;
+      if (!Number.isFinite(v)) return null;
+      return v;
+    }
+    function formatFormula(raw) {
+      var out = "";
+      for (var i = 0; i < raw.length; i++) {
+        var c = raw[i];
+        if (c === "×" || c === "÷") out += " " + c + " ";
+        else if (c === "+" || c === "-") {
+          var prev = out.replace(/\s+$/, "").slice(-1);
+          var binary = prev !== "" && prev !== "(" && prev !== "+" && prev !== "-";
+          out += binary ? " " + c + " " : c;
+        } else out += c;
+      }
+      return out.trim();
+    }
+    function formatNumber(n) { return String(Math.round(n * 100) / 100); }
+    function tableValue(n) { var t = Math.trunc(n); return Math.max(-99999, Math.min(99999, t)); }
+    function formatTableValue(n) { return String(tableValue(n)); }
+    function fractionSuffix(n) {
+      var t = Math.trunc(n);
+      if (Math.abs(t) > 99999) return "";
+      var frac = Math.abs(n - t);
+      var r = Math.floor(frac * 100 + 1e-9) / 100;
+      if (r <= 0) return "";
+      return "." + String(r).slice(2);
+    }
+    function fallbackPlayerName(i) { return (i + 1) + "P"; }
+    function fallbackCategoryName(i) { return (i + 1) + "."; }
+    function displayCategoryName(c, i) { return c.name.trim() || fallbackCategoryName(i); }
+    function displayPlayerName(p, i) { return p.name.trim() || fallbackPlayerName(i); }
+    function truncateNameChars(s, max) { max = max || 4; return Array.from(s).slice(0, max).join(""); }
+    function shortPlayerName(p, i) { return truncateNameChars(displayPlayerName(p, i)); }
+    function playerColumnWidth(count) {
+      var widths = [116, 100, 84, 62, 56, 50, 46, 42];
+      return widths[Math.min(Math.max(count, 1), 8) - 1] || 56;
+    }
+    var CROWN_SVG = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="CLASS" style="width:SIZE;height:SIZE"><path d="M3 19.2 4.3 8.6 9.1 12 12 5.4 14.9 12 19.7 8.6 21 19.2H3Z"/></svg>';
+    function crownSVG(cls, size) { return CROWN_SVG.replace("CLASS", cls).replace(/SIZE/g, size); }
+
+    function computeRanking(players, categories, cells) {
+      var totals = {};
+      players.forEach(function (p) {
+        var sum = 0;
+        categories.forEach(function (c) {
+          if (c.tiebreak) return;
+          var v = evaluate(cells[p.id + ":" + c.id] || "");
+          if (v !== null) sum += c.negative ? -tableValue(v) : tableValue(v);
+        });
+        totals[p.id] = sum;
+      });
+      function compareKeys(a, b) {
+        for (var i = 0; i < Math.max(a.length, b.length); i++) {
+          var d = (a[i] || 0) - (b[i] || 0);
+          if (d !== 0) return d;
+        }
+        return 0;
+      }
+      var keys = players.map(function (p) {
+        var key = [totals[p.id] || 0];
+        categories.forEach(function (c) {
+          if (!c.tiebreak) return;
+          var v = evaluate(cells[p.id + ":" + c.id] || "");
+          key.push(v !== null ? tableValue(v) : 0);
+        });
+        return key;
+      });
+      var best = null;
+      keys.forEach(function (k) { if (!best || compareKeys(k, best) > 0) best = k; });
+      var decided = best !== null && (best[0] > 0 || best.slice(1).some(function (v) { return v > 0; }));
+      var leaderIds = {};
+      if (decided && best) {
+        players.forEach(function (p, i) { if (compareKeys(keys[i], best) === 0) leaderIds[p.id] = true; });
+      }
+      var bestTotal = best ? best[0] : 0;
+      var tiedAtTop = players.filter(function (p) { return (totals[p.id] || 0) === bestTotal; }).length;
+      var leaderCount = Object.keys(leaderIds).length;
+      return { totals: totals, leaderIds: leaderIds, tiebreakDecided: decided && tiedAtTop > 1 && leaderCount < tiedAtTop };
+    }
+    function formatSavedAt(iso) {
+      var d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "";
+      var pad = function (n) { return String(n).padStart(2, "0"); };
+      return d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate() + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+    function formatReceiptDate(iso) {
+      var d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "";
+      var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      var pad = function (n) { return String(n).padStart(2, "0"); };
+      return months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " at " + d.getHours() + ":" + pad(d.getMinutes());
+    }
+
+    /* ---------------- legacy migrations (load-time) ---------------- */
+    function normalizeLegacyPlayerColor(color) {
+      var i = LEGACY_PLAYER_COLORS.findIndex(function (c) { return c.toLowerCase() === String(color).toLowerCase(); });
+      return i >= 0 ? PLAYER_COLORS[i] : color;
+    }
+    var CIRCLED_DIGITS = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳";
+    function normalizeLegacyCategoryNames(categories) {
+      return categories.map(function (c, i) {
+        var ch = CIRCLED_DIGITS[i];
+        var legacy = ch ? "得点" + ch : null;
+        return legacy !== null && c.name.trim() === legacy ? Object.assign({}, c, { name: "" }) : c;
+      });
+    }
+
+    /* ---------------- state ---------------- */
+    var state = defaultState();
+    var hydrated = false;
+    // UI-local state (never persisted)
+    var editing = null; // {kind:"player"|"category", id}
+    var draft = "", draftColor = null, draftNegative = false, draftTiebreak = false;
+    var openSheetName = null; // "menu"|"preset"|"theme"|"history"|"help"|null (editor tracked by `editing`)
+    var confirmReset = false;
+    var titleFocused = false;
+    var expandedHistoryId = null, confirmDeleteHistoryId = null;
+    var printEntry = null;
+    var savedNotice = false, savedNoticeTimer = null;
+    var presetNameDraft = "";
+    var confirmLoadId = null, confirmDeletePresetId = null;
+    var confirmTimers = {};
+    var entering = false;
+    var pendingTens = null;
+    var floatH = 0;
+    var dragScale = null;
+    var keypadBuiltSig = "";
+    var confirmResetTimer = null;
+
+    var $ = function (id) { return document.getElementById(id); };
+    var appEl = $("app"), gridEl = $("grid"), tableScrollEl = $("tableScroll"), tableXEl = $("tableX");
+    var titleInput = $("titleInput");
+
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage full/blocked: keep running in memory */ }
+    }
+    var saveTimer = null;
+    function scheduleSave() {
+      if (!hydrated) return;
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 350);
+    }
+    function setState(mutator) {
+      mutator(state);
+      scheduleSave();
+      renderAll();
+    }
+
+    function loadState() {
+      var raw = null;
+      try { raw = localStorage.getItem(STORAGE_KEY); } catch (e) { raw = null; }
+      if (!raw) return;
+      try {
+        var loaded = JSON.parse(raw);
+        if (!loaded || !Array.isArray(loaded.players) || !Array.isArray(loaded.categories)) return;
+        var base = defaultState();
+        Object.keys(base).forEach(function (k) { if (loaded[k] !== undefined) base[k] = loaded[k]; });
+        base.players = base.players.map(function (p) { return Object.assign({}, p, { color: normalizeLegacyPlayerColor(p.color) }); });
+        base.categories = normalizeLegacyCategoryNames(base.categories);
+        base.presets = (base.presets || []).map(function (pr) {
+          return Object.assign({}, pr, {
+            players: pr.players.map(function (p) { return Object.assign({}, p, { color: normalizeLegacyPlayerColor(p.color) }); }),
+            categories: normalizeLegacyCategoryNames(pr.categories)
+          });
+        });
+        if (base.keypadLayout === "quick") { base.keypadLayout = "keyboard"; base.quickMode = true; }
+        if (!base.players.length || !base.categories.length) return;
+        if (!base.players.some(function (p) { return p.id === base.selected.playerId; })) base.selected.playerId = base.players[0].id;
+        if (!base.categories.some(function (c) { return c.id === base.selected.categoryId; })) base.selected.categoryId = base.categories[0].id;
+        state = base;
+      } catch (e) { /* corrupted storage: start from the blank sheet */ }
+    }
+
+    /* ---------------- derived helpers ---------------- */
+    function players() { return state.players; }
+    function categories() { return state.categories; }
+    function selPlayer() { return state.players.find(function (p) { return p.id === state.selected.playerId; }) || state.players[0]; }
+    function selCategory() { return state.categories.find(function (c) { return c.id === state.selected.categoryId; }) || state.categories[0]; }
+    function selIdx() { return Math.max(0, state.players.findIndex(function (p) { return p.id === selPlayer().id; })); }
+    function cellKey() { var p = selPlayer(), c = selCategory(); return p && c ? p.id + ":" + c.id : ""; }
+    function curFormula() { return state.cells[cellKey()] || ""; }
+    function keypadHidden() { return editing !== null || titleFocused || openSheetName !== null; }
+    function showKeypad() { return entering && !keypadHidden(); }
+    function sheetAnimClass() { return state.animations ? "sheet-slide-up" : ""; }
+
+    function buzz() {
+      if (!state.haptics) return;
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(10);
+    }
+
+    /* ---------------- theme ---------------- */
+    function applyTheme() {
+      appEl.setAttribute("data-theme", state.theme);
+      document.documentElement.setAttribute("data-theme", state.theme);
+      var bg = "";
+      try { bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(); } catch (e) {}
+      if (bg) {
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.appendChild(meta); }
+        meta.content = bg;
+      }
+    }
+
+    /* ---------------- score table rendering ---------------- */
+    function scoreGridCols() {
+      var n = state.players.length;
+      return "64px repeat(" + n + ", minmax(" + playerColumnWidth(n) + "px, 1fr)) 24px";
+    }
+    function tableMinW() { return 64 + state.players.length * playerColumnWidth(state.players.length) + 24; }
+
+    function cellValueHTML(c, v) {
+      if (v === null) return '<span class="empty">—</span>';
+      var shown = c.negative ? -v : v;
+      var frac = fractionSuffix(shown);
+      return esc(formatTableValue(shown)) + (frac ? '<span aria-hidden="true" class="frac">' + esc(frac) + "</span>" : "");
+    }
+
+    function renderTable() {
+      var rank = computeRanking(state.players, state.categories, state.cells);
+      var cols = scoreGridCols(), minW = tableMinW();
+      var rowStyle = 'style="grid-template-columns:' + cols + ";min-width:" + minW + 'px"';
+      gridEl.style.minWidth = minW + "px";
+      var html = "";
+      // header row
+      html += '<div role="row" class="srow srow-head" ' + rowStyle + ">";
+      html += '<div role="columnheader" class="th-cat">項目</div>';
+      state.players.forEach(function (p, pIdx) {
+        html += '<div role="columnheader" class="th-player">';
+        var few = state.players.length <= 3 ? " few" : "";
+        if (editing && editing.kind === "player" && editing.id === p.id) {
+          html += '<span class="pill editing' + few + '" style="border-color:' + esc(draftColor !== null ? draftColor : p.color) + '"><span>' + esc(truncateNameChars(draft.trim() || fallbackPlayerName(pIdx))) + "</span></span>";
+        } else {
+          html += '<button type="button" class="pill minh0' + few + (p.id === selPlayer().id ? " sel" : "") + '" data-edit-player="' + esc(p.id) + '" aria-label="' + esc(displayPlayerName(p, pIdx)) + 'の名前を編集" style="border-color:' + esc(p.color) + '"><span>' + esc(shortPlayerName(p, pIdx)) + "</span></button>";
+        }
+        html += "</div>";
+      });
+      html += '<div role="columnheader" style="min-width:0;padding:4px 2px"><button type="button" id="addPlayerBtn" class="add-player-btn minh0" aria-label="プレイヤーを追加"' + (state.players.length >= 8 ? " disabled" : "") + ">+</button></div>";
+      html += "</div>";
+      // category rows
+      state.categories.forEach(function (c, cIdx) {
+        html += '<div role="row" class="srow srow-cat" ' + rowStyle + ">";
+        html += '<div role="rowheader" class="rh-cat">';
+        var badges = "";
+        if (c.negative) badges += '<span aria-hidden="true" class="neg-mark">−</span>';
+        if (c.tiebreak) badges += '<span aria-hidden="true" class="tb-badge">TB</span>';
+        if (editing && editing.kind === "category" && editing.id === c.id) {
+          var dBadges = "";
+          if (draftNegative && !draftTiebreak) dBadges += '<span aria-hidden="true" class="neg-mark">−</span>';
+          if (draftTiebreak) dBadges += '<span aria-hidden="true" class="tb-badge">TB</span>';
+          html += '<span class="cat-name-editing">' + dBadges + esc(draft.trim() || fallbackCategoryName(cIdx)) + "</span>";
+        } else {
+          html += '<button type="button" class="cat-name-btn minh0" data-edit-category="' + esc(c.id) + '" aria-label="' + esc(displayCategoryName(c, cIdx)) + (c.tiebreak ? "（タイブレーク項目）" : c.negative ? "（マイナス項目）" : "") + 'の名前を編集">' + badges + esc(displayCategoryName(c, cIdx)) + "</button>";
+        }
+        html += "</div>";
+        state.players.forEach(function (p, pIdx) {
+          var f = state.cells[p.id + ":" + c.id] || "";
+          var v = evaluate(f);
+          var isSel = p.id === selPlayer().id && c.id === selCategory().id;
+          var aria = displayPlayerName(p, pIdx) + "の" + displayCategoryName(c, cIdx) + (c.tiebreak ? "（タイブレーク項目）" : c.negative ? "（マイナス項目）" : "") + "を編集";
+          if (f) aria += "、式 " + formatFormula(f) + "、結果 " + (v !== null ? formatNumber(c.negative ? -v : v) + (fractionSuffix(c.negative ? -v : v) ? "（小数点以下は切り捨て）" : "") : "未計算");
+          else aria += "、未入力";
+          html += '<div role="cell" class="cell-wrap"><button type="button" class="cell-btn' + (isSel ? " sel" : "") + '" data-cell="' + esc(p.id + ":" + c.id) + '" aria-label="' + esc(aria) + '">' +
+            '<span class="cell-val' + (c.negative && v !== null ? " neg" : "") + '">' + cellValueHTML(c, v) + "</span>" +
+            '<span class="cell-formula">' + (f ? esc(formatFormula(f)) : "&nbsp;") + "</span>" +
+            "</button></div>";
+        });
+        html += '<div aria-hidden="true"></div>';
+        html += "</div>";
+      });
+      // totals row
+      html += '<div role="row" class="srow srow-total" ' + rowStyle + ">";
+      html += '<div role="rowheader" class="rh-total">合計</div>';
+      state.players.forEach(function (p) {
+        var t = rank.totals[p.id] || 0;
+        var leader = !!rank.leaderIds[p.id];
+        var tbWin = leader && rank.tiebreakDecided;
+        html += '<div role="cell" class="total-cell"><span class="total-inner">' +
+          (leader ? crownSVG("crown", "14px") + '<span class="sr-only">' + (tbWin ? "タイブレークで1位" : "1位") + "</span>" : "") +
+          '<span class="total-val' + (leader ? " leader" : "") + '">' + esc(formatTableValue(t)) + "</span>" +
+          (tbWin ? '<span aria-hidden="true" class="tb-win">タイブレーク</span>' : "") +
+          "</span></div>";
+      });
+      html += '<div aria-hidden="true"></div>';
+      html += "</div>";
+      gridEl.innerHTML = html;
+      $("addCatBtn").disabled = state.categories.length >= 20;
+      $("saveHistBtn").textContent = savedNotice ? "履歴に保存しました ✓" : "この結果を履歴に保存";
+      // spacer so bottom rows can scroll clear of the floating window
+      $("tableSpacer").style.height = showKeypad() && floatH > 0 ? (floatH + 8) + "px" : "0px";
+    }
+
+    /* ---------------- floating window + keypad ---------------- */
+    function renderFloat() {
+      var p = selPlayer(), c = selCategory();
+      if (!p || !c) return;
+      var pill = $("floatPill");
+      pill.textContent = shortPlayerName(p, selIdx());
+      pill.style.borderColor = p.color;
+      var cIdx = Math.max(0, state.categories.findIndex(function (x) { return x.id === c.id; }));
+      $("floatCat").textContent = "・" + displayCategoryName(c, cIdx);
+      $("floatBadgeNeg").hidden = !c.negative;
+      $("floatBadgeTb").hidden = !c.tiebreak;
+      var qs = $("quickSwitch");
+      qs.classList.toggle("on", state.quickMode);
+      qs.setAttribute("aria-checked", String(state.quickMode));
+      $("quickState").textContent = state.quickMode ? "ON" : "OFF";
+      var f = curFormula();
+      var ff = $("floatFormula");
+      if (f || pendingTens !== null) {
+        var h = f ? esc(formatFormula(f)) : "";
+        if (pendingTens !== null) {
+          var sep = f && "+-×÷(.".indexOf(f.slice(-1)) < 0 ? " + " : (f ? " " : "");
+          h += '<span class="float-pending">' + esc(sep + pendingTens) + '<span aria-hidden="true" class="under">_</span></span>';
+        }
+        h += '<span aria-hidden="true" class="float-cursor cursor-blink">|</span>';
+        ff.innerHTML = h;
       } else {
-        var up = userPresets.find(function(x){ return x.id===b.getAttribute("data-id"); });
-        if(up) applyPreset(up.name, up.items, up.playerCount);
+        ff.innerHTML = '<span class="float-placeholder">' + (state.quickMode ? "数字キーで得点を入力…" : "テンキーで式を入力…") + "</span>";
+      }
+      var r = evaluate(f);
+      $("floatResult").textContent = r !== null ? formatNumber(r) : "—";
+      var hint = $("floatQuickHint");
+      if (state.quickMode) {
+        hint.hidden = false;
+        hint.textContent = pendingTens !== null
+          ? pendingTens + "を十の位として保留中：次の数字タップで2桁入力、⌫でキャンセル"
+          : "数字キーを押すたび、その数字が得点として足されます（0キー＝10点／長押しで2桁入力）";
+      } else hint.hidden = true;
+      var fw = $("floatWin");
+      if (state.floatOpacity === "opaque") fw.style.backgroundColor = "";
+      else fw.style.backgroundColor = "color-mix(in srgb, var(--editor) " + (state.floatOpacity === "semi" ? 62 : 38) + "%, transparent)";
+      fw.classList.toggle("pop-in", state.animations);
+      measureFloat();
+    }
+    function measureFloat() {
+      var fw = $("floatWin");
+      var h = showKeypad() && fw ? fw.offsetHeight : 0;
+      if (h !== floatH) {
+        floatH = h;
+        $("tableSpacer").style.height = showKeypad() && floatH > 0 ? (floatH + 8) + "px" : "0px";
+      }
+    }
+
+    function digitRows() {
+      return state.keypadLayout === "calculator"
+        ? [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]]
+        : [["7", "8", "9"], ["4", "5", "6"], ["1", "2", "3"]];
+    }
+
+    function makeKey(cls, label, text) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "key " + cls;
+      b.setAttribute("aria-label", label);
+      b.textContent = text;
+      return b;
+    }
+    function addBubble(btn, posClass, small) {
+      var s = document.createElement("span");
+      s.className = "flick-bubble " + posClass + (small ? " small" : "");
+      s.setAttribute("aria-hidden", "true");
+      btn.appendChild(s);
+      return s;
+    }
+    /* A flick key: pointer tracking decides tap vs flick on release;
+       the click that follows a flick is swallowed. */
+    function flickify(btn, opts) {
+      var start = null, flicked = false, bubble = null;
+      btn.addEventListener("pointerdown", function (e) {
+        start = { x: e.clientX, y: e.clientY };
+        flicked = false;
+        btn.classList.add("held");
+        if (opts.bubble) { bubble = addBubble(btn, opts.bubble.pos, opts.bubble.small); bubble.innerHTML = opts.bubble.content(); }
+      });
+      btn.addEventListener("pointermove", function (e) {
+        if (!start) return;
+        var dx = e.clientX - start.x, dy = e.clientY - start.y;
+        var on = opts.test(dx, dy);
+        if (bubble) bubble.classList.toggle("active", on);
+      });
+      function end(e, fire) {
+        var s = start; start = null;
+        btn.classList.remove("held");
+        if (bubble) { bubble.remove(); bubble = null; }
+        if (!s || !fire) return;
+        var dx = e.clientX - s.x, dy = e.clientY - s.y;
+        if (opts.test(dx, dy)) { flicked = true; opts.onFlick(); }
+      }
+      btn.addEventListener("pointerup", function (e) { end(e, true); });
+      btn.addEventListener("pointercancel", function () { end(null, false); });
+      btn.addEventListener("click", function () {
+        if (flicked) { flicked = false; return; }
+        opts.onTap();
+      });
+    }
+
+    function buildKeypad() {
+      var grid = $("kpGrid");
+      grid.innerHTML = "";
+      var scale = dragScale !== null ? dragScale : state.keypadScale;
+      grid.style.gridTemplateRows = "repeat(5, calc(var(--keyrow) * " + scale + "))";
+      // row 1: ⌫ （） ÷ ×
+      var bs = makeKey("flick", "1文字消す（上フリックで全消去 AC）", "⌫");
+      var bsHint = document.createElement("span");
+      bsHint.className = "hint"; bsHint.setAttribute("aria-hidden", "true"); bsHint.textContent = "↑ AC";
+      bs.appendChild(bsHint);
+      flickify(bs, {
+        test: function (dx, dy) { return dy <= -24 && Math.abs(dy) > Math.abs(dx); },
+        bubble: { pos: "bubble-up", small: true, content: function () { return "AC"; } },
+        onTap: backspace, onFlick: clearCell
+      });
+      grid.appendChild(bs);
+      var paren = makeKey("paren", "括弧を入力（自動判定）", "（）");
+      paren.addEventListener("click", pushParen);
+      grid.appendChild(paren);
+      var div = makeKey("op", "割る（÷）", "÷"); div.addEventListener("click", function () { pushOp("÷"); }); grid.appendChild(div);
+      var mul = makeKey("op", "掛ける（×）", "×"); mul.addEventListener("click", function () { pushOp("×"); }); grid.appendChild(mul);
+      // digit rows + side operators
+      var rows = digitRows();
+      rows.forEach(function (row, ri) {
+        row.forEach(function (d) { grid.appendChild(makeDigitKey(d)); });
+        if (ri === 0) { var minus = makeKey("op", "引く（－）", "−"); minus.addEventListener("click", function () { pushOp("-"); }); grid.appendChild(minus); }
+        if (ri === 1) { var plus = makeKey("op plus", "足す（＋）", "+"); plus.addEventListener("click", function () { pushOp("+"); }); grid.appendChild(plus); }
+      });
+      // bottom row: wide 0, x², next player
+      var zero = makeKey("zero", "数字 0（下フリックで小数点）", "0");
+      var zHint = document.createElement("span");
+      zHint.className = "hint"; zHint.setAttribute("aria-hidden", "true"); zHint.textContent = "↓ ．";
+      zero.appendChild(zHint);
+      flickify(zero, {
+        test: function (dx, dy) { return dy >= 24 && Math.abs(dy) > Math.abs(dx); },
+        bubble: { pos: "bubble-down", small: false, content: function () { return "．"; } },
+        onTap: function () { pushKeyDigit("0"); }, onFlick: pushDot
+      });
+      grid.appendChild(zero);
+      var sq = makeKey("square", "2乗", "x²");
+      sq.addEventListener("click", pushSquare);
+      grid.appendChild(sq);
+      var wrap = document.createElement("div");
+      wrap.className = "next-wrap";
+      var nb = document.createElement("button");
+      nb.type = "button";
+      nb.className = "next-btn";
+      nb.id = "nextBtn";
+      wrap.appendChild(nb);
+      grid.appendChild(wrap);
+      updateNextBtn();
+      flickify(nb, {
+        test: function (dx, dy) { return dx <= -24 && Math.abs(dx) > Math.abs(dy); },
+        bubble: { pos: "bubble-left", small: true, content: function () {
+          var pp = prevPlayerObj();
+          return "◀ " + esc(truncateNameChars(displayPlayerName(pp.p, pp.i))) + "へ戻る";
+        } },
+        onTap: goNext, onFlick: goPrev
+      });
+      keypadBuiltSig = state.keypadLayout + "|" + state.quickMode;
+      updateHeldKey();
+    }
+    function nextPlayerObj() {
+      var i = (selIdx() + 1) % state.players.length;
+      return { p: state.players[i], i: i };
+    }
+    function prevPlayerObj() {
+      var i = (selIdx() - 1 + state.players.length) % state.players.length;
+      return { p: state.players[i], i: i };
+    }
+    function updateNextBtn() {
+      var nb = $("nextBtn");
+      if (!nb) return;
+      var nx = nextPlayerObj(), pv = prevPlayerObj();
+      var nxName = displayPlayerName(nx.p, nx.i), pvName = displayPlayerName(pv.p, pv.i);
+      nb.setAttribute("aria-label", "次のプレイヤー " + nxName + " へ（左フリックで前のプレイヤー " + pvName + " へ戻る）");
+      nb.innerHTML = '<span aria-hidden="true" class="next-circle">' + esc(Array.from(nxName)[0] || "") + '</span>' +
+        '<span class="next-name">' + esc(truncateNameChars(nxName)) + 'へ</span>' +
+        '<span aria-hidden="true" class="next-hint">◀ 前へ</span>';
+    }
+    function makeDigitKey(d) {
+      if (!state.quickMode) {
+        var b = makeKey("", "数字 " + d, d);
+        b.setAttribute("data-digit", d);
+        b.addEventListener("click", function () { pushKeyDigit(d); });
+        return b;
+      }
+      var q = makeKey("", "数字 " + d + "（クイック：タップで" + d + "点を加算、長押しで十の位として保留）", d);
+      q.setAttribute("data-digit", d);
+      q.style.touchAction = "none";
+      var timer = null, longPressed = false;
+      function cancelTimer() { if (timer !== null) { clearTimeout(timer); timer = null; } }
+      q.addEventListener("pointerdown", function () {
+        longPressed = false;
+        cancelTimer();
+        timer = setTimeout(function () { timer = null; longPressed = true; holdTensDigit(d); }, 450);
+      });
+      q.addEventListener("pointerup", cancelTimer);
+      q.addEventListener("pointerleave", cancelTimer);
+      q.addEventListener("pointercancel", cancelTimer);
+      q.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+      q.addEventListener("click", function () {
+        if (longPressed) { longPressed = false; return; }
+        pushKeyDigit(d);
+      });
+      return q;
+    }
+    function updateHeldKey() {
+      var keys = $("kpGrid").querySelectorAll("[data-digit]");
+      keys.forEach(function (k) {
+        k.classList.toggle("quick-held", pendingTens !== null && k.getAttribute("data-digit") === pendingTens);
+      });
+    }
+
+    function renderKeypad() {
+      var show = showKeypad();
+      var sheet = $("keypadSheet");
+      sheet.hidden = !show;
+      if (!show) { floatH = 0; return; }
+      sheet.className = "sheet " + sheetAnimClass();
+      sheet.id = "keypadSheet";
+      var sig = state.keypadLayout + "|" + state.quickMode;
+      if (sig !== keypadBuiltSig) buildKeypad();
+      else {
+        var scale = dragScale !== null ? dragScale : state.keypadScale;
+        $("kpGrid").style.gridTemplateRows = "repeat(5, calc(var(--keyrow) * " + scale + "))";
+        updateNextBtn();
+        updateHeldKey();
+      }
+      var handle = $("kpHandle");
+      var pct = Math.round((dragScale !== null ? dragScale : state.keypadScale) * 100);
+      handle.setAttribute("aria-valuenow", String(pct));
+      handle.setAttribute("aria-valuetext", "高さ " + pct + "%");
+      handle.classList.toggle("dragging", dragScale !== null);
+      renderFloat();
+    }
+
+    /* auto-scroll the table so the selected cell stays visible above the float window */
+    function autoScroll() {
+      if (!entering) return;
+      var key = state.selected.playerId + ":" + state.selected.categoryId;
+      var el = gridEl.querySelector('[data-cell="' + CSS.escape(key) + '"]');
+      if (!el) return;
+      requestAnimationFrame(function () {
+        var cell = el.getBoundingClientRect();
+        var vBox = tableScrollEl;
+        if (vBox) {
+          var box = vBox.getBoundingClientRect();
+          var bottomLimit = box.bottom - (floatH > 0 ? floatH + 16 : 0);
+          var top = vBox.scrollTop;
+          if (cell.bottom > bottomLimit) top += cell.bottom - bottomLimit;
+          else if (cell.top < box.top) top += cell.top - box.top;
+          if (top !== vBox.scrollTop) vBox.scrollTo({ top: top, behavior: "smooth" });
+        }
+        var hBox = tableXEl;
+        if (hBox) {
+          var hrect = hBox.getBoundingClientRect();
+          var left = hBox.scrollLeft;
+          if (cell.right > hrect.right) left += cell.right - hrect.right;
+          else if (cell.left < hrect.left + 64) left += cell.left - (hrect.left + 64);
+          if (left !== hBox.scrollLeft) hBox.scrollTo({ left: left, behavior: "smooth" });
+        }
+      });
+    }
+
+    /* ---------------- keypad input logic (ported) ---------------- */
+    function select(playerId, categoryId) {
+      pendingTens = null;
+      state.selected = { playerId: playerId, categoryId: categoryId };
+      scheduleSave();
+      renderAll();
+    }
+    function setFormula(next) {
+      buzz();
+      pendingTens = null;
+      var key = cellKey();
+      if (next === "") delete state.cells[key];
+      else state.cells[key] = next.slice(0, 120);
+      scheduleSave();
+      renderAll();
+    }
+    function pushDigit(d) {
+      var f = curFormula();
+      var m = f.match(/(\d+\.?\d*|\.\d+)$/);
+      if (m && m[1] === "0") { setFormula(f.slice(0, -1) + d); return; }
+      if (f.endsWith(")") || f.endsWith("²")) { setFormula(f + "×" + d); return; }
+      setFormula(f + d);
+    }
+    function pushOp(op) {
+      var f = curFormula();
+      if (!f) { if (op === "-") setFormula("-"); return; }
+      var last = f[f.length - 1];
+      if ("+-×÷".indexOf(last) >= 0) { setFormula(f.slice(0, -1) + op); return; }
+      if (last === "(") { if (op === "-") setFormula(f + op); return; }
+      setFormula(f + op);
+    }
+    function pushParen() {
+      var f = curFormula();
+      var open = (f.match(/\(/g) || []).length;
+      var close = (f.match(/\)/g) || []).length;
+      var last = f[f.length - 1] || "";
+      var endsWithValue = /\d/.test(last) || last === ")" || last === "²" || last === ".";
+      if (open > close && endsWithValue) pushCloseParen(); else pushOpenParen();
+    }
+    function pushOpenParen() {
+      var f = curFormula();
+      if (!f) { setFormula("("); return; }
+      var last = f[f.length - 1];
+      if ("+-×÷(".indexOf(last) >= 0) setFormula(f + "(");
+      else setFormula(f + "×(");
+    }
+    function pushCloseParen() {
+      var f = curFormula();
+      if (!f) return;
+      var open = (f.match(/\(/g) || []).length;
+      var close = (f.match(/\)/g) || []).length;
+      if (open <= close) return;
+      var last = f[f.length - 1];
+      if (/\d/.test(last) || last === ")" || last === "²" || last === ".") setFormula(f + ")");
+    }
+    function pushDot() {
+      var f = curFormula();
+      var m = f.match(/(\d+\.?\d*)$/);
+      if (m) { if (m[1].indexOf(".") < 0) setFormula(f + "."); return; }
+      if (!f) { setFormula("0."); return; }
+      var last = f[f.length - 1];
+      if ("+-×÷(".indexOf(last) >= 0) setFormula(f + "0.");
+      else if (last === ")" || last === "²") setFormula(f + "×0.");
+    }
+    function pushSquare() {
+      var f = curFormula();
+      if (!f) return;
+      var last = f[f.length - 1];
+      if (/\d/.test(last) || last === ")" || last === "²") setFormula(f + "²");
+    }
+    function backspace() {
+      if (pendingTens !== null) { buzz(); pendingTens = null; renderAll(); return; }
+      setFormula(curFormula().slice(0, -1));
+    }
+    function clearCell() { setFormula(""); }
+    function appendQuickTerm(term) {
+      var f = curFormula();
+      if (!f) { setFormula(term); return; }
+      var last = f[f.length - 1];
+      if (/\d/.test(last) || last === ")" || last === "²") { setFormula(f + "+" + term); return; }
+      setFormula(f + term);
+    }
+    function pushKeyDigit(d) {
+      if (!state.quickMode) { pushDigit(d); return; }
+      if (pendingTens !== null) {
+        var value = Number(pendingTens) * 10 + Number(d);
+        pendingTens = null;
+        appendQuickTerm(String(value));
+        return;
+      }
+      appendQuickTerm(d === "0" ? "10" : d);
+    }
+    function holdTensDigit(d) {
+      pendingTens = d;
+      if (state.haptics && typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(15);
+      renderAll();
+    }
+    function toggleQuick() {
+      pendingTens = null;
+      state.quickMode = !state.quickMode;
+      scheduleSave();
+      renderAll();
+    }
+    function isFinished(playerId, categoryId) { return evaluate(state.cells[playerId + ":" + categoryId] || "") !== null; }
+    function firstUnfinished(playerId) {
+      return state.categories.find(function (c) { return !isFinished(playerId, c.id); }) || state.categories[0];
+    }
+    function goNext() {
+      buzz();
+      var nx = nextPlayerObj();
+      var target = firstUnfinished(nx.p.id);
+      if (target) select(nx.p.id, target.id);
+    }
+    function goPrev() {
+      buzz();
+      var pv = prevPlayerObj();
+      var target = firstUnfinished(pv.p.id);
+      if (target) select(pv.p.id, target.id);
+    }
+
+    /* ---------------- structure editing ---------------- */
+    function startEdit(kind, id, name, opts) {
+      pendingTens = null;
+      editing = { kind: kind, id: id };
+      draft = name;
+      if (kind === "player") {
+        var pl = state.players.find(function (p) { return p.id === id; });
+        draftColor = opts && opts.autoColor ? null : (pl ? pl.color : null);
+      } else draftColor = null;
+      var cat = kind === "category" ? state.categories.find(function (c) { return c.id === id; }) : null;
+      draftNegative = cat ? cat.negative : false;
+      draftTiebreak = cat ? cat.tiebreak : false;
+      openSheetName = null;
+      renderAll();
+      var input = $("editorInput");
+      input.focus();
+    }
+    function commitEdit() {
+      if (!editing) return;
+      var raw = draft.trim();
+      var ed = editing;
+      setState(function (s) {
+        if (ed.kind === "player") {
+          var idx = s.players.findIndex(function (p) { return p.id === ed.id; });
+          if (idx < 0) return;
+          var name = raw.slice(0, 20);
+          var color;
+          if (draftColor !== null) color = draftColor;
+          else {
+            var used = s.players.filter(function (p) { return p.id !== ed.id; }).map(function (p) { return p.color; });
+            color = PLAYER_COLORS.find(function (c) { return used.indexOf(c) < 0; }) || PLAYER_COLORS[idx % PLAYER_COLORS.length];
+          }
+          s.players = s.players.map(function (p) { return p.id === ed.id ? Object.assign({}, p, { name: name, color: color }) : p; });
+        } else {
+          var name2 = raw.slice(0, 30);
+          s.categories = s.categories.map(function (c) {
+            return c.id === ed.id ? Object.assign({}, c, { name: name2, negative: draftNegative && !draftTiebreak, tiebreak: draftTiebreak }) : c;
+          });
+        }
+      });
+      editing = null;
+      renderAll();
+    }
+    function addPlayer() {
+      if (state.players.length >= 8) return;
+      var p = { id: uid(), name: "", color: PLAYER_COLORS[state.players.length % PLAYER_COLORS.length] };
+      state.players.push(p);
+      state.selected = { playerId: p.id, categoryId: state.selected.categoryId };
+      scheduleSave();
+      startEdit("player", p.id, "", { autoColor: true });
+    }
+    function addCategory() {
+      if (state.categories.length >= 20) return;
+      var c = { id: uid(), name: "", negative: false, tiebreak: false };
+      state.categories.push(c);
+      state.selected = { playerId: state.selected.playerId, categoryId: c.id };
+      scheduleSave();
+      startEdit("category", c.id, "");
+    }
+    function deletePlayer(id) {
+      if (state.players.length <= 1) return;
+      setState(function (s) {
+        s.players = s.players.filter(function (p) { return p.id !== id; });
+        Object.keys(s.cells).forEach(function (k) { if (k.indexOf(id + ":") === 0) delete s.cells[k]; });
+        if (s.selected.playerId === id) s.selected = { playerId: s.players[0].id, categoryId: s.selected.categoryId };
+      });
+      editing = null;
+      renderAll();
+    }
+    function deleteCategory(id) {
+      if (state.categories.length <= 1) return;
+      setState(function (s) {
+        s.categories = s.categories.filter(function (c) { return c.id !== id; });
+        Object.keys(s.cells).forEach(function (k) { if (k.endsWith(":" + id)) delete s.cells[k]; });
+        if (s.selected.categoryId === id) s.selected = { playerId: s.selected.playerId, categoryId: s.categories[0].id };
+      });
+      editing = null;
+      renderAll();
+    }
+    function resetScores() {
+      state.cells = {};
+      confirmReset = false;
+      if (confirmResetTimer) { clearTimeout(confirmResetTimer); confirmResetTimer = null; }
+      save(); // a deliberate clear writes through immediately, not on the debounce
+      closeSheets();
+      renderAll();
+    }
+
+    /* ---------------- presets ---------------- */
+    function setConfirm(kind, id) {
+      var key = kind + ":" + (id || "");
+      Object.keys(confirmTimers).forEach(function (k) { clearTimeout(confirmTimers[k]); });
+      confirmTimers = {};
+      if (id) confirmTimers[key] = setTimeout(function () {
+        if (kind === "load") confirmLoadId = null;
+        if (kind === "delPreset") confirmDeletePresetId = null;
+        if (kind === "delHist") confirmDeleteHistoryId = null;
+        renderAll();
+      }, 4000);
+    }
+    function openPresets() {
+      presetNameDraft = (state.title.trim() === "" || state.title === "ゲーム名") ? "" : state.title;
+      confirmLoadId = null; confirmDeletePresetId = null;
+      openSheetName = "preset";
+      renderAll();
+      $("presetNameInput").value = presetNameDraft;
+      updatePresetSaveBtn();
+    }
+    function savePreset() {
+      var name = presetNameDraft.trim().slice(0, 40);
+      if (!name || state.presets.length >= 50) return;
+      var preset = {
+        id: uid(), name: name, title: state.title,
+        players: state.players.map(function (p) { return Object.assign({}, p); }),
+        categories: state.categories.map(function (c) { return Object.assign({}, c); })
+      };
+      state.presets.push(preset);
+      presetNameDraft = "";
+      scheduleSave();
+      renderAll();
+      $("presetNameInput").value = "";
+      updatePresetSaveBtn();
+    }
+    function loadPreset(pr) {
+      state.title = pr.title;
+      state.players = pr.players.map(function (p) { return Object.assign({}, p); });
+      state.categories = pr.categories.map(function (c) { return Object.assign({}, c); });
+      state.cells = {};
+      state.selected = { playerId: state.players[0].id, categoryId: state.categories[0].id };
+      confirmLoadId = null;
+      openSheetName = null;
+      entering = false;
+      pendingTens = null;
+      scheduleSave();
+      renderAll();
+    }
+    function deletePreset(id) {
+      state.presets = state.presets.filter(function (pr) { return pr.id !== id; });
+      confirmDeletePresetId = null;
+      if (confirmLoadId === id) confirmLoadId = null;
+      scheduleSave();
+      renderAll();
+    }
+    function updatePresetSaveBtn() {
+      $("presetSaveBtn").disabled = !presetNameDraft.trim() || state.presets.length >= 50;
+    }
+    function presetRowHTML(pr, builtin) {
+      var sub = pr.players.length + "人 ・ " + pr.categories.length + "項目";
+      if (builtin) {
+        sub += " ・ " + pr.categories.map(function (c, ci) {
+          var n = displayCategoryName(c, ci);
+          return c.tiebreak ? "TB:" + n : c.negative ? "−" + n : n;
+        }).join(" / ");
+      } else if (pr.players.some(function (p) { return p.name.trim(); })) {
+        sub += " ・ " + pr.players.map(function (p, i) { return displayPlayerName(p, i); }).join(" / ");
+      }
+      var h = '<div class="preset-row"><div class="preset-main"><div class="preset-name-line">' +
+        '<span class="preset-name">' + esc(pr.name) + "</span>" +
+        (builtin ? '<span class="builtin-badge">標準</span>' : "") +
+        '</div><div class="preset-sub">' + esc(sub) + "</div></div>";
+      if (!builtin) {
+        var dc = confirmDeletePresetId === pr.id;
+        h += '<button type="button" class="small-btn' + (dc ? " confirm" : "") + '" data-del-preset="' + esc(pr.id) + '" aria-label="プリセット「' + esc(pr.name) + '」を削除">' + (dc ? "本当に削除？" : "削除") + "</button>";
+      }
+      var lc = confirmLoadId === pr.id;
+      h += '<button type="button" class="load-btn' + (lc ? " confirm" : "") + '" data-load-preset="' + esc(pr.id) + '" aria-label="プリセット「' + esc(pr.name) + '」を読み込む">' + (lc ? "得点が消えます。読込？" : "読み込む") + "</button>";
+      h += "</div>";
+      return h;
+    }
+    function renderPresets() {
+      var h = '<p class="cat-label">はじめから入っているプリセット</p>';
+      BUILTIN_PRESETS.forEach(function (pr) { h += presetRowHTML(pr, true); });
+      h += '<p class="cat-label">保存したプリセット</p>';
+      if (state.presets.length === 0) {
+        h += '<p class="empty-note">まだ保存したプリセットがありません。下の欄から今の表を保存できます。</p>';
+      }
+      state.presets.forEach(function (pr) { h += presetRowHTML(pr, false); });
+      $("presetList").innerHTML = h;
+    }
+
+    /* ---------------- history ---------------- */
+    function saveHistory() {
+      var entry = {
+        id: uid(), savedAt: new Date().toISOString(), title: state.title,
+        players: state.players.map(function (p) { return Object.assign({}, p); }),
+        categories: state.categories.map(function (c) { return Object.assign({}, c); }),
+        cells: Object.assign({}, state.cells)
+      };
+      state.history = [entry].concat(state.history).slice(0, 200);
+      savedNotice = true;
+      save(); // a deliberate save action writes through immediately, not on the debounce
+      renderAll();
+      if (savedNoticeTimer) clearTimeout(savedNoticeTimer);
+      savedNoticeTimer = setTimeout(function () { savedNotice = false; renderAll(); }, 2500);
+    }
+    function deleteHistory(id) {
+      state.history = state.history.filter(function (x) { return x.id !== id; });
+      confirmDeleteHistoryId = null;
+      if (expandedHistoryId === id) expandedHistoryId = null;
+      scheduleSave();
+      renderAll();
+    }
+    function historyTableHTML(entry) {
+      var rank = computeRanking(entry.players, entry.categories, entry.cells);
+      var n = entry.players.length;
+      var cols = "64px repeat(" + n + ", minmax(" + playerColumnWidth(n) + "px, 1fr))";
+      var minW = 64 + n * playerColumnWidth(n);
+      var rowStyle = 'style="grid-template-columns:' + cols + ";min-width:" + minW + 'px"';
+      var h = '<div class="mini-wrap"><div role="table" aria-label="履歴の得点表" style="min-width:' + minW + 'px">';
+      h += '<div role="row" class="mini-row mini-head" ' + rowStyle + '><div role="columnheader" class="mini-th-cat">項目</div>';
+      entry.players.forEach(function (p, pIdx) {
+        h += '<div role="columnheader" class="mini-th-player"><span class="mini-pill" style="border-color:' + esc(p.color) + '"><span>' + esc(shortPlayerName(p, pIdx)) + "</span></span></div>";
+      });
+      h += "</div>";
+      entry.categories.forEach(function (c, cIdx) {
+        h += '<div role="row" class="mini-row mini-cat-row" ' + rowStyle + '><div role="rowheader" class="mini-rh"><span class="mini-cat-name">' +
+          (c.negative ? '<span aria-hidden="true" class="neg-mark">−</span>' : "") +
+          (c.tiebreak ? '<span aria-hidden="true" class="tb-badge">TB</span>' : "") +
+          esc(displayCategoryName(c, cIdx)) + "</span></div>";
+        entry.players.forEach(function (p) {
+          var v = evaluate(entry.cells[p.id + ":" + c.id] || "");
+          h += '<div role="cell" class="mini-cell"><span class="mini-val' + (c.negative && v !== null ? " neg" : "") + '">' + cellValueHTML(c, v) + "</span></div>";
+        });
+        h += "</div>";
+      });
+      h += '<div role="row" class="mini-row mini-total" ' + rowStyle + '><div role="rowheader" class="mini-rh mini-rh-total">合計</div>';
+      entry.players.forEach(function (p) {
+        var t = rank.totals[p.id] || 0;
+        var leader = !!rank.leaderIds[p.id];
+        var tbWin = leader && rank.tiebreakDecided;
+        h += '<div role="cell" class="mini-cell"><span class="total-inner">' +
+          (leader ? crownSVG("crown", "14px") + '<span class="sr-only">' + (tbWin ? "タイブレークで1位" : "1位") + "</span>" : "") +
+          '<span class="mini-val' + (leader ? '" style="color:var(--accent)' : "") + '">' + esc(formatTableValue(t)) + "</span>" +
+          (tbWin ? '<span aria-hidden="true" class="tb-win">タイブレーク</span>' : "") +
+          "</span></div>";
+      });
+      h += "</div></div></div>";
+      return h;
+    }
+    function renderHistory() {
+      var list = $("historyList");
+      if (state.history.length === 0) {
+        list.innerHTML = '<p class="empty-note">まだ履歴がありません。得点表の下の「この結果を履歴に保存」から残せます。</p>';
+        return;
+      }
+      var h = "";
+      state.history.forEach(function (entry) {
+        var rank = computeRanking(entry.players, entry.categories, entry.cells);
+        var winners = entry.players.filter(function (p) { return rank.leaderIds[p.id]; });
+        var winnerTotal = winners.length > 0 ? (rank.totals[winners[0].id] || 0) : 0;
+        var expanded = expandedHistoryId === entry.id;
+        var displayTitle = entry.title.trim() || "ゲーム名";
+        h += '<div class="hist-row"><div class="hist-top">' +
+          '<button type="button" class="hist-main minh0" data-expand-hist="' + esc(entry.id) + '" aria-expanded="' + expanded + '" aria-label="履歴「' + esc(displayTitle) + '」の詳細を' + (expanded ? "閉じる" : "見る") + '">' +
+          '<span class="hist-title-line"><span class="hist-title' + (entry.title.trim() ? "" : " blank") + '">' + esc(displayTitle) + '</span>' +
+          '<span class="hist-date">' + esc(formatSavedAt(entry.savedAt)) + "</span></span>" +
+          '<span class="hist-winner">';
+        if (winners.length > 0) {
+          h += crownSVG("", "12px").replace('class=""', 'class="crown"') +
+            "<span>" + esc(winners.map(function (p) { return shortPlayerName(p, entry.players.indexOf(p)); }).join("・")) +
+            " " + esc(formatTableValue(winnerTotal)) + "点" + (rank.tiebreakDecided ? "（タイブレーク）" : "") + "</span>";
+        } else {
+          h += "<span>勝者なし（得点未入力）</span>";
+        }
+        h += '<span style="flex:none">・ ' + entry.players.length + "人</span></span></button>";
+        var dc = confirmDeleteHistoryId === entry.id;
+        h += '<button type="button" class="small-btn" data-print-hist="' + esc(entry.id) + '" aria-label="履歴「' + esc(displayTitle) + '」を印刷">印刷</button>' +
+          '<button type="button" class="small-btn' + (dc ? " confirm" : "") + '" data-del-hist="' + esc(entry.id) + '" aria-label="履歴「' + esc(displayTitle) + '」を削除">' + (dc ? "本当に削除？" : "削除") + "</button>" +
+          "</div>";
+        if (expanded) {
+          h += '<div class="hist-print-row"><button type="button" class="small-btn" style="color:var(--text)" data-print-hist="' + esc(entry.id) + '" aria-label="履歴「' + esc(displayTitle) + '」をレシート印刷">この結果を印刷</button></div>';
+          h += historyTableHTML(entry);
+        }
+        h += "</div>";
+      });
+      list.innerHTML = h;
+    }
+
+    /* ---------------- receipt / print ---------------- */
+    function receiptHTML(entry) {
+      var rank = computeRanking(entry.players, entry.categories, entry.cells);
+      var h = '<p class="receipt-title">' + esc(entry.title.trim() || "ゲーム名") + "</p>" +
+        '<p class="receipt-meta">' + esc(formatReceiptDate(entry.savedAt)) + "　" + entry.players.length + "人</p>" +
+        '<table class="receipt-table"><thead><tr><th class="receipt-cat-head"></th>';
+      entry.players.forEach(function (p, pIdx) {
+        h += '<th class="receipt-name-head">' + esc(displayPlayerName(p, pIdx)) + "</th>";
+      });
+      h += "</tr></thead><tbody>";
+      entry.categories.forEach(function (c, cIdx) {
+        h += '<tr><th class="receipt-cat">' + esc(displayCategoryName(c, cIdx)) + (c.negative ? " (−)" : "") + (c.tiebreak ? " (TB)" : "") + "</th>";
+        entry.players.forEach(function (p) {
+          var v = evaluate(entry.cells[p.id + ":" + c.id] || "");
+          h += '<td class="receipt-val">' + (v !== null ? esc(formatTableValue(c.negative ? -v : v)) : "0") + "</td>";
+        });
+        h += "</tr>";
+      });
+      h += '<tr class="receipt-total-row"><th class="receipt-total-label">合計</th>';
+      entry.players.forEach(function (p) {
+        var t = rank.totals[p.id] || 0;
+        var leader = !!rank.leaderIds[p.id];
+        h += '<td class="receipt-total-val">' + (leader ? crownSVG("receipt-crown", "13px") : "") + esc(formatTableValue(t)) + "</td>";
+      });
+      h += "</tr></tbody></table>";
+      return h;
+    }
+    function openPrint(entry) {
+      printEntry = entry;
+      var html = receiptHTML(entry);
+      $("receiptPrint").innerHTML = html;
+      $("pvPaper").innerHTML = '<div class="receipt-print">' + html + "</div>";
+      var pv = $("printPreview");
+      pv.hidden = false;
+      pv.className = sheetAnimClass();
+      pv.id = "printPreview";
+    }
+    function closePrint() {
+      printEntry = null;
+      $("printPreview").hidden = true;
+      $("receiptPrint").innerHTML = "";
+    }
+    window.addEventListener("afterprint", function () { if (printEntry) closePrint(); });
+
+    /* ---------------- menu / theme / help sheets ---------------- */
+    function renderMenu() {
+      var theme = THEMES.find(function (t) { return t.id === state.theme; }) || THEMES[0];
+      var sw = theme.swatches.map(function (c) { return '<span style="background-color:' + c + '"></span>'; }).join("");
+      var opBtns = [["opaque", "標準"], ["semi", "半透明"], ["clear", "透明"]].map(function (o) {
+        return '<button type="button" data-opacity="' + o[0] + '" aria-pressed="' + (state.floatOpacity === o[0]) + '" aria-label="窓の透明度を' + o[1] + 'にする" class="' + (state.floatOpacity === o[0] ? "on" : "") + '">' + o[1] + "</button>";
+      }).join("");
+      var h = "";
+      h += '<p class="cat-label">表示</p>';
+      h += '<button type="button" class="menu-row" id="menuTheme" aria-label="テーマを切り替える"><span aria-hidden="true" class="swatches">' + sw + '</span><span class="menu-texts"><span class="menu-name">テーマ</span><span class="menu-sub">現在：' + esc(theme.label) + ' ・ 画面の色合いを切り替える</span></span><span aria-hidden="true" class="chev">›</span></button>';
+      h += '<div class="menu-row"><span aria-hidden="true" class="menu-icon">▱</span><span class="menu-texts"><span class="menu-name">窓の透明度</span><span class="menu-sub">入力中の窓の後ろに得点表を透かす</span></span><span class="seg" role="group" aria-label="フローティングウィンドウの透明度">' + opBtns + "</span></div>";
+      h += '<button type="button" class="menu-row" id="menuAnim" role="switch" aria-checked="' + state.animations + '" aria-label="スライドアニメーションのオン・オフ"><span aria-hidden="true" class="menu-icon">↑</span><span class="menu-texts"><span class="menu-name">アニメーション</span><span class="menu-sub">メニューやキーパッドが下からスライドして出る</span></span><span aria-hidden="true" class="onoff' + (state.animations ? " on" : "") + '">' + (state.animations ? "ON" : "OFF") + "</span></button>";
+      h += '<p class="cat-label">データ</p>';
+      h += '<button type="button" class="menu-row" id="menuPreset" aria-label="プリセットを開く"><span aria-hidden="true" class="menu-icon">▦</span><span class="menu-texts"><span class="menu-name">プリセット' + (state.presets.length > 0 ? " (" + state.presets.length + ")" : "") + '</span><span class="menu-sub">ゲームごとの表を保存・読み込み</span></span><span aria-hidden="true" class="chev">›</span></button>';
+      h += '<button type="button" class="menu-row" id="menuHistory" aria-label="スコア履歴を開く"><span aria-hidden="true" class="menu-icon">◷</span><span class="menu-texts"><span class="menu-name">履歴' + (state.history.length > 0 ? " (" + state.history.length + ")" : "") + '</span><span class="menu-sub">終わったゲームの結果を見る・印刷する</span></span><span aria-hidden="true" class="chev">›</span></button>';
+      h += '<p class="cat-label">入力</p>';
+      h += '<div class="menu-row"><span aria-hidden="true" class="menu-icon">⌨️</span><span class="menu-texts"><span class="menu-name">テンキータイプ</span><span class="menu-sub">数字キーの並び順（現在：' + (state.keypadLayout === "calculator" ? "電話式" : "キーボード式") + '）</span></span>' +
+        '<span class="seg" role="group" aria-label="テンキータイプの切り替え">' +
+        '<button type="button" class="icon-btn' + (state.keypadLayout === "keyboard" ? " on" : "") + '" data-layout="keyboard" aria-pressed="' + (state.keypadLayout === "keyboard") + '" aria-label="キーボード式に切り替え（上から7・8・9）"><span aria-hidden="true">⌨️</span></button>' +
+        '<button type="button" class="icon-btn' + (state.keypadLayout === "calculator" ? " on" : "") + '" data-layout="calculator" aria-pressed="' + (state.keypadLayout === "calculator") + '" aria-label="電話式に切り替え（上から1・2・3）"><span aria-hidden="true">☎️</span></button>' +
+        "</span></div>";
+      h += '<button type="button" class="menu-row" id="menuHaptics" role="switch" aria-checked="' + state.haptics + '" aria-label="振動フィードバックのオン・オフ"><span aria-hidden="true" class="menu-icon">≋</span><span class="menu-texts"><span class="menu-name">振動</span><span class="menu-sub">キーパッドを押したときのフィードバック</span></span><span aria-hidden="true" class="onoff' + (state.haptics ? " on" : "") + '">' + (state.haptics ? "ON" : "OFF") + "</span></button>";
+      h += '<button type="button" class="menu-row' + (confirmReset ? " danger-confirm" : "") + '" id="menuReset" aria-label="すべての得点を消去"><span aria-hidden="true" class="menu-icon" ' + (confirmReset ? "" : 'style="color:var(--danger-text)"') + '>✕</span><span class="menu-texts"><span class="menu-name">' + (confirmReset ? "本当に全消去？" : "全消去") + '</span><span class="menu-sub">' + (confirmReset ? "もう一度タップするとすべての得点が消えます" : "入力したすべての得点を消す") + "</span></span>" + (confirmReset ? "" : '<span aria-hidden="true" class="chev">›</span>') + "</button>";
+      $("menuList").innerHTML = h;
+    }
+    function renderTheme() {
+      var h = "";
+      THEMES.forEach(function (t) {
+        var active = state.theme === t.id;
+        var sw = t.swatches.map(function (c) { return '<span style="background-color:' + c + '"></span>'; }).join("");
+        h += '<button type="button" class="theme-btn' + (active ? " active" : "") + '" data-theme-pick="' + t.id + '" aria-pressed="' + active + '" aria-label="テーマを' + t.label + 'に切り替え"><span class="swatches" aria-hidden="true">' + sw + '</span><span class="tname">' + esc(t.label) + "</span>" + (active ? '<span class="inuse">使用中</span>' : "") + "</button>";
+      });
+      $("themeGrid").innerHTML = h;
+    }
+    function renderHelp() {
+      var h = "";
+      HELP_SECTIONS.forEach(function (sec) {
+        h += '<section class="help-section" aria-label="' + esc(sec.heading) + '"><h3 class="help-h">' + esc(sec.heading) + '</h3><ul class="help-list">';
+        sec.items.forEach(function (item) {
+          h += '<li><span aria-hidden="true" class="dot">・</span><span style="min-width:0">' + esc(item) + "</span></li>";
+        });
+        h += "</ul></section>";
+      });
+      $("helpScroll").innerHTML = h;
+    }
+
+    /* ---------------- editor sheet ---------------- */
+    function renderEditor() {
+      var sheet = $("editorSheet");
+      sheet.hidden = !editing;
+      if (!editing) return;
+      sheet.className = "sheet " + sheetAnimClass();
+      sheet.id = "editorSheet";
+      var isPlayer = editing.kind === "player";
+      var idx = isPlayer
+        ? state.players.findIndex(function (p) { return p.id === editing.id; })
+        : state.categories.findIndex(function (c) { return c.id === editing.id; });
+      var count = isPlayer ? state.players.length : state.categories.length;
+      var fallback = isPlayer ? fallbackPlayerName(Math.max(0, idx)) : fallbackCategoryName(Math.max(0, idx));
+      $("editorLabel").textContent = (isPlayer ? "プレイヤー名" : "項目名") + "を編集中";
+      $("editorNote").textContent = "空欄のまま完了すると「" + fallback + "」になります";
+      var input = $("editorInput");
+      input.setAttribute("aria-label", isPlayer ? "プレイヤー名" : "項目名");
+      if (input.value !== draft) input.value = draft;
+      $("colorBox").hidden = !isPlayer;
+      $("catSwitches").hidden = isPlayer;
+      if (isPlayer) {
+        var h = '<button type="button" class="auto-color-btn' + (draftColor === null ? " on" : "") + '" id="autoColorBtn" aria-pressed="' + (draftColor === null) + '" aria-label="色をおまかせにする">おまかせ</button>';
+        PLAYER_COLORS.forEach(function (c, ci) {
+          h += '<button type="button" class="swatch' + (draftColor === c ? " on" : "") + '" data-color="' + c + '" aria-pressed="' + (draftColor === c) + '" aria-label="色を' + PLAYER_COLOR_NAMES[ci] + 'にする" style="background-color:' + c + '"></button>';
+        });
+        $("colorRow").innerHTML = h;
+        $("colorNote").textContent = draftColor === null
+          ? "おまかせ：完了すると、他のプレイヤーと被らない色が自動で選ばれます"
+          : "選んだ色が名前の枠の色になります";
+      } else {
+        var neg = $("negSwitch"), tb = $("tbSwitch");
+        neg.setAttribute("aria-checked", String(draftNegative));
+        tb.setAttribute("aria-checked", String(draftTiebreak));
+        $("negTrack").className = "switch-track" + (draftNegative ? " on-danger" : "");
+        $("tbTrack").className = "switch-track" + (draftTiebreak ? " on-accent" : "");
+        $("negTrack").innerHTML = '<span class="knob"></span>';
+        $("tbTrack").innerHTML = '<span class="knob"></span>';
+      }
+      var del = $("editorDelete");
+      del.disabled = count <= 1;
+      del.setAttribute("aria-label", isPlayer ? "このプレイヤーを削除" : "この項目を削除");
+    }
+
+    /* ---------------- sheet visibility ---------------- */
+    function closeSheets() {
+      openSheetName = null;
+      confirmReset = false;
+    }
+    function renderSheets() {
+      var map = { menu: "menuSheet", preset: "presetSheet", theme: "themeSheet", history: "historySheet", help: "helpSheet" };
+      Object.keys(map).forEach(function (k) {
+        var el = $(map[k]);
+        var open = openSheetName === k;
+        el.hidden = !open;
+        if (open) { el.className = "sheet " + sheetAnimClass(); el.id = map[k]; }
+      });
+      $("menuBtn").classList.toggle("active", ["menu", "preset", "theme", "history"].indexOf(openSheetName) >= 0);
+      $("menuBtn").setAttribute("aria-expanded", String(openSheetName !== null));
+      $("helpBtn").classList.toggle("active", openSheetName === "help");
+      $("helpBtn").setAttribute("aria-expanded", String(openSheetName === "help"));
+      if (openSheetName === "menu") renderMenu();
+      if (openSheetName === "preset") renderPresets();
+      if (openSheetName === "theme") renderTheme();
+      if (openSheetName === "history") renderHistory();
+      if (openSheetName === "help") renderHelp();
+      renderEditor();
+    }
+
+    function renderHeader() {
+      if (document.activeElement !== titleInput && titleInput.value !== state.title) titleInput.value = state.title;
+    }
+
+    function renderAll() {
+      if (!hydrated) return;
+      applyTheme();
+      renderHeader();
+      renderTable();
+      renderSheets();
+      renderKeypad();
+      autoScroll();
+    }
+
+    /* ---------------- keypad height drag ---------------- */
+    var KEYPAD_SCALE_MIN = 0.6, KEYPAD_SCALE_MAX = 1.5;
+    function clampKeypadScale(v) { return Math.min(KEYPAD_SCALE_MAX, Math.max(KEYPAD_SCALE_MIN, v)); }
+    var keypadDrag = null;
+    (function initHandle() {
+      var handle = $("kpHandle");
+      handle.addEventListener("pointerdown", function (e) {
+        var firstKey = $("kpGrid").firstElementChild;
+        if (!firstKey) return;
+        var rowPx = firstKey.getBoundingClientRect().height;
+        if (rowPx <= 0) return;
+        keypadDrag = { startY: e.clientY, startRowPx: rowPx, baseRowPx: rowPx / state.keypadScale, scale: state.keypadScale };
+        dragScale = state.keypadScale;
+        handle.setPointerCapture(e.pointerId);
+        renderKeypad();
+      });
+      handle.addEventListener("pointermove", function (e) {
+        if (!keypadDrag) return;
+        var newRowPx = keypadDrag.startRowPx + (keypadDrag.startY - e.clientY) / 5;
+        keypadDrag.scale = clampKeypadScale(newRowPx / keypadDrag.baseRowPx);
+        dragScale = keypadDrag.scale;
+        renderKeypad();
+      });
+      function up() {
+        if (!keypadDrag) return;
+        var s = keypadDrag.scale;
+        keypadDrag = null;
+        dragScale = null;
+        state.keypadScale = s;
+        scheduleSave();
+        renderKeypad();
+      }
+      handle.addEventListener("pointerup", up);
+      handle.addEventListener("pointercancel", up);
+      handle.addEventListener("dblclick", function () {
+        state.keypadScale = 1;
+        scheduleSave();
+        renderKeypad();
+      });
+      handle.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          e.preventDefault();
+          var step = e.key === "ArrowUp" ? 0.05 : -0.05;
+          state.keypadScale = clampKeypadScale(Math.round((state.keypadScale + step) * 100) / 100);
+          scheduleSave();
+          renderKeypad();
+        }
+      });
+    })();
+
+    /* ---------------- global events ---------------- */
+    titleInput.addEventListener("input", function () {
+      state.title = titleInput.value.slice(0, 40);
+      if (titleInput.value !== state.title) titleInput.value = state.title;
+      scheduleSave();
+    });
+    titleInput.addEventListener("focus", function () { titleFocused = true; renderAll(); });
+    titleInput.addEventListener("blur", function () { titleFocused = false; renderAll(); });
+
+    $("helpBtn").addEventListener("click", function () {
+      confirmReset = false;
+      openSheetName = openSheetName === "help" ? null : "help";
+      renderAll();
+    });
+    $("menuBtn").addEventListener("click", function () {
+      confirmReset = false;
+      openSheetName = openSheetName === null ? "menu" : null;
+      renderAll();
+    });
+
+    /* fullscreen toggle: always shown; vendor-prefixed fallbacks so
+       mobile Edge / Safari can enter fullscreen too. A rejected request
+       (e.g. inside an embed that forbids it) is swallowed quietly. */
+    function fsActiveEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    function updateFsBtn() {
+      var on = !!fsActiveEl();
+      var btn = $("fsBtn");
+      btn.setAttribute("aria-pressed", String(on));
+      btn.setAttribute("aria-label", on ? "フルスクリーンを終了" : "フルスクリーンにする");
+      btn.classList.toggle("active", on);
+      $("fsIconExpand").hidden = on;
+      $("fsIconCompress").hidden = !on;
+    }
+    $("fsBtn").addEventListener("click", function () {
+      try {
+        if (fsActiveEl()) {
+          var exit = document.exitFullscreen || document.webkitExitFullscreen;
+          if (exit) { var ep = exit.call(document); if (ep && ep.catch) ep.catch(function () {}); }
+        } else {
+          var el = document.documentElement;
+          var req = el.requestFullscreen || el.webkitRequestFullscreen;
+          if (req) { var rp = req.call(el); if (rp && rp.catch) rp.catch(function () {}); }
+        }
+      } catch (e) { /* fullscreen unavailable in this browser/context */ }
+      setTimeout(updateFsBtn, 350);
+    });
+    document.addEventListener("fullscreenchange", updateFsBtn);
+    document.addEventListener("webkitfullscreenchange", updateFsBtn);
+    $("menuClose").addEventListener("click", function () { closeSheets(); renderAll(); });
+    $("presetClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
+    $("themeClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
+    $("historyClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
+    $("helpClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
+
+    gridEl.addEventListener("click", function (e) {
+      var cell = e.target.closest("[data-cell]");
+      if (cell) {
+        var parts = cell.getAttribute("data-cell").split(":");
+        // ids never contain ":" (uid / preset prefixes), so split is safe with join for safety
+        var pid = parts.slice(0, parts.length - 1).join(":"), cid = parts[parts.length - 1];
+        select(pid, cid);
+        entering = true;
+        renderAll();
+        return;
+      }
+      var ep = e.target.closest("[data-edit-player]");
+      if (ep) {
+        var p = state.players.find(function (x) { return x.id === ep.getAttribute("data-edit-player"); });
+        if (p) startEdit("player", p.id, p.name);
+        return;
+      }
+      var ec = e.target.closest("[data-edit-category]");
+      if (ec) {
+        var c = state.categories.find(function (x) { return x.id === ec.getAttribute("data-edit-category"); });
+        if (c) startEdit("category", c.id, c.name);
+        return;
+      }
+      if (e.target.closest("#addPlayerBtn")) addPlayer();
+    });
+    $("addCatBtn").addEventListener("click", addCategory);
+    $("saveHistBtn").addEventListener("click", saveHistory);
+
+    $("quickSwitch").addEventListener("click", toggleQuick);
+    $("floatDone").addEventListener("click", function () { pendingTens = null; entering = false; renderAll(); });
+
+    /* menu sheet delegation */
+    $("menuList").addEventListener("click", function (e) {
+      if (e.target.closest("#menuTheme")) { openSheetName = "theme"; confirmReset = false; renderAll(); return; }
+      if (e.target.closest("#menuPreset")) { confirmReset = false; openPresets(); return; }
+      if (e.target.closest("#menuHistory")) { confirmReset = false; confirmDeleteHistoryId = null; openSheetName = "history"; renderAll(); return; }
+      if (e.target.closest("#menuAnim")) { state.animations = !state.animations; scheduleSave(); renderAll(); return; }
+      if (e.target.closest("#menuHaptics")) {
+        state.haptics = !state.haptics;
+        scheduleSave();
+        if (state.haptics && typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(15);
+        renderAll();
+        return;
+      }
+      var op = e.target.closest("[data-opacity]");
+      if (op) { state.floatOpacity = op.getAttribute("data-opacity"); scheduleSave(); renderAll(); return; }
+      var lay = e.target.closest("[data-layout]");
+      if (lay) { state.keypadLayout = lay.getAttribute("data-layout"); scheduleSave(); renderAll(); return; }
+      if (e.target.closest("#menuReset")) {
+        if (confirmReset) resetScores();
+        else {
+          confirmReset = true;
+          if (confirmResetTimer) clearTimeout(confirmResetTimer);
+          confirmResetTimer = setTimeout(function () { confirmReset = false; renderAll(); }, 4000);
+          renderAll();
+        }
       }
     });
-  });
-  sheetBody.querySelectorAll(".preset-del").forEach(function(b){
-    armable(b, "もう一度タップ", function(){
-      userPresets = userPresets.filter(function(x){ return x.id!==b.getAttribute("data-id"); });
-      save(); openPresets(); toast("プリセットを削除しました");
-    });
-  });
-  document.getElementById("prSave").addEventListener("click", function(){
-    var nm = document.getElementById("prName").value.trim();
-    if(!nm){ toast("プリセット名を入力してください"); return; }
-    userPresets.push({ id:uid("pr"), name:nm,
-      items: state.items.map(function(it){ return { name:it.name, type:it.type }; }),
-      playerCount: state.players.length });
-    save(); openPresets(); toast("プリセットを保存しました");
-  });
-}
+    /* NOTE: no focusout cancellation for the 全消去 confirm state.
+       Re-rendering the menu after the first tap drops focus from the
+       button, and a focusout reset made the second (confirming) tap
+       unreachable — the button appeared to do nothing. The 4s timer
+       in the click handler is the only auto-cancel. */
 
-/* ---- history ---- */
-function snapshotEntry(){
-  var w = computeWinners();
-  return {
-    id: uid("h"), ts: Date.now(),
-    gameName: state.gameName,
-    players: state.players.map(function(p,i){ return { name:playerDisplayName(p,i), color:playerColor(p,i) }; }),
-    items: state.items.map(function(it){ return { name:it.name, type:it.type }; }),
-    values: state.items.map(function(it){ return state.players.map(function(p){ return cellValue(it.id, p.id); }); }),
-    totals: w.totals,
-    winners: w.winners.map(function(p){ return playerDisplayName(p, state.players.indexOf(p)); })
-  };
-}
-function saveToHistory(){
-  var e = snapshotEntry();
-  historyList.unshift(e);
-  if(historyList.length>200) historyList = historyList.slice(0,200);
-  save(); toast("履歴に保存しました");
-}
-function fmtDate(ts){
-  var d = new Date(ts);
-  function z(x){ return (x<10? "0":"") + x; }
-  return d.getFullYear() + "/" + z(d.getMonth()+1) + "/" + z(d.getDate()) + " " + z(d.getHours()) + ":" + z(d.getMinutes());
-}
-function openHistory(){
-  var html = "";
-  if(!historyList.length) html += '<p style="color:var(--sub);font-size:.9rem">履歴はまだありません。「この結果を履歴に保存」ボタンで保存できます。</p>';
-  historyList.forEach(function(e){
-    html += '<div style="border:1.5px solid var(--line);border-radius:.7rem;padding:.6rem .7rem;margin-bottom:.55rem">' +
-      '<div style="font-weight:800">' + escapeHtml(e.gameName || "ゲーム名なし") + "</div>" +
-      '<div style="font-size:.82rem;color:var(--sub)">' + fmtDate(e.ts) + "・" + e.players.length + "人・優勝: " + escapeHtml(e.winners.join("・") || "—") + "</div>" +
-      '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
-      '<button class="row-btn hist-detail" type="button" data-id="' + e.id + '" style="flex:1;margin-bottom:0;padding:.45rem .5rem">詳細</button>' +
-      '<button class="row-btn hist-print" type="button" data-id="' + e.id + '" style="flex:1;margin-bottom:0;padding:.45rem .5rem">印刷</button>' +
-      '<button class="row-btn danger hist-del" type="button" data-id="' + e.id + '" style="flex:1;margin-bottom:0;padding:.45rem .5rem">削除</button>' +
-      "</div></div>";
-  });
-  openSheet("履歴", html);
-  sheetBody.querySelectorAll(".hist-detail").forEach(function(b){
-    b.addEventListener("click", function(){
-      var e = historyList.find(function(x){ return x.id===b.getAttribute("data-id"); });
-      if(e) openHistoryDetail(e);
+    /* preset sheet delegation */
+    $("presetList").addEventListener("click", function (e) {
+      var load = e.target.closest("[data-load-preset]");
+      if (load) {
+        var id = load.getAttribute("data-load-preset");
+        var all = BUILTIN_PRESETS.concat(state.presets);
+        var pr = all.find(function (x) { return x.id === id; });
+        if (!pr) return;
+        if (confirmLoadId === id) loadPreset(pr);
+        else { confirmLoadId = id; setConfirm("load", id); renderAll(); }
+        return;
+      }
+      var del = e.target.closest("[data-del-preset]");
+      if (del) {
+        var did = del.getAttribute("data-del-preset");
+        if (confirmDeletePresetId === did) deletePreset(did);
+        else { confirmDeletePresetId = did; setConfirm("delPreset", did); renderAll(); }
+      }
     });
-  });
-  sheetBody.querySelectorAll(".hist-print").forEach(function(b){
-    b.addEventListener("click", function(){
-      var e = historyList.find(function(x){ return x.id===b.getAttribute("data-id"); });
-      if(e) openPrintPreview(e);
+    $("presetNameInput").addEventListener("input", function () {
+      presetNameDraft = $("presetNameInput").value;
+      updatePresetSaveBtn();
     });
-  });
-  sheetBody.querySelectorAll(".hist-del").forEach(function(b){
-    armable(b, "もう一度タップ", function(){
-      historyList = historyList.filter(function(x){ return x.id!==b.getAttribute("data-id"); });
-      save(); openHistory(); toast("履歴を削除しました");
-    });
-  });
-}
-function detailTableHTML(e){
-  var html = '<table class="detail"><tr><th class="lbl">項目</th>';
-  e.players.forEach(function(p){ html += "<th>" + escapeHtml(p.name) + "</th>"; });
-  html += "</tr>";
-  e.items.forEach(function(it, ri){
-    var lbl = it.name || (ri+1)+".";
-    if(it.type==="minus") lbl += " (−)";
-    if(it.type==="tb") lbl += " (TB)";
-    html += '<tr><td class="lbl">' + escapeHtml(lbl) + "</td>";
-    e.values[ri].forEach(function(v){
-      var disp = v===null||v===undefined? "" : fmtText(it.type==="minus"? -Math.abs(v) : v);
-      html += "<td>" + disp + "</td>";
-    });
-    html += "</tr>";
-  });
-  html += '<tr class="total"><td class="lbl">合計</td>';
-  e.totals.forEach(function(t, i){
-    var win = e.winners.indexOf(e.players[i].name)>=0;
-    html += "<td>" + (win? "👑 " : "") + fmtText(t) + "</td>";
-  });
-  html += "</tr></table>";
-  return html;
-}
-function openHistoryDetail(e){
-  var html = '<p style="margin:.1rem 0 .6rem;color:var(--sub);font-size:.88rem">' + fmtDate(e.ts) + "・" + e.players.length + "人・優勝: " + escapeHtml(e.winners.join("・") || "—") + "</p>" +
-    detailTableHTML(e) +
-    '<button class="row-btn" id="hdPrint" type="button" style="margin-top:.8rem"><span class="grow">印刷する</span></button>' +
-    '<button class="row-btn" id="hdBack" type="button"><span class="grow">履歴一覧に戻る</span></button>';
-  openSheet(e.gameName || "ゲーム名なし", html);
-  document.getElementById("hdPrint").addEventListener("click", function(){ openPrintPreview(e); });
-  document.getElementById("hdBack").addEventListener("click", openHistory);
-}
+    $("presetNameInput").addEventListener("keydown", function (e) { if (e.key === "Enter") savePreset(); });
+    $("presetSaveBtn").addEventListener("click", savePreset);
 
-/* ---- print ---- */
-function receiptHTML(e){
-  var html = '<div class="receipt"><h2>' + escapeHtml(e.gameName || "ゲーム名") + "</h2>" +
-    '<div class="meta">' + fmtDate(e.ts) + "　" + e.players.length + "人</div><table><tr><th class=\"lbl\">項目</th>";
-  e.players.forEach(function(p){ html += "<th>" + escapeHtml(p.name) + "</th>"; });
-  html += "</tr>";
-  e.items.forEach(function(it, ri){
-    var lbl = it.name || (ri+1)+".";
-    if(it.type==="minus") lbl += " (−)";
-    html += '<tr><td class="lbl">' + escapeHtml(lbl) + "</td>";
-    e.values[ri].forEach(function(v){
-      var disp = v===null||v===undefined? "" : fmtText(it.type==="minus"? -Math.abs(v) : v);
-      html += "<td>" + disp + "</td>";
+    /* theme sheet delegation */
+    $("themeGrid").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-theme-pick]");
+      if (b) { state.theme = b.getAttribute("data-theme-pick"); scheduleSave(); renderAll(); }
     });
-    html += "</tr>";
-  });
-  html += '<tr class="total"><td class="lbl">合計</td>';
-  e.totals.forEach(function(t, i){
-    var win = e.winners.indexOf(e.players[i].name)>=0;
-    html += "<td>" + (win? "👑 " : "") + fmtText(t) + "</td>";
-  });
-  html += "</tr></table></div>";
-  return html;
-}
-function openPrintPreview(e){
-  var html = '<div style="background:#fff;border-radius:.5rem;padding:.4rem;margin-bottom:.8rem">' + receiptHTML(e) + "</div>" +
-    '<button class="row-btn" id="ppPrint" type="button"><span class="grow">印刷ダイアログを開く</span></button>' +
-    '<p style="font-size:.83rem;color:var(--sub)">80mmレシート幅想定の白黒レイアウトです。</p>';
-  openSheet("印刷プレビュー", html);
-  document.getElementById("ppPrint").addEventListener("click", function(){
-    document.getElementById("printRoot").innerHTML = receiptHTML(e);
-    window.print();
-  });
-}
 
-/* ================= init ================= */
-load();
-applySettings();
-buildKeypad();
-render();
-requestAnimationFrame(function(){
-  setTimeout(function(){
-    document.getElementById("app").style.visibility = "visible";
-    document.getElementById("loading").style.display = "none";
-  }, 30);
-});
-</script>
-</body>
+    /* history sheet delegation */
+    $("historyList").addEventListener("click", function (e) {
+      var pr = e.target.closest("[data-print-hist]");
+      if (pr) {
+        var entry = state.history.find(function (x) { return x.id === pr.getAttribute("data-print-hist"); });
+        if (entry) openPrint(entry);
+        return;
+      }
+      var del = e.target.closest("[data-del-hist]");
+      if (del) {
+        var did = del.getAttribute("data-del-hist");
+        if (confirmDeleteHistoryId === did) deleteHistory(did);
+        else { confirmDeleteHistoryId = did; setConfirm("delHist", did); renderAll(); }
+        return;
+      }
+      var ex = e.target.closest("[data-expand-hist]");
+      if (ex) {
+        var id = ex.getAttribute("data-expand-hist");
+        expandedHistoryId = expandedHistoryId === id ? null : id;
+        renderAll();
+      }
+    });
+
+    /* editor sheet events */
+    $("editorInput").addEventListener("input", function () {
+      draft = $("editorInput").value;
+      renderTable();
+      renderEditorLabelOnly();
+    });
+    function renderEditorLabelOnly() { /* draft preview lives in the table header/row header, already re-rendered */ }
+    $("editorInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") commitEdit();
+      if (e.key === "Escape") { editing = null; renderAll(); }
+    });
+    $("colorRow").addEventListener("click", function (e) {
+      if (e.target.closest("#autoColorBtn")) { draftColor = null; renderAll(); return; }
+      var sw = e.target.closest("[data-color]");
+      if (sw) { draftColor = sw.getAttribute("data-color"); renderAll(); }
+    });
+    $("negSwitch").addEventListener("click", function () {
+      draftNegative = !draftNegative;
+      if (draftNegative) draftTiebreak = false;
+      renderAll();
+    });
+    $("tbSwitch").addEventListener("click", function () {
+      draftTiebreak = !draftTiebreak;
+      if (draftTiebreak) draftNegative = false;
+      renderAll();
+    });
+    $("editorDelete").addEventListener("click", function () {
+      if (!editing) return;
+      if (editing.kind === "player") deletePlayer(editing.id);
+      else deleteCategory(editing.id);
+    });
+    $("editorCancel").addEventListener("click", function () { editing = null; renderAll(); });
+    $("editorDone").addEventListener("click", commitEdit);
+
+    /* print preview */
+    $("pvClose").addEventListener("click", closePrint);
+    $("pvPrint").addEventListener("click", function () { window.print(); });
+
+    /* float window height tracking */
+    if (typeof ResizeObserver !== "undefined") {
+      var ro = new ResizeObserver(function () { measureFloat(); });
+      ro.observe($("floatWin"));
+    }
+    window.addEventListener("resize", function () { measureFloat(); });
+
+    /* flush any pending debounced save when the page goes away */
+    window.addEventListener("pagehide", function () { if (hydrated) save(); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden" && hydrated) save();
+    });
+
+    /* ---------------- boot ----------------
+       Show only 読み込み中… until the saved state is loaded, so the
+       placeholder sheet never flashes. */
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        loadState();
+        hydrated = true;
+        $("loadingScreen").style.display = "none";
+        appEl.hidden = false;
+        applyTheme();
+        if (document.activeElement !== titleInput) titleInput.value = state.title;
+        renderAll();
+      }, 0);
+    });
+    </script>
+  </body>
 </html>
