@@ -119,7 +119,15 @@
 
       /* ---- score table ---- */
       #tableScroll { margin-top: 6px; min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px; }
-      #tableX { overflow-x: auto; overscroll-behavior-x: contain; border-radius: 12px; border: 1px solid var(--border); }
+      #tableX { position: relative; overflow-x: auto; overscroll-behavior-x: contain; border-radius: 12px; border: 1px solid var(--border); }
+      /* selection highlight that glides between cells when the input
+         target moves (driven by startGlide in the script) */
+      #selGlide {
+        position: absolute; z-index: 6; border-radius: 8px; background: var(--sel);
+        box-shadow: 0 0 0 2px var(--accent); pointer-events: none;
+        transition: left .22s cubic-bezier(.22,.9,.3,1), top .22s cubic-bezier(.22,.9,.3,1), width .22s cubic-bezier(.22,.9,.3,1), height .22s cubic-bezier(.22,.9,.3,1);
+      }
+      #grid.gliding .cell-btn.sel { background: transparent; box-shadow: none; }
       .srow { display: grid; width: 100%; }
       .srow-head { background: var(--surface); }
       .srow-cat { border-top: 1px solid var(--border); }
@@ -210,12 +218,36 @@
 
       @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
       .sheet-slide-up { animation: slide-up 240ms cubic-bezier(.22,.9,.3,1); }
+      /* sub-sheets reached from the menu (preset / theme / history) slide
+         in horizontally; returning to the menu slides in from the left */
+      @keyframes slide-left { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      .sheet-slide-left { animation: slide-left 240ms cubic-bezier(.22,.9,.3,1); }
+      @keyframes slide-back { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+      .sheet-slide-back { animation: slide-back 240ms cubic-bezier(.22,.9,.3,1); }
       @keyframes pop-in { from { transform: scale(.92); opacity: .4; } to { transform: scale(1); opacity: 1; } }
       .pop-in { animation: pop-in 90ms ease-out; }
       @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
       .cursor-blink { animation: blink 1.1s step-end infinite; }
       @media (prefers-reduced-motion: reduce) {
-        .cursor-blink, .pop-in, .sheet-slide-up { animation: none; }
+        .cursor-blink, .pop-in, .sheet-slide-up, .sheet-slide-left, .sheet-slide-back { animation: none; }
+      }
+      /* 「アニメーション」OFF が司る範囲：スライド／ポップ／トグルの遷移をすべて止める
+         （シート側は sheetAnimClass / animForSheet がクラス自体を付けない二重化） */
+      .app-root[data-animations="false"] .pop-in,
+      .app-root[data-animations="false"] .sheet-slide-up,
+      .app-root[data-animations="false"] .sheet-slide-left,
+      .app-root[data-animations="false"] .sheet-slide-back { animation: none; }
+      .app-root[data-animations="false"] .switch-track,
+      .app-root[data-animations="false"] .switch-track .knob { transition: none; }
+      .app-root[data-animations="false"] .quick-switch,
+      .app-root[data-animations="false"] .layout-seg .seg-thumb,
+      .app-root[data-animations="false"] .layout-seg button,
+      .app-root[data-animations="false"] .seg button,
+      .app-root[data-animations="false"] .swatch,
+      .app-root[data-animations="false"] .auto-color-btn,
+      .app-root[data-animations="false"] #selGlide { transition: none; }
+      @media (prefers-reduced-motion: reduce) {
+        .quick-switch, .layout-seg .seg-thumb, .layout-seg button, .seg button, .swatch, .auto-color-btn, #selGlide { transition: none; }
       }
 
       /* ---- menu sheet ---- */
@@ -245,6 +277,45 @@
         font-size: 11px; font-weight: 800; line-height: 1; background: var(--surface2); color: var(--dim);
       }
       .onoff.on { background: var(--accent); color: var(--on-accent); }
+      /* menu ON/OFF rows now use the same toggle switch as the editor
+         (track + sliding knob, defined with .switch-track below) */
+      .menu-toggle { margin-left: auto; }
+      /* opacity sub-sheet: slider + live preview sample */
+      .opacity-val { flex: none; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 13px; font-weight: 800; color: var(--dim); min-width: 3ch; text-align: right; }
+      .opacity-slider { width: 100%; margin: 0; accent-color: var(--accent); cursor: pointer; }
+      .opacity-control { margin-top: 10px; border-radius: 12px; background: var(--surface); padding: 12px 14px; }
+      .opacity-control-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+      .opacity-preview-wrap { margin-top: 10px; }
+      .opacity-preview-label { padding: 0 2px 6px; font-size: 11px; font-weight: 700; color: var(--dim); }
+      .opacity-preview {
+        position: relative; overflow: hidden; border-radius: 12px; border: 1px solid var(--border);
+        background: var(--bg); padding: 14px 12px 18px; min-height: 132px;
+      }
+      .opacity-preview-bg { display: flex; flex-direction: column; gap: 6px; opacity: .9; }
+      .opacity-preview-bg .pv-row { display: flex; gap: 6px; }
+      .opacity-preview-bg .pv-cell {
+        flex: 1; border-radius: 8px; background: var(--surface); padding: 8px 6px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 13px; font-weight: 800; text-align: center; color: var(--text);
+      }
+      .opacity-preview-bg .pv-cell.head { background: var(--surface2); font-size: 11px; color: var(--dim); }
+      .opacity-sample-window {
+        position: absolute; left: 18px; right: 18px; bottom: 14px;
+        border-radius: 16px; border: 1px solid var(--editor-ring); background: var(--editor);
+        padding: 10px 14px; box-shadow: 0 12px 28px rgba(0,0,0,.35);
+      }
+      .opacity-sample-top { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
+      .opacity-sample-pill { flex: none; border-radius: 999px; border: 2px solid var(--accent); padding: 2px 8px; }
+      .opacity-sample-cat { color: var(--dim); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .opacity-sample-formula { margin-top: 4px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 20px; font-weight: 700; line-height: 1.25; }
+      .opacity-sample-result { text-align: right; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 28px; font-weight: 800; line-height: 1; color: var(--cream); }
+      /* long-press reset: a danger wipe grows left-to-right while held */
+      .menu-row.reset-hold { position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+      .reset-wipe { position: absolute; inset: 0; background: var(--danger); transform: scaleX(0); transform-origin: left center; pointer-events: none; }
+      .menu-row.reset-hold > *:not(.reset-wipe) { position: relative; z-index: 1; }
+      .menu-row.reset-hold.holding { color: #fff; }
+      .menu-row.reset-hold.holding .menu-sub { color: rgba(255,255,255,.85); }
+      .menu-row.reset-hold.holding .menu-icon { background: rgba(255,255,255,.22); color: #fff; }
+      .menu-row.reset-hold.holding .chev { color: #fff; }
       .seg { display: flex; flex: none; border-radius: 999px; background: var(--surface2); padding: 2px; }
       .seg button {
         display: flex; align-items: center; justify-content: center; border-radius: 999px;
@@ -252,8 +323,22 @@
         line-height: 1; color: var(--dim); min-height: 0;
       }
       .seg button.on { background: var(--accent); color: var(--on-accent); }
+      .seg button { transition: background-color .18s ease, color .18s ease, opacity .18s ease; }
       .seg button.icon-btn { padding: 4px 10px; font-size: 14px; opacity: .5; background: transparent; color: inherit; }
       .seg button.icon-btn.on { background: var(--accent); opacity: 1; }
+      /* keypad-layout segmented toggle: a sliding thumb animates like
+         the menu switch knobs when the selection flips */
+      .layout-seg { position: relative; isolation: isolate; }
+      .layout-seg .seg-thumb {
+        position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 2px);
+        border-radius: 999px; background: var(--accent); z-index: 0;
+        transition: left .2s cubic-bezier(.22,.9,.3,1), background-color .2s ease;
+        pointer-events: none;
+      }
+      .layout-seg[data-active="calculator"] .seg-thumb { left: 50%; }
+      .layout-seg button { position: relative; z-index: 1; }
+      .layout-seg button.icon-btn { transition: color .2s ease, opacity .2s ease; }
+      .layout-seg button.icon-btn.on { background: transparent; color: var(--on-accent); opacity: 1; }
       .swatches { display: flex; flex: none; margin-left: -6px; }
       .swatches span { height: 20px; width: 20px; border-radius: 999px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); margin-left: -6px; }
       .swatches span:first-child { margin-left: 0; }
@@ -351,8 +436,9 @@
         font-size: 12px; font-weight: 800; background: var(--surface2); color: var(--text); min-height: 2rem;
       }
       .auto-color-btn.on { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 2px var(--accent); }
-      .swatch { height: 36px; width: 36px; flex: none; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--dim); min-height: 0; }
-      .swatch.on { box-shadow: 0 0 0 2px var(--text), 0 0 0 4px var(--surface); }
+      .swatch { height: 36px; width: 36px; flex: none; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--dim); min-height: 0; transition: box-shadow .18s ease, transform .18s ease; }
+      .swatch.on { box-shadow: 0 0 0 2px var(--text), 0 0 0 4px var(--surface); transform: scale(1.14); }
+      .auto-color-btn { transition: background-color .18s ease, color .18s ease, box-shadow .18s ease; }
       .color-note { margin-top: 6px; display: block; font-size: 11px; line-height: 1.4; color: var(--dim); }
       .switch-row {
         margin-top: 8px; display: flex; width: 100%; align-items: center; gap: 10px;
@@ -458,7 +544,11 @@
       .quick-switch {
         flex: none; border-radius: 999px; padding: 6px 12px; font-family: "M PLUS Rounded 1c", sans-serif;
         font-size: 11px; font-weight: 800; line-height: 1; background: var(--surface); color: var(--dim); min-height: 0;
+        transition: background-color .22s ease, color .22s ease, box-shadow .22s ease, transform .15s ease;
       }
+      .quick-switch:active { transform: scale(.96); }
+      .app-root[data-animations="false"] .quick-switch:active { transform: none; }
+      @media (prefers-reduced-motion: reduce) { .quick-switch:active { transform: none; } }
       .quick-switch.on { background: var(--accent); color: var(--on-accent); }
       .float-done {
         margin-left: auto; flex: none; border-radius: 999px; background: var(--accent); padding: 6px 14px;
@@ -476,6 +566,20 @@
       .float-eq { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 24px; font-weight: 700; color: var(--dim); }
       .float-result { font-family: "M PLUS Rounded 1c", sans-serif; font-size: 48px; font-weight: 800; line-height: 1; color: var(--cream); }
       .float-quick-hint { margin: 2px 0 0; text-align: right; font-size: 11px; line-height: 1.4; color: var(--dim); }
+      /* the floating window slides a little in the direction the input
+         target moved, instead of its contents snapping to the new cell */
+      @keyframes float-shift-next { from { transform: translateX(16px); opacity: .3; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes float-shift-prev { from { transform: translateX(-16px); opacity: .3; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes float-shift-jump { from { transform: translateY(8px); opacity: .3; } to { transform: translateY(0); opacity: 1; } }
+      .float-shift-next { animation: float-shift-next .22s cubic-bezier(.22,.9,.3,1); }
+      .float-shift-prev { animation: float-shift-prev .22s cubic-bezier(.22,.9,.3,1); }
+      .float-shift-jump { animation: float-shift-jump .22s cubic-bezier(.22,.9,.3,1); }
+      .app-root[data-animations="false"] .float-shift-next,
+      .app-root[data-animations="false"] .float-shift-prev,
+      .app-root[data-animations="false"] .float-shift-jump { animation: none; }
+      @media (prefers-reduced-motion: reduce) {
+        .float-shift-next, .float-shift-prev, .float-shift-jump { animation: none; }
+      }
 
       @media (min-width: 768px) {
         :root { --keyrow: 100px; }
@@ -635,6 +739,7 @@
         <section aria-label="得点表">
           <div id="tableX">
             <div id="grid" role="table" aria-label="得点表"></div>
+            <div id="selGlide" hidden aria-hidden="true"></div>
           </div>
           <button type="button" id="addCatBtn" class="wide-btn" aria-label="項目を追加">+ 項目を追加</button>
           <button type="button" id="saveHistBtn" class="wide-btn" aria-label="この結果を履歴に保存">この結果を履歴に保存</button>
@@ -680,7 +785,7 @@
       <div id="presetSheet" class="sheet" hidden>
         <div class="sheet-head">
           <span class="sheet-title">プリセット</span>
-          <button type="button" class="close-btn" id="presetClose" aria-label="プリセットを閉じる">閉じる</button>
+          <button type="button" class="close-btn" id="presetClose" aria-label="メニューに戻る">戻る</button>
         </div>
         <p class="sheet-desc">ゲーム名・プレイヤー・項目の並びを保存して、ゲームごとに切り替えられます。読み込むと今の得点は消えます。</p>
         <div class="sheet-scroll" id="presetList"></div>
@@ -690,11 +795,43 @@
         </div>
       </div>
 
+      <!-- opacity sheet -->
+      <div id="opacitySheet" class="sheet" hidden>
+        <div class="sheet-head">
+          <span class="sheet-title">窓の透明度</span>
+          <button type="button" class="close-btn" id="opacityClose" aria-label="メニューに戻る">戻る</button>
+        </div>
+        <p class="sheet-desc">入力中に出る窓（計算式ウィンドウ）の不透明度を調整します。スライダーを動かすと、下の見本で透け具合を確認できます。</p>
+        <div class="opacity-preview-wrap">
+          <div class="opacity-preview-label">透明度見本</div>
+          <div class="opacity-preview" aria-hidden="true">
+            <div class="opacity-preview-bg">
+              <div class="pv-row"><span class="pv-cell head">項目</span><span class="pv-cell head">1P</span><span class="pv-cell head">2P</span></div>
+              <div class="pv-row"><span class="pv-cell">資源</span><span class="pv-cell">12</span><span class="pv-cell">8</span></div>
+              <div class="pv-row"><span class="pv-cell">建物</span><span class="pv-cell">6</span><span class="pv-cell">15</span></div>
+            </div>
+            <div class="opacity-sample-window" id="opacitySampleWindow">
+              <div class="opacity-sample-top"><span class="opacity-sample-pill">1P</span><span class="opacity-sample-cat">・資源</span></div>
+              <div class="opacity-sample-formula">12 + 6</div>
+              <div class="opacity-sample-result">18</div>
+            </div>
+          </div>
+        </div>
+        <div class="opacity-control">
+          <div class="opacity-control-top">
+            <span aria-hidden="true" class="menu-icon">▱</span>
+            <span class="menu-texts"><span class="menu-name">不透明度</span><span class="menu-sub">低いほど後ろの得点表が透けて見えます</span></span>
+            <span class="opacity-val" id="opacityVal" aria-hidden="true">62%</span>
+          </div>
+          <input type="range" class="opacity-slider" id="opacitySlider" min="20" max="100" step="1" value="62" aria-label="窓の透明度（不透明度のパーセント）" />
+        </div>
+      </div>
+
       <!-- theme sheet -->
       <div id="themeSheet" class="sheet" hidden>
         <div class="sheet-head">
           <span class="sheet-title">テーマ</span>
-          <button type="button" class="close-btn" id="themeClose" aria-label="テーマ選択を閉じる">閉じる</button>
+          <button type="button" class="close-btn" id="themeClose" aria-label="メニューに戻る">戻る</button>
         </div>
         <p class="sheet-desc">画面の色合いを切り替えます。選んだテーマは保存されて、次回もそのまま使えます。</p>
         <div class="theme-grid" id="themeGrid" role="group" aria-label="テーマ一覧"></div>
@@ -704,7 +841,7 @@
       <div id="historySheet" class="sheet" hidden>
         <div class="sheet-head">
           <span class="sheet-title">スコア履歴</span>
-          <button type="button" class="close-btn" id="historyClose" aria-label="スコア履歴を閉じる">閉じる</button>
+          <button type="button" class="close-btn" id="historyClose" aria-label="メニューに戻る">戻る</button>
         </div>
         <p class="sheet-desc">終わったゲームの結果を日時つきで残せます。行をタップすると項目ごとの内訳が見られます。</p>
         <div class="sheet-scroll" id="historyList"></div>
@@ -730,11 +867,18 @@
               <span class="switch-sub">オンにすると、この項目の点数が合計から引かれます（失点トークンなど）</span>
             </span>
           </button>
-          <button type="button" id="tbSwitch" class="switch-row" role="switch" aria-checked="false" aria-label="タイブレーク項目にする（得点には含めない）">
+          <button type="button" id="tbSwitch" class="switch-row" role="switch" aria-checked="false" aria-label="タイブレーク項目にする">
             <span aria-hidden="true" class="switch-track" id="tbTrack"><span class="knob"></span></span>
             <span class="switch-texts">
               <span class="switch-name">タイブレーク項目にする</span>
-              <span class="switch-sub">オンにすると、この項目は合計に含まれず、同点のときに値が大きい人が勝ちになります（コインの枚数など）</span>
+              <span class="switch-sub">オンにすると、同点のときに値が大きい人が勝ちになります（コインの枚数など）。通常は合計には含まれません</span>
+            </span>
+          </button>
+          <button type="button" id="scoreSwitch" class="switch-row" role="switch" aria-checked="false" aria-label="タイブレークの値を得点にも含める" hidden>
+            <span aria-hidden="true" class="switch-track" id="scoreTrack"><span class="knob"></span></span>
+            <span class="switch-texts">
+              <span class="switch-name">得点にも含める</span>
+              <span class="switch-sub">オンにすると、タイブレークにも使いながら、この項目の点数が合計にも加算されます（カスカディアの自然トークンなど）</span>
             </span>
           </button>
         </div>
@@ -774,7 +918,7 @@
           </div>
           <button type="button" class="pv-print-btn" id="pvPrint">このレシートを印刷</button>
           <button type="button" class="pv-pdf-btn" id="pvPdf">PDFで保存</button>
-          <p class="pv-note">印刷ダイアログが開かない場合は、このページをブラウザで開いてから印刷してください</p>
+          <p class="pv-note">印刷する場合は、PDFで保存するか、このページをブラウザで開いてから印刷してください</p>
         </div>
       </div>
     </div>
@@ -804,7 +948,7 @@
         return { id: uid() + "p" + i, name: "", color: PLAYER_COLORS[i] };
       });
       var categories = [0].map(function (i) {
-        return { id: uid() + "c" + i, name: "", negative: false, tiebreak: false };
+        return { id: uid() + "c" + i, name: "", negative: false, tiebreak: false, score: false };
       });
       return {
         title: "ゲーム名",
@@ -818,7 +962,7 @@
         theme: "navy",
         quickMode: false,
         haptics: true,
-        floatOpacity: "semi",
+        floatOpacity: 62,
         animations: true,
         keypadScale: 1,
         receiptWidth: "80"
@@ -832,12 +976,14 @@
     }
     function builtinCategories(prefix, defs) {
       return defs.map(function (d, i) {
-        return { id: prefix + "-c" + i, name: d.name, negative: !!d.negative, tiebreak: !!d.tiebreak };
+        var tb = !!d.tiebreak, both = tb && !!d.score;
+        return { id: prefix + "-c" + i, name: d.name, negative: !!d.negative && !both, tiebreak: tb, score: both };
       });
     }
     function N(name) { return { name: name }; }
     function NM(name) { return { name: name, negative: true }; }
     function NT(name) { return { name: name, tiebreak: true }; }
+    function NTB(name) { return { name: name, tiebreak: true, score: true }; }
     var BUILTIN_PRESETS = [
       { id: "builtin-blank", name: "フリーシート", subtitle: "Blank Sheet", title: "フリーシート", players: builtinPlayers("builtin-blank"),
         categories: builtinCategories("builtin-blank", [N("")]) },
@@ -860,18 +1006,20 @@
       { id: "builtin-forest-shuffle", name: "フォレストシャッフル", subtitle: "Forest Shuffle", title: "フォレストシャッフル", players: builtinPlayers("builtin-forest-shuffle"),
         categories: builtinCategories("builtin-forest-shuffle", [N("樹"), N("湿原(ダートムーア)"), N("上"), N("左/右"), N("下"), N("洞窟")]) },
       { id: "builtin-7wonders-duel", name: "世界の七不思議 デュエル", subtitle: "7 Wonders Duel", title: "世界の七不思議 デュエル", players: builtinPlayers("builtin-7wonders-duel"),
-        categories: builtinCategories("builtin-7wonders-duel", [N("青カード"), N("緑カード"), N("黄カード"), N("紫カード"), N("七不思議"), N("進歩トークン"), N("コイン(3個1点)"), N("軍事"), NT("軍事的優位"), NT("科学的優位"), NT("青カードの勝利点")]) },
+        categories: builtinCategories("builtin-7wonders-duel", [NTB("青カード"), N("緑カード"), N("黄カード"), N("紫カード"), N("七不思議"), N("進歩トークン"), N("コイン(3個1点)"), N("軍事"), NT("軍事的優位"), NT("科学的優位")]) },
       { id: "builtin-ark-nova-sanctuary", name: "アークノヴァ・サンクチュアリ", subtitle: "Sanctuary: An Ark Nova Game", title: "アークノヴァ・サンクチュアリ", players: builtinPlayers("builtin-ark-nova-sanctuary"),
         categories: builtinCategories("builtin-ark-nova-sanctuary", [N("動物タイル"), N("建物タイル"), N("計画タイル"), N("空き地"), N("保全功績"), N("保全/育児嚢マーカー(2点)"), N("ゲーム終了マーカー"), N("ソロプレイマーカー"), NT("動物タイルの枚数")]) },
       { id: "builtin-harmonies", name: "ハーモニーズ", subtitle: "Harmonies", title: "ハーモニーズ", players: builtinPlayers("builtin-harmonies"),
         categories: builtinCategories("builtin-harmonies", [N("樹木"), N("山岳"), N("平野"), N("建物"), N("水域"), N("動物/精霊カード"), NT("動物コマ")]) },
       { id: "builtin-cascadia", name: "カスカディア", subtitle: "Cascadia", title: "カスカディア", players: builtinPlayers("builtin-cascadia"),
-        categories: builtinCategories("builtin-cascadia", [N("クマ"), N("エルク"), N("サケ"), N("タカ"), N("キツネ"), N("山の回廊地帯"), N("山の大きさ比較"), N("森林の回廊地帯"), N("森林の大きさ比較"), N("大平原の回廊地帯"), N("大平原の大きさ比較"), N("湿地の回廊地帯"), N("湿地の大きさ比較"), N("川の回廊地帯"), N("川の大きさ比較"), N("自然トークン"), NT("自然トークン")]) }
+        categories: builtinCategories("builtin-cascadia", [N("クマ"), N("エルク"), N("サケ"), N("タカ"), N("キツネ"), N("山の回廊地帯"), N("山の大きさ比較"), N("森林の回廊地帯"), N("森林の大きさ比較"), N("大平原の回廊地帯"), N("大平原の大きさ比較"), N("湿地の回廊地帯"), N("湿地の大きさ比較"), N("川の回廊地帯"), N("川の大きさ比較"), NTB("自然トークン")]) }
     ];
 
     /* ---- external presets (read-only, fetched from GitHub Pages) ----
-       Format: {"presets":[{"title":"日本語名","subtitle":"原語名","items":[{"name":"項目名","minus":false,"tiebreak":false}]}]}
-       minus/tiebreak are optional (default false). Empty name = blank item.
+       Format: {"presets":[{"title":"日本語名","subtitle":"原語名","items":[{"name":"項目名","minus":false,"tiebreak":false,"score":false}]}]}
+       minus/tiebreak/score are optional (default false). Empty name = blank item.
+       tiebreak+score together = a "both" item: counted in the total AND
+       used for tiebreaks (score alone, without tiebreak, changes nothing).
        On fetch failure the built-in fallback above is used. */
     var EXTERNAL_PRESETS_URL = "https://tak-attack.github.io/boardgame-score-calc/presets.json";
     var externalPresets = null;
@@ -885,7 +1033,7 @@
         var items = Array.isArray(p.items) ? p.items : [];
         var defs = items.map(function (it) {
           if (!it || typeof it !== "object") return { name: "" };
-          return { name: typeof it.name === "string" ? it.name : "", negative: !!it.minus, tiebreak: !!it.tiebreak };
+          return { name: typeof it.name === "string" ? it.name : "", negative: !!it.minus, tiebreak: !!it.tiebreak, score: !!it.score };
         });
         if (defs.length === 0) defs = [N(""), N(""), N(""), N(""), N("")];
         out.push({
@@ -934,7 +1082,8 @@
       ]},
       { heading: "項目の特殊設定", items: [
         "マイナス項目：合計から差し引かれる項目です（失点など）。項目の編集で設定します",
-        "タイブレーク項目：合計には入らず、同点のときに上から順に比べて勝者を決める項目です"
+        "タイブレーク項目：合計には入らず、同点のときに上から順に比べて勝者を決める項目です",
+        "得点にも含める（タイブレーク項目の追加設定）：オンにすると、その項目は合計にも加算されながら、同点時のタイブレーク比較にも使われます（カスカディアの自然トークンなど）"
       ]},
       { heading: "保存とプリセット", items: [
         "入力内容は自動で保存されます",
@@ -1072,6 +1221,10 @@
     function fallbackPlayerName(i) { return (i + 1) + "P"; }
     function fallbackCategoryName(i) { return (i + 1) + "."; }
     function displayCategoryName(c, i) { return c.name.trim() || fallbackCategoryName(i); }
+    function catAriaSuffix(c) {
+      if (c.tiebreak) return c.score ? "（タイブレーク・得点にも含める項目）" : "（タイブレーク項目）";
+      return c.negative ? "（マイナス項目）" : "";
+    }
     function displayPlayerName(p, i) { return p.name.trim() || fallbackPlayerName(i); }
     function truncateNameChars(s, max) { max = max || 4; return Array.from(s).slice(0, max).join(""); }
     function shortPlayerName(p, i) { return truncateNameChars(displayPlayerName(p, i)); }
@@ -1087,7 +1240,10 @@
       players.forEach(function (p) {
         var sum = 0;
         categories.forEach(function (c) {
-          if (c.tiebreak) return;
+          /* tiebreak items stay out of the total, except "both" items
+             (tiebreak && score), which are added like normal items and
+             still take part in the tiebreak comparison below */
+          if (c.tiebreak && !c.score) return;
           var v = evaluate(cells[p.id + ":" + c.id] || "");
           if (v !== null) sum += c.negative ? -tableValue(v) : tableValue(v);
         });
@@ -1154,8 +1310,9 @@
     var hydrated = false;
     // UI-local state (never persisted)
     var editing = null; // {kind:"player"|"category", id}
-    var draft = "", draftColor = null, draftNegative = false, draftTiebreak = false;
-    var openSheetName = null; // "menu"|"preset"|"theme"|"history"|"help"|null (editor tracked by `editing`)
+    var draft = "", draftColor = null, draftNegative = false, draftTiebreak = false, draftScore = false;
+    var openSheetName = null; // "menu"|"preset"|"theme"|"history"|"opacity"|"help"|null (editor tracked by `editing`)
+    var sheetNav = "root"; // "root" (menu from below) | "forward" (menu -> sub, slide left) | "back" (sub -> menu, slide from left)
     var confirmReset = false;
     var titleFocused = false;
     var expandedHistoryId = null, confirmDeleteHistoryId = null;
@@ -1208,6 +1365,14 @@
           });
         });
         if (base.keypadLayout === "quick") { base.keypadLayout = "keyboard"; base.quickMode = true; }
+        /* migrate the old 3-step opacity setting to a stepless percentage
+           （標準=不透明100%／半透明=62%／透明=38%) */
+        if (typeof base.floatOpacity === "string") {
+          base.floatOpacity = base.floatOpacity === "semi" ? 62 : base.floatOpacity === "clear" ? 38 : 100;
+        }
+        if (typeof base.floatOpacity === "number" && isFinite(base.floatOpacity)) {
+          base.floatOpacity = Math.min(100, Math.max(20, Math.round(base.floatOpacity)));
+        } else base.floatOpacity = 62;
         if (!base.players.length || !base.categories.length) return;
         if (!base.players.some(function (p) { return p.id === base.selected.playerId; })) base.selected.playerId = base.players[0].id;
         if (!base.categories.some(function (c) { return c.id === base.selected.categoryId; })) base.selected.categoryId = base.categories[0].id;
@@ -1226,6 +1391,30 @@
     function keypadHidden() { return editing !== null || titleFocused || openSheetName !== null; }
     function showKeypad() { return entering && !keypadHidden(); }
     function sheetAnimClass() { return state.animations ? "sheet-slide-up" : ""; }
+    /* per-sheet entrance: the menu itself rises from below; sub-sheets
+       (preset / theme / history) slide in horizontally, and the menu
+       slides back in from the left when returning from one */
+    function animForSheet(k) {
+      if (!state.animations) return "";
+      if (k === "menu") return sheetNav === "back" ? "sheet-slide-back" : "sheet-slide-up";
+      if (k === "preset" || k === "theme" || k === "history" || k === "opacity") return "sheet-slide-left";
+      return "sheet-slide-up";
+    }
+    /* stepless window opacity (percent). Legacy string values are
+       migrated at load; this also tolerates them defensively. */
+    function opacityPct() {
+      var v = state.floatOpacity;
+      if (typeof v === "number" && isFinite(v)) return Math.min(100, Math.max(20, v));
+      if (v === "semi") return 62;
+      if (v === "clear") return 38;
+      return 100;
+    }
+    function applyWindowOpacity(el, varName) {
+      if (!el) return;
+      var pct = opacityPct();
+      if (pct >= 100) el.style.backgroundColor = "";
+      else el.style.backgroundColor = "color-mix(in srgb, var(" + varName + ") " + pct + "%, transparent)";
+    }
 
     function buzz() {
       if (!state.haptics) return;
@@ -1235,6 +1424,7 @@
     /* ---------------- theme ---------------- */
     function applyTheme() {
       appEl.setAttribute("data-theme", state.theme);
+      appEl.setAttribute("data-animations", state.animations ? "true" : "false");
       document.documentElement.setAttribute("data-theme", state.theme);
       var bg = "";
       try { bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(); } catch (e) {}
@@ -1293,14 +1483,14 @@
           if (draftTiebreak) dBadges += '<span aria-hidden="true" class="tb-badge">TB</span>';
           html += '<span class="cat-name-editing">' + dBadges + esc(draft.trim() || fallbackCategoryName(cIdx)) + "</span>";
         } else {
-          html += '<button type="button" class="cat-name-btn minh0" data-edit-category="' + esc(c.id) + '" aria-label="' + esc(displayCategoryName(c, cIdx)) + (c.tiebreak ? "（タイブレーク項目）" : c.negative ? "（マイナス項目）" : "") + 'の名前を編集">' + badges + esc(displayCategoryName(c, cIdx)) + "</button>";
+          html += '<button type="button" class="cat-name-btn minh0" data-edit-category="' + esc(c.id) + '" aria-label="' + esc(displayCategoryName(c, cIdx)) + esc(catAriaSuffix(c)) + 'の名前を編集">' + badges + esc(displayCategoryName(c, cIdx)) + "</button>";
         }
         html += "</div>";
         state.players.forEach(function (p, pIdx) {
           var f = state.cells[p.id + ":" + c.id] || "";
           var v = evaluate(f);
           var isSel = p.id === selPlayer().id && c.id === selCategory().id;
-          var aria = displayPlayerName(p, pIdx) + "の" + displayCategoryName(c, cIdx) + (c.tiebreak ? "（タイブレーク項目）" : c.negative ? "（マイナス項目）" : "") + "を編集";
+          var aria = displayPlayerName(p, pIdx) + "の" + displayCategoryName(c, cIdx) + catAriaSuffix(c) + "を編集";
           if (f) aria += "、式 " + formatFormula(f) + "、結果 " + (v !== null ? formatNumber(c.negative ? -v : v) + (fractionSuffix(c.negative ? -v : v) ? "（小数点以下は切り捨て）" : "") : "未計算");
           else aria += "、未入力";
           html += '<div role="cell" class="cell-wrap"><button type="button" class="cell-btn' + (isSel ? " sel" : "") + '" data-cell="' + esc(p.id + ":" + c.id) + '" aria-label="' + esc(aria) + '">' +
@@ -1343,7 +1533,9 @@
       var cIdx = Math.max(0, state.categories.findIndex(function (x) { return x.id === c.id; }));
       $("floatCat").textContent = "・" + displayCategoryName(c, cIdx);
       $("floatBadgeNeg").hidden = !c.negative;
-      $("floatBadgeTb").hidden = !c.tiebreak;
+      var tbBadge = $("floatBadgeTb");
+      tbBadge.hidden = !c.tiebreak;
+      tbBadge.textContent = c.score ? "タイブレーク（得点にも含める）" : "タイブレーク（得点に含めない）";
       var qs = $("quickSwitch");
       qs.classList.toggle("on", state.quickMode);
       qs.setAttribute("aria-checked", String(state.quickMode));
@@ -1367,15 +1559,26 @@
       if (state.quickMode) {
         hint.hidden = false;
         hint.textContent = pendingTens !== null
-          ? pendingTens + "を十の位として保留中：次の数字タップで2桁入力、⌫でキャンセル"
-          : "数字キーを押すたび、その数字が得点として足されます（0キー＝10点／長押しで2桁入力）";
+          ? pendingTens + "を十の位として保留中：次の数字タップで2桁入力、⌫で取消"
+          : "数字キーを押すたび、次々と得点を加算します（長押しで2桁入力）";
       } else hint.hidden = true;
       var fw = $("floatWin");
-      if (state.floatOpacity === "opaque") fw.style.backgroundColor = "";
-      else fw.style.backgroundColor = "color-mix(in srgb, var(--editor) " + (state.floatOpacity === "semi" ? 62 : 38) + "%, transparent)";
+      applyWindowOpacity(fw, "--editor");
       fw.classList.toggle("pop-in", state.animations);
+      /* when the input target moved to another cell, slide the window
+         contents in the travel direction instead of snapping */
+      fw.classList.remove("float-shift-next", "float-shift-prev", "float-shift-jump");
+      var fKey = cellKey();
+      if (state.animations && lastFloatKey !== null && fKey !== lastFloatKey) {
+        var shiftCls = pendingFloatDir === "next" ? "float-shift-next" : pendingFloatDir === "prev" ? "float-shift-prev" : "float-shift-jump";
+        void fw.offsetWidth;
+        fw.classList.add(shiftCls);
+      }
+      lastFloatKey = fKey;
+      pendingFloatDir = null;
       measureFloat();
     }
+    var lastFloatKey = null;
     function measureFloat() {
       var fw = $("floatWin");
       var h = showKeypad() && fw ? fw.offsetHeight : 0;
@@ -1467,7 +1670,15 @@
         if (ri === 1) { var plus = makeKey("op plus", "足す（＋）", "+"); plus.addEventListener("click", function () { pushOp("+"); }); grid.appendChild(plus); }
       });
       // bottom row: wide 0, x², next player
-      var zero = makeKey("zero", "数字 0（下フリックで小数点）", "0");
+      // in quick mode the 0 key adds 10 points, so it is labelled "10" —
+      // except while a tens digit is pending (2-digit entry), when it
+      // acts as the ones digit and is labelled "0" (see updateHeldKey)
+      var zero = makeKey("zero",
+        state.quickMode
+          ? (pendingTens !== null ? "数字 0（クイック：タップで0を下の位として確定、下フリックで小数点）" : "数字 10（クイック：タップで10点を加算、下フリックで小数点）")
+          : "数字 0（下フリックで小数点）",
+        state.quickMode && pendingTens === null ? "10" : "0");
+      zero.setAttribute("data-zero-key", "1");
       var zHint = document.createElement("span");
       zHint.className = "hint"; zHint.setAttribute("aria-hidden", "true"); zHint.textContent = "↓ ．";
       zero.appendChild(zHint);
@@ -1550,13 +1761,24 @@
       keys.forEach(function (k) {
         k.classList.toggle("quick-held", pendingTens !== null && k.getAttribute("data-digit") === pendingTens);
       });
+      /* quick mode: the wide key reads "10" normally, but while a tens
+         digit is pending it is the ones-digit 0 key, so it reads "0" */
+      var zeroKey = $("kpGrid").querySelector("[data-zero-key]");
+      if (zeroKey) {
+        var label = state.quickMode && pendingTens === null ? "10" : "0";
+        if (zeroKey.firstChild && zeroKey.firstChild.nodeType === 3) zeroKey.firstChild.textContent = label;
+        else zeroKey.insertBefore(document.createTextNode(label), zeroKey.firstChild);
+        zeroKey.setAttribute("aria-label", state.quickMode
+          ? (pendingTens !== null ? "数字 0（クイック：タップで0を下の位として確定、下フリックで小数点）" : "数字 10（クイック：タップで10点を加算、下フリックで小数点）")
+          : "数字 0（下フリックで小数点）");
+      }
     }
 
     function renderKeypad() {
       var show = showKeypad();
       var sheet = $("keypadSheet");
       sheet.hidden = !show;
-      if (!show) { floatH = 0; return; }
+      if (!show) { floatH = 0; lastFloatKey = null; return; }
       sheet.className = "sheet " + sheetAnimClass();
       sheet.id = "keypadSheet";
       var sig = state.keypadLayout + "|" + state.quickMode;
@@ -1604,11 +1826,54 @@
     }
 
     /* ---------------- keypad input logic (ported) ---------------- */
-    function select(playerId, categoryId) {
+    /* selection movement animation: the highlight glides from the old
+       cell to the new one (#selGlide overlay, in table content
+       coordinates so it follows scrolling), and the floating window
+       slides in the travel direction (pendingFloatDir, consumed by
+       renderFloat). Both are suppressed when animations are off. */
+    var pendingFloatDir = null;
+    var glideTimer = null;
+    function captureCellRect(key) {
+      var el = gridEl.querySelector('[data-cell="' + CSS.escape(key) + '"]');
+      if (!el) return null;
+      return { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight };
+    }
+    function startGlide(oldRect, newKey) {
+      var g = $("selGlide");
+      var el = gridEl.querySelector('[data-cell="' + CSS.escape(newKey) + '"]');
+      if (!g || !el || !oldRect) return;
+      var nr = { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight };
+      if (nr.left === oldRect.left && nr.top === oldRect.top && nr.width === oldRect.width && nr.height === oldRect.height) return;
+      if (glideTimer) { clearTimeout(glideTimer); glideTimer = null; }
+      gridEl.classList.add("gliding");
+      g.hidden = false;
+      g.style.transition = "none";
+      g.style.left = oldRect.left + "px";
+      g.style.top = oldRect.top + "px";
+      g.style.width = oldRect.width + "px";
+      g.style.height = oldRect.height + "px";
+      void g.offsetWidth;
+      g.style.transition = "";
+      g.style.left = nr.left + "px";
+      g.style.top = nr.top + "px";
+      g.style.width = nr.width + "px";
+      g.style.height = nr.height + "px";
+      glideTimer = setTimeout(function () {
+        g.hidden = true;
+        gridEl.classList.remove("gliding");
+        glideTimer = null;
+      }, 300);
+    }
+    function select(playerId, categoryId, dir) {
+      var oldKey = state.selected.playerId + ":" + state.selected.categoryId;
+      var newKey = playerId + ":" + categoryId;
+      var oldRect = state.animations && oldKey !== newKey ? captureCellRect(oldKey) : null;
       pendingTens = null;
+      pendingFloatDir = dir || null;
       state.selected = { playerId: playerId, categoryId: categoryId };
       scheduleSave();
       renderAll();
+      if (oldRect) startGlide(oldRect, newKey);
     }
     function setFormula(next) {
       buzz();
@@ -1714,13 +1979,13 @@
       buzz();
       var nx = nextPlayerObj();
       var target = firstUnfinished(nx.p.id);
-      if (target) select(nx.p.id, target.id);
+      if (target) select(nx.p.id, target.id, "next");
     }
     function goPrev() {
       buzz();
       var pv = prevPlayerObj();
       var target = firstUnfinished(pv.p.id);
-      if (target) select(pv.p.id, target.id);
+      if (target) select(pv.p.id, target.id, "prev");
     }
 
     /* ---------------- structure editing ---------------- */
@@ -1735,6 +2000,7 @@
       var cat = kind === "category" ? state.categories.find(function (c) { return c.id === id; }) : null;
       draftNegative = cat ? cat.negative : false;
       draftTiebreak = cat ? cat.tiebreak : false;
+      draftScore = cat ? !!cat.score : false;
       openSheetName = null;
       renderAll();
       var input = $("editorInput");
@@ -1759,7 +2025,7 @@
         } else {
           var name2 = raw.slice(0, 30);
           s.categories = s.categories.map(function (c) {
-            return c.id === ed.id ? Object.assign({}, c, { name: name2, negative: draftNegative && !draftTiebreak, tiebreak: draftTiebreak }) : c;
+            return c.id === ed.id ? Object.assign({}, c, { name: name2, negative: draftNegative && !draftTiebreak, tiebreak: draftTiebreak, score: draftTiebreak && draftScore }) : c;
           });
         }
       });
@@ -1776,7 +2042,7 @@
     }
     function addCategory() {
       if (state.categories.length >= 20) return;
-      var c = { id: uid(), name: "", negative: false, tiebreak: false };
+      var c = { id: uid(), name: "", negative: false, tiebreak: false, score: false };
       state.categories.push(c);
       state.selected = { playerId: state.selected.playerId, categoryId: c.id };
       scheduleSave();
@@ -1826,6 +2092,7 @@
     function openPresets() {
       presetNameDraft = (state.title.trim() === "" || state.title === "ゲーム名") ? "" : state.title;
       confirmLoadId = null; confirmDeletePresetId = null;
+      sheetNav = "forward";
       openSheetName = "preset";
       renderAll();
       $("presetNameInput").value = presetNameDraft;
@@ -1847,12 +2114,15 @@
       updatePresetSaveBtn();
     }
     function loadPreset(pr) {
-      state.title = pr.title;
+      /* 「フリーシート」だけはゲーム名を空欄で開始する（内蔵・外部どちらの
+         プリセットでも、プリセット名で判定する特別扱い） */
+      state.title = pr.name === "フリーシート" ? "" : pr.title;
       state.players = pr.players.map(function (p) { return Object.assign({}, p); });
       state.categories = pr.categories.map(function (c) { return Object.assign({}, c); });
       state.cells = {};
       state.selected = { playerId: state.players[0].id, categoryId: state.categories[0].id };
       confirmLoadId = null;
+      sheetNav = "root";
       openSheetName = null;
       entering = false;
       pendingTens = null;
@@ -1874,7 +2144,7 @@
       if (builtin) {
         sub += " ・ " + pr.categories.map(function (c, ci) {
           var n = displayCategoryName(c, ci);
-          return c.tiebreak ? "TB:" + n : c.negative ? "−" + n : n;
+          return c.tiebreak ? (c.score ? "TB+得点:" + n : "TB:" + n) : c.negative ? "−" + n : n;
         }).join(" / ");
       } else if (pr.players.some(function (p) { return p.name.trim(); })) {
         sub += " ・ " + pr.players.map(function (p, i) { return displayPlayerName(p, i); }).join(" / ");
@@ -2243,26 +2513,32 @@
     function renderMenu() {
       var theme = THEMES.find(function (t) { return t.id === state.theme; }) || THEMES[0];
       var sw = theme.swatches.map(function (c) { return '<span style="background-color:' + c + '"></span>'; }).join("");
-      var opBtns = [["opaque", "標準"], ["semi", "半透明"], ["clear", "透明"]].map(function (o) {
-        return '<button type="button" data-opacity="' + o[0] + '" aria-pressed="' + (state.floatOpacity === o[0]) + '" aria-label="窓の透明度を' + o[1] + 'にする" class="' + (state.floatOpacity === o[0] ? "on" : "") + '">' + o[1] + "</button>";
-      }).join("");
+      var pct = opacityPct();
       var h = "";
       h += '<p class="cat-label">表示</p>';
       h += '<button type="button" class="menu-row" id="menuTheme" aria-label="テーマを切り替える"><span aria-hidden="true" class="swatches">' + sw + '</span><span class="menu-texts"><span class="menu-name">テーマ</span><span class="menu-sub">現在：' + esc(theme.label) + ' ・ 画面の色合いを切り替える</span></span><span aria-hidden="true" class="chev">›</span></button>';
-      h += '<div class="menu-row"><span aria-hidden="true" class="menu-icon">▱</span><span class="menu-texts"><span class="menu-name">窓の透明度</span><span class="menu-sub">入力中の窓の後ろに得点表を透かす</span></span><span class="seg" role="group" aria-label="フローティングウィンドウの透明度">' + opBtns + "</span></div>";
-      h += '<button type="button" class="menu-row" id="menuAnim" role="switch" aria-checked="' + state.animations + '" aria-label="スライドアニメーションのオン・オフ"><span aria-hidden="true" class="menu-icon">↑</span><span class="menu-texts"><span class="menu-name">アニメーション</span><span class="menu-sub">メニューやキーパッドが下からスライドして出る</span></span><span aria-hidden="true" class="onoff' + (state.animations ? " on" : "") + '">' + (state.animations ? "ON" : "OFF") + "</span></button>";
+      h += '<button type="button" class="menu-row" id="menuOpacity" aria-label="窓の透明度を設定"><span aria-hidden="true" class="menu-icon">▱</span><span class="menu-texts"><span class="menu-name">窓の透明度</span><span class="menu-sub">現在：' + pct + '% ・ 入力中の窓の後ろに得点表を透かす</span></span><span aria-hidden="true" class="chev">›</span></button>';
+      h += '<button type="button" class="menu-row" id="menuAnim" role="switch" aria-checked="' + state.animations + '" aria-label="アニメーションのオン・オフ"><span aria-hidden="true" class="menu-icon">↑</span><span class="menu-texts"><span class="menu-name">アニメーション</span><span class="menu-sub">スライドやポップアップ、スイッチの動き</span></span><span aria-hidden="true" class="switch-track menu-toggle' + (state.animations ? " on-accent" : "") + '" id="animTrack"><span class="knob"></span></span></button>';
       h += '<p class="cat-label">データ</p>';
       h += '<button type="button" class="menu-row" id="menuPreset" aria-label="プリセットを開く"><span aria-hidden="true" class="menu-icon">▦</span><span class="menu-texts"><span class="menu-name">プリセット' + (state.presets.length > 0 ? " (" + state.presets.length + ")" : "") + '</span><span class="menu-sub">ゲームごとの表を保存・読み込み</span></span><span aria-hidden="true" class="chev">›</span></button>';
       h += '<button type="button" class="menu-row" id="menuHistory" aria-label="スコア履歴を開く"><span aria-hidden="true" class="menu-icon">◷</span><span class="menu-texts"><span class="menu-name">履歴' + (state.history.length > 0 ? " (" + state.history.length + ")" : "") + '</span><span class="menu-sub">終わったゲームの結果を見る・印刷する</span></span><span aria-hidden="true" class="chev">›</span></button>';
       h += '<p class="cat-label">入力</p>';
-      h += '<div class="menu-row"><span aria-hidden="true" class="menu-icon">⌨️</span><span class="menu-texts"><span class="menu-name">テンキータイプ</span><span class="menu-sub">数字キーの並び順（現在：' + (state.keypadLayout === "calculator" ? "電話式" : "キーボード式") + '）</span></span>' +
-        '<span class="seg" role="group" aria-label="テンキータイプの切り替え">' +
+      h += '<div class="menu-row"><span aria-hidden="true" class="menu-icon">⌨️</span><span class="menu-texts"><span class="menu-name">テンキータイプ</span><span class="menu-sub" id="layoutSub">数字キーの並び順（現在：' + (state.keypadLayout === "calculator" ? "電話式" : "キーボード式") + '）</span></span>' +
+        '<span class="seg layout-seg" data-active="' + esc(state.keypadLayout) + '" role="group" aria-label="テンキータイプの切り替え"><span aria-hidden="true" class="seg-thumb"></span>' +
         '<button type="button" class="icon-btn' + (state.keypadLayout === "keyboard" ? " on" : "") + '" data-layout="keyboard" aria-pressed="' + (state.keypadLayout === "keyboard") + '" aria-label="キーボード式に切り替え（上から7・8・9）"><span aria-hidden="true">⌨️</span></button>' +
         '<button type="button" class="icon-btn' + (state.keypadLayout === "calculator" ? " on" : "") + '" data-layout="calculator" aria-pressed="' + (state.keypadLayout === "calculator") + '" aria-label="電話式に切り替え（上から1・2・3）"><span aria-hidden="true">☎️</span></button>' +
         "</span></div>";
-      h += '<button type="button" class="menu-row" id="menuHaptics" role="switch" aria-checked="' + state.haptics + '" aria-label="振動フィードバックのオン・オフ"><span aria-hidden="true" class="menu-icon">≋</span><span class="menu-texts"><span class="menu-name">振動</span><span class="menu-sub">キーパッドを押したときのフィードバック</span></span><span aria-hidden="true" class="onoff' + (state.haptics ? " on" : "") + '">' + (state.haptics ? "ON" : "OFF") + "</span></button>";
-      h += '<button type="button" class="menu-row' + (confirmReset ? " danger-confirm" : "") + '" id="menuReset" aria-label="すべての得点を消去"><span aria-hidden="true" class="menu-icon" ' + (confirmReset ? "" : 'style="color:var(--danger-text)"') + '>✕</span><span class="menu-texts"><span class="menu-name">' + (confirmReset ? "本当に全消去？" : "全消去") + '</span><span class="menu-sub">' + (confirmReset ? "もう一度タップするとすべての得点が消えます" : "入力したすべての得点を消す") + "</span></span>" + (confirmReset ? "" : '<span aria-hidden="true" class="chev">›</span>') + "</button>";
+      h += '<button type="button" class="menu-row" id="menuHaptics" role="switch" aria-checked="' + state.haptics + '" aria-label="振動フィードバックのオン・オフ"><span aria-hidden="true" class="menu-icon">≋</span><span class="menu-texts"><span class="menu-name">振動</span><span class="menu-sub">キーパッドを押したときのフィードバック</span></span><span aria-hidden="true" class="switch-track menu-toggle' + (state.haptics ? " on-accent" : "") + '" id="hapticsTrack"><span class="knob"></span></span></button>';
+      h += '<button type="button" class="menu-row reset-hold" id="menuReset" aria-label="すべての得点を消去（長押し）"><span aria-hidden="true" class="reset-wipe"></span><span aria-hidden="true" class="menu-icon" style="color:var(--danger-text)">✕</span><span class="menu-texts"><span class="menu-name">全消去</span><span class="menu-sub">長押しで入力したすべての得点を消す</span></span><span aria-hidden="true" class="chev">長押し</span></button>';
       $("menuList").innerHTML = h;
+    }
+    function renderOpacity() {
+      var pct = opacityPct();
+      var slider = $("opacitySlider");
+      if (slider && Number(slider.value) !== pct) slider.value = String(pct);
+      var val = $("opacityVal");
+      if (val) val.textContent = pct + "%";
+      applyWindowOpacity($("opacitySampleWindow"), "--editor");
     }
     function renderTheme() {
       var h = "";
@@ -2315,10 +2591,9 @@
       if (!editing) return;
       sheet.className = state.animations ? "pop-in" : "";
       sheet.id = "editorSheet";
-      /* sync the popup background with the floating window opacity setting
-         (標準／半透明／透明) — same color-mix ratios as renderFloat() */
-      if (state.floatOpacity === "opaque") sheet.style.backgroundColor = "";
-      else sheet.style.backgroundColor = "color-mix(in srgb, var(--panel) " + (state.floatOpacity === "semi" ? 62 : 38) + "%, transparent)";
+      /* sync the popup background with the floating window opacity
+         setting (stepless %) — same ratio as renderFloat() */
+      applyWindowOpacity(sheet, "--panel");
       var isPlayer = editing.kind === "player";
       var idx = isPlayer
         ? state.players.findIndex(function (p) { return p.id === editing.id; })
@@ -2342,13 +2617,18 @@
           ? "おまかせ：完了すると、他のプレイヤーと被らない色が自動で選ばれます"
           : "選んだ色が名前の枠の色になります";
       } else {
-        var neg = $("negSwitch"), tb = $("tbSwitch");
+        var neg = $("negSwitch"), tb = $("tbSwitch"), sc = $("scoreSwitch");
         neg.setAttribute("aria-checked", String(draftNegative));
         tb.setAttribute("aria-checked", String(draftTiebreak));
+        /* the knob elements stay in the DOM and only the track class
+           flips, so the switch CSS transition actually animates */
         $("negTrack").className = "switch-track" + (draftNegative ? " on-danger" : "");
         $("tbTrack").className = "switch-track" + (draftTiebreak ? " on-accent" : "");
-        $("negTrack").innerHTML = '<span class="knob"></span>';
-        $("tbTrack").innerHTML = '<span class="knob"></span>';
+        /* 「得点にも含める」 only exists while tiebreak is on; both
+           switches on = a "both" item (total + tiebreak) */
+        sc.hidden = !draftTiebreak;
+        sc.setAttribute("aria-checked", String(draftScore));
+        $("scoreTrack").className = "switch-track" + (draftScore ? " on-accent" : "");
       }
       var del = $("editorDelete");
       del.disabled = count <= 1;
@@ -2359,17 +2639,18 @@
     /* ---------------- sheet visibility ---------------- */
     function closeSheets() {
       openSheetName = null;
+      sheetNav = "root";
       confirmReset = false;
     }
     function renderSheets() {
-      var map = { menu: "menuSheet", preset: "presetSheet", theme: "themeSheet", history: "historySheet", help: "helpSheet" };
+      var map = { menu: "menuSheet", preset: "presetSheet", theme: "themeSheet", history: "historySheet", opacity: "opacitySheet", help: "helpSheet" };
       Object.keys(map).forEach(function (k) {
         var el = $(map[k]);
         var open = openSheetName === k;
         el.hidden = !open;
-        if (open) { el.className = "sheet " + sheetAnimClass(); el.id = map[k]; }
+        if (open) { el.className = "sheet " + animForSheet(k); el.id = map[k]; }
       });
-      $("menuBtn").classList.toggle("active", ["menu", "preset", "theme", "history"].indexOf(openSheetName) >= 0);
+      $("menuBtn").classList.toggle("active", ["menu", "preset", "theme", "history", "opacity"].indexOf(openSheetName) >= 0);
       $("menuBtn").setAttribute("aria-expanded", String(openSheetName !== null));
       $("helpBtn").classList.toggle("active", openSheetName === "help");
       $("helpBtn").setAttribute("aria-expanded", String(openSheetName === "help"));
@@ -2377,6 +2658,7 @@
       if (openSheetName === "preset") renderPresets();
       if (openSheetName === "theme") renderTheme();
       if (openSheetName === "history") renderHistory();
+      if (openSheetName === "opacity") renderOpacity();
       if (openSheetName === "help") renderHelp();
       renderEditor();
     }
@@ -2456,11 +2738,13 @@
 
     $("helpBtn").addEventListener("click", function () {
       confirmReset = false;
+      sheetNav = "root";
       openSheetName = openSheetName === "help" ? null : "help";
       renderAll();
     });
     $("menuBtn").addEventListener("click", function () {
       confirmReset = false;
+      sheetNav = "root";
       openSheetName = openSheetName === null ? "menu" : null;
       renderAll();
     });
@@ -2494,9 +2778,12 @@
     document.addEventListener("fullscreenchange", updateFsBtn);
     document.addEventListener("webkitfullscreenchange", updateFsBtn);
     $("menuClose").addEventListener("click", function () { closeSheets(); renderAll(); });
-    $("presetClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
-    $("themeClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
-    $("historyClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
+    /* sub-sheets return to the menu (their header button is 戻る), and the
+       menu slides back in from the left to match the forward slide */
+    $("presetClose").addEventListener("click", function () { sheetNav = "back"; openSheetName = "menu"; renderAll(); });
+    $("themeClose").addEventListener("click", function () { sheetNav = "back"; openSheetName = "menu"; renderAll(); });
+    $("opacityClose").addEventListener("click", function () { sheetNav = "back"; openSheetName = "menu"; renderAll(); });
+    $("historyClose").addEventListener("click", function () { sheetNav = "back"; openSheetName = "menu"; renderAll(); });
     $("helpClose").addEventListener("click", function () { openSheetName = null; renderAll(); });
 
     gridEl.addEventListener("click", function (e) {
@@ -2532,36 +2819,143 @@
 
     /* menu sheet delegation */
     $("menuList").addEventListener("click", function (e) {
-      if (e.target.closest("#menuTheme")) { openSheetName = "theme"; confirmReset = false; renderAll(); return; }
+      if (e.target.closest("#menuReset")) return; // long-press only (see below)
+      if (e.target.closest("#menuTheme")) { sheetNav = "forward"; openSheetName = "theme"; confirmReset = false; renderAll(); return; }
+      if (e.target.closest("#menuOpacity")) { sheetNav = "forward"; openSheetName = "opacity"; confirmReset = false; renderAll(); return; }
       if (e.target.closest("#menuPreset")) { confirmReset = false; openPresets(); return; }
-      if (e.target.closest("#menuHistory")) { confirmReset = false; confirmDeleteHistoryId = null; openSheetName = "history"; renderAll(); return; }
-      if (e.target.closest("#menuAnim")) { state.animations = !state.animations; scheduleSave(); renderAll(); return; }
-      if (e.target.closest("#menuHaptics")) {
+      if (e.target.closest("#menuHistory")) { sheetNav = "forward"; confirmReset = false; confirmDeleteHistoryId = null; openSheetName = "history"; renderAll(); return; }
+      /* toggles are flipped in place (no menu rebuild) so the switch
+         knob actually animates; data-animations is updated first so an
+         OFF setting suppresses the toggle's own transition too */
+      var animBtn = e.target.closest("#menuAnim");
+      if (animBtn) {
+        state.animations = !state.animations;
+        scheduleSave();
+        applyTheme();
+        animBtn.setAttribute("aria-checked", String(state.animations));
+        var at = $("animTrack");
+        if (at) at.classList.toggle("on-accent", state.animations);
+        return;
+      }
+      var hapBtn = e.target.closest("#menuHaptics");
+      if (hapBtn) {
         state.haptics = !state.haptics;
         scheduleSave();
         if (state.haptics && typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(15);
-        renderAll();
+        hapBtn.setAttribute("aria-checked", String(state.haptics));
+        var ht = $("hapticsTrack");
+        if (ht) ht.classList.toggle("on-accent", state.haptics);
         return;
       }
-      var op = e.target.closest("[data-opacity]");
-      if (op) { state.floatOpacity = op.getAttribute("data-opacity"); scheduleSave(); renderAll(); return; }
       var lay = e.target.closest("[data-layout]");
-      if (lay) { state.keypadLayout = lay.getAttribute("data-layout"); scheduleSave(); renderAll(); return; }
-      if (e.target.closest("#menuReset")) {
-        if (confirmReset) resetScores();
-        else {
-          confirmReset = true;
-          if (confirmResetTimer) clearTimeout(confirmResetTimer);
-          confirmResetTimer = setTimeout(function () { confirmReset = false; renderAll(); }, 4000);
-          renderAll();
+      if (lay) {
+        var nextLayout = lay.getAttribute("data-layout");
+        if (nextLayout === state.keypadLayout) return;
+        state.keypadLayout = nextLayout;
+        scheduleSave();
+        /* update the segmented toggle in place (no menu rebuild) so
+           the sliding thumb actually animates, like the switches */
+        var seg = lay.closest(".layout-seg");
+        if (seg) {
+          seg.setAttribute("data-active", nextLayout);
+          seg.querySelectorAll("[data-layout]").forEach(function (b) {
+            var on = b.getAttribute("data-layout") === nextLayout;
+            b.classList.toggle("on", on);
+            b.setAttribute("aria-pressed", String(on));
+          });
         }
+        var sub = $("layoutSub");
+        if (sub) sub.textContent = "数字キーの並び順（現在：" + (nextLayout === "calculator" ? "電話式" : "キーボード式") + "）";
+        /* the keypad itself is hidden while the menu is open; its
+           build signature no longer matches, so it rebuilds with the
+           new layout on the next render */
+        keypadBuiltSig = "";
+        return;
       }
     });
-    /* NOTE: no focusout cancellation for the 全消去 confirm state.
-       Re-rendering the menu after the first tap drops focus from the
-       button, and a focusout reset made the second (confirming) tap
-       unreachable — the button appeared to do nothing. The 4s timer
-       in the click handler is the only auto-cancel. */
+    /* opacity slider (in its own sub-sheet): stepless. Updates state +
+       the live windows and the preview sample in place so dragging is
+       not interrupted by a sheet rebuild. */
+    $("opacitySlider").addEventListener("input", function (e) {
+      var v = Number(e.target.value);
+      if (!isFinite(v)) return;
+      state.floatOpacity = v;
+      scheduleSave();
+      var val = $("opacityVal");
+      if (val) val.textContent = v + "%";
+      applyWindowOpacity($("floatWin"), "--editor");
+      applyWindowOpacity($("editorSheet"), "--panel");
+      applyWindowOpacity($("opacitySampleWindow"), "--editor");
+    });
+    /* 全消去: long-press with a left-to-right wipe. Releasing early
+       cancels; completing the hold clears all scores and buzzes
+       (only when the keypad haptics setting is on).
+       While holding, vibration has no strength parameter, so it is
+       approximated with pulses: as the wipe progresses the pulses get
+       longer and closer together, feeling gradually stronger. */
+    var RESET_HOLD_MS = 900;
+    var resetHold = null;
+    function resetHoldNow() {
+      return (typeof performance !== "undefined" ? performance.now() : Date.now());
+    }
+    function startResetHold(btn) {
+      if (resetHold) return;
+      var wipe = btn.querySelector(".reset-wipe");
+      btn.classList.add("holding");
+      var startedAt = resetHoldNow();
+      resetHold = { btn: btn, wipe: wipe, raf: 0, nextPulseAt: startedAt + 140 };
+      var step = function () {
+        if (!resetHold) return;
+        var now = resetHoldNow();
+        var p = Math.min(1, (now - startedAt) / RESET_HOLD_MS);
+        if (wipe) wipe.style.transform = "scaleX(" + p + ")";
+        if (p >= 1) { completeResetHold(); return; }
+        if (state.haptics && typeof navigator !== "undefined" && "vibrate" in navigator && now >= resetHold.nextPulseAt) {
+          var pulseMs = Math.round(6 + p * 30);
+          var intervalMs = Math.round(230 - p * 165);
+          try { navigator.vibrate(pulseMs); } catch (e) { /* vibration unavailable */ }
+          resetHold.nextPulseAt = now + intervalMs;
+        }
+        resetHold.raf = requestAnimationFrame(step);
+      };
+      resetHold.raf = requestAnimationFrame(step);
+    }
+    function cancelResetHold() {
+      if (!resetHold) return;
+      cancelAnimationFrame(resetHold.raf);
+      var rh = resetHold; resetHold = null;
+      if (state.haptics && typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { navigator.vibrate(0); } catch (e) { /* vibration unavailable */ }
+      }
+      if (rh.wipe) rh.wipe.style.transform = "scaleX(0)";
+      rh.btn.classList.remove("holding");
+    }
+    function completeResetHold() {
+      if (!resetHold) return;
+      cancelAnimationFrame(resetHold.raf);
+      resetHold = null;
+      if (state.haptics && typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(50);
+      resetScores();
+    }
+    $("menuList").addEventListener("pointerdown", function (e) {
+      var rb = e.target.closest("#menuReset");
+      if (!rb) return;
+      try { rb.setPointerCapture(e.pointerId); } catch (err) { /* capture unsupported */ }
+      startResetHold(rb);
+    });
+    $("menuList").addEventListener("pointerup", function () { cancelResetHold(); });
+    $("menuList").addEventListener("pointercancel", function () { cancelResetHold(); });
+    $("menuList").addEventListener("keydown", function (e) {
+      if (e.repeat) return;
+      var rb = e.target.closest("#menuReset");
+      if (rb && (e.key === "Enter" || e.key === " ")) startResetHold(rb);
+    });
+    $("menuList").addEventListener("keyup", function (e) {
+      if (e.target.closest("#menuReset") && (e.key === "Enter" || e.key === " ")) cancelResetHold();
+    });
+    $("menuList").addEventListener("contextmenu", function (e) {
+      if (e.target.closest("#menuReset")) e.preventDefault();
+    });
 
     /* preset sheet delegation */
     $("presetList").addEventListener("click", function (e) {
@@ -2630,18 +3024,41 @@
       if (e.key === "Escape") { editing = null; renderAll(); }
     });
     $("colorRow").addEventListener("click", function (e) {
-      if (e.target.closest("#autoColorBtn")) { draftColor = null; renderAll(); return; }
+      var autoBtn = e.target.closest("#autoColorBtn");
       var sw = e.target.closest("[data-color]");
-      if (sw) { draftColor = sw.getAttribute("data-color"); renderAll(); }
+      if (!autoBtn && !sw) return;
+      draftColor = autoBtn ? null : sw.getAttribute("data-color");
+      /* update the swatches in place (no editor rebuild) so the
+         selection ring/scale transition actually animates; only the
+         table re-renders, for the name pill's preview color */
+      var ab = $("autoColorBtn");
+      if (ab) {
+        ab.classList.toggle("on", draftColor === null);
+        ab.setAttribute("aria-pressed", String(draftColor === null));
+      }
+      $("colorRow").querySelectorAll("[data-color]").forEach(function (b) {
+        var on = b.getAttribute("data-color") === draftColor;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+      $("colorNote").textContent = draftColor === null
+        ? "おまかせ：完了すると、他のプレイヤーと被らない色が自動で選ばれます"
+        : "選んだ色が名前の枠の色になります";
+      renderTable();
     });
     $("negSwitch").addEventListener("click", function () {
       draftNegative = !draftNegative;
-      if (draftNegative) draftTiebreak = false;
+      if (draftNegative) { draftTiebreak = false; draftScore = false; }
       renderAll();
     });
     $("tbSwitch").addEventListener("click", function () {
       draftTiebreak = !draftTiebreak;
       if (draftTiebreak) draftNegative = false;
+      else draftScore = false;
+      renderAll();
+    });
+    $("scoreSwitch").addEventListener("click", function () {
+      draftScore = !draftScore;
       renderAll();
     });
     $("editorDelete").addEventListener("click", function () {
@@ -2654,9 +3071,9 @@
 
     /* print preview */
     $("pvClose").addEventListener("click", closePrint);
-    $("pvPrint").addEventListener("click", function () { window.print(); });
     $("pvW58").addEventListener("click", function () { setReceiptWidth("58"); });
     $("pvW80").addEventListener("click", function () { setReceiptWidth("80"); });
+    $("pvPrint").addEventListener("click", function () { window.print(); });
     $("pvPdf").addEventListener("click", saveReceiptPdf);
 
     /* float window height tracking */

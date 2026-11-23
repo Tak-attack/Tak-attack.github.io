@@ -338,7 +338,9 @@
     {
       "items": [
         {
-          "name": "青カード"
+          "name": "青カード",
+          "tiebreak": true,
+          "score": true
         },
         {
           "name": "緑カード"
@@ -368,10 +370,6 @@
         {
           "tiebreak": true,
           "name": "科学的優位"
-        },
-        {
-          "tiebreak": true,
-          "name": "青カードの勝利点"
         }
       ],
       "subtitle": "7 Wonders Duel",
@@ -489,11 +487,9 @@
           "name": "川の大きさ比較"
         },
         {
-          "name": "自然トークン"
-        },
-        {
           "name": "自然トークン",
-          "tiebreak": true
+          "tiebreak": true,
+          "score": true
         }
       ]
     }
