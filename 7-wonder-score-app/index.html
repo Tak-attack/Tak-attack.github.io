@@ -4,6 +4,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <script>
+      /* Apply the saved theme (light / dark) before first paint so the
+         page never flashes the wrong colours. With no saved choice the
+         OS setting decides, which matches how the page looked before. */
+      (function () {
+        var t = "light";
+        try {
+          var saved = window.localStorage.getItem("7wonders-theme");
+          if (saved === "dark" || saved === "light") t = saved;
+          else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+        } catch (e) { /* storage unavailable: keep the light default */ }
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
     <link rel="icon" href="data:," />
     <title>世界の七不思議 得点計算</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,6 +30,7 @@
       button { touch-action: manipulation; }
 
       :root {
+        color-scheme: light;
         --bg: #efe7d7;
         --bg-deep: #e3d7bf;
         --panel: #fbf7ec;
@@ -41,33 +56,32 @@
         --c-cities: #34343c;
         --c-debt: #93573f;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #1d1811;
-          --bg-deep: #171310;
-          --panel: #292219;
-          --panel-2: #322a1e;
-          --ink: #f0e6d2;
-          --ink-soft: #b8a888;
-          --line: #4a3f2c;
-          --line-strong: #7d6a45;
-          --bronze: #d9a84e;
-          --bronze-dark: #eec887;
-          --gold: #d9a84e;
-          --gold-soft: #453a22;
-          --danger: #e08a7c;
-          --shadow: 0 2px 12px rgba(0, 0, 0, .45);
-          --c-military: #e07a6c;
-          --c-treasury: #e0aa3e;
-          --c-wonder: #c4a26a;
-          --c-civic: #7aa5dd;
-          --c-commercial: #e3bc3a;
-          --c-guild: #b394e0;
-          --c-science: #82bd7d;
-          --c-leaders: #c9c2b2;
-          --c-cities: #a3a3ae;
-          --c-debt: #d99a76;
-        }
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #1d1811;
+        --bg-deep: #171310;
+        --panel: #292219;
+        --panel-2: #322a1e;
+        --ink: #f0e6d2;
+        --ink-soft: #b8a888;
+        --line: #4a3f2c;
+        --line-strong: #7d6a45;
+        --bronze: #d9a84e;
+        --bronze-dark: #eec887;
+        --gold: #d9a84e;
+        --gold-soft: #453a22;
+        --danger: #e08a7c;
+        --shadow: 0 2px 12px rgba(0, 0, 0, .45);
+        --c-military: #e07a6c;
+        --c-treasury: #e0aa3e;
+        --c-wonder: #c4a26a;
+        --c-civic: #7aa5dd;
+        --c-commercial: #e3bc3a;
+        --c-guild: #b394e0;
+        --c-science: #82bd7d;
+        --c-leaders: #c9c2b2;
+        --c-cities: #a3a3ae;
+        --c-debt: #d99a76;
       }
 
       * { box-sizing: border-box; }
@@ -96,6 +110,26 @@
       }
       h1 .en { display: block; font-size: clamp(12px, 3vw, 15px); font-weight: 600; letter-spacing: .42em; color: var(--bronze); margin-top: 6px; }
       .hero p.lead { color: var(--ink-soft); font-size: 14px; margin: 12px auto 0; max-width: 560px; }
+
+      /* ---------- theme toggle (light / dark, choice saved on device) ---------- */
+      .theme-bar { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+      .theme-toggle {
+        display: inline-flex; align-items: center; gap: 7px;
+        min-height: 40px; padding: 7px 14px;
+        font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+        border-radius: 999px; border: 1.5px solid var(--line-strong);
+        background: var(--panel); color: var(--bronze-dark);
+        box-shadow: var(--shadow);
+      }
+      .theme-toggle svg { width: 18px; height: 18px; flex: none; }
+      .theme-toggle:active { background: var(--gold-soft); transform: translateY(1px); }
+      .theme-toggle:focus-visible { outline: 2.5px solid var(--bronze); outline-offset: 2px; }
+      /* the button names the theme it switches TO: moon + ダーク in light
+         mode, sun + ライト in dark mode (pure CSS, driven by data-theme) */
+      .theme-toggle .ico-sun, .theme-toggle .lbl-to-light { display: none; }
+      :root[data-theme="dark"] .theme-toggle .ico-sun { display: block; }
+      :root[data-theme="dark"] .theme-toggle .lbl-to-light { display: inline; }
+      :root[data-theme="dark"] .theme-toggle .ico-moon, :root[data-theme="dark"] .theme-toggle .lbl-to-dark { display: none; }
 
       /* ---------- expansion toggles ---------- */
       .exp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 24px; }
@@ -187,9 +221,9 @@
         --cat-tint: 14%;
         background: color-mix(in srgb, var(--cat-color) var(--cat-tint), var(--panel));
       }
-      @media (prefers-color-scheme: dark) {
-        .cat { --cat-tint: 20%; }
-      }
+      /* dark theme: a stronger category tint plus the lightened category
+         colours above keep every category's background wash tellable apart */
+      :root[data-theme="dark"] .cat { --cat-tint: 22%; }
       .cat-military { --cat-color: var(--c-military); }
       .cat-treasury { --cat-color: var(--c-treasury); }
       .cat-wonder { --cat-color: var(--c-wonder); }
@@ -245,7 +279,7 @@
         background: rgba(38, 28, 10, .55);
       }
       .help-overlay[hidden] { display: none; }
-      @media (prefers-color-scheme: dark) { .help-overlay { background: rgba(0, 0, 0, .62); } }
+      :root[data-theme="dark"] .help-overlay { background: rgba(0, 0, 0, .62); }
       .help-dialog {
         width: 100%; max-width: 520px; max-height: min(78vh, 640px); overflow: auto;
         background: var(--panel); color: var(--ink);
@@ -364,7 +398,7 @@
         border: none; background: var(--panel); color: var(--ink-soft); cursor: pointer;
       }
       .mode-switch button[aria-pressed="true"] { background: var(--bronze); color: #fff8ea; }
-      @media (prefers-color-scheme: dark) { .mode-switch button[aria-pressed="true"] { color: #241a08; } }
+      :root[data-theme="dark"] .mode-switch button[aria-pressed="true"] { color: #241a08; }
       .quick-add { display: flex; flex-wrap: wrap; gap: 6px; }
       .quick-add button {
         min-width: 54px; min-height: 44px; padding: 6px 10px;
@@ -500,7 +534,7 @@
       .v-token.v-wonder svg { width: 42px; height: 37px; display: block; }
       .v-civic { width: 24px; height: 30px; border-radius: 6px; background: var(--c-civic); border-color: var(--c-civic); color: #fff; font-size: 13px; }
       .v-sci { border-radius: 8px; background: color-mix(in srgb, var(--c-science) 16%, var(--panel)); border-color: var(--c-science); color: var(--c-science); }
-      @media (prefers-color-scheme: dark) { .v-mil, .v-civic { color: #241a08; } }
+      :root[data-theme="dark"] .v-mil, :root[data-theme="dark"] .v-civic { color: #241a08; }
       .sci-formula {
         margin-top: 10px; font-size: 13px; color: var(--ink-soft);
         background: var(--panel-2); border: 1px dashed var(--line-strong);
@@ -525,10 +559,9 @@
       }
       .rank-row.first { border-color: var(--gold); background: linear-gradient(180deg, var(--gold-soft), var(--panel) 78%); }
       .rank-row.first .rank-badge { background: var(--gold); border-color: var(--bronze); color: #fff8ea; }
-      @media (prefers-color-scheme: dark) { .rank-row.first .rank-badge { color: #241a08; } }
+      :root[data-theme="dark"] .rank-row.first .rank-badge { color: #241a08; }
       .rank-name { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
       .rank-name .crown { width: 20px; height: 20px; color: var(--gold); flex: none; }
-      .rank-name .tie { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
       .rank-total { font-family: "Noto Serif JP", serif; font-size: 32px; font-weight: 900; color: var(--bronze-dark); font-variant-numeric: tabular-nums; line-height: 1; }
       .rank-total small { font-size: 13px; font-weight: 700; }
       .rank-break { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
@@ -546,13 +579,28 @@
         min-height: 46px; padding: 9px 18px; font-size: 15px;
         background: var(--bronze); border-color: var(--bronze-dark); color: #fff8ea;
       }
-      @media (prefers-color-scheme: dark) { .btn.receipt-btn { color: #241a08; } }
+      :root[data-theme="dark"] .btn.receipt-btn { color: #241a08; }
       .btn.receipt-btn svg { width: 19px; height: 19px; flex: none; }
       .btn.receipt-btn:active { background: var(--bronze-dark); }
       .btn.pdf-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
       .btn.pdf-btn svg { width: 19px; height: 19px; flex: none; }
       .receipt-actions .pdf-status { flex: 1 1 100%; font-size: 13px; font-weight: 700; color: var(--bronze-dark); }
       .receipt-actions .pdf-status:empty { display: none; }
+
+      /* receipt roll width switch (58mm / 80mm) — shown beside the print
+         buttons and again inside the preview dialog; both stay in sync */
+      .receipt-width-switch { display: inline-flex; align-items: center; gap: 8px; }
+      .receipt-width-switch .rws-label { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); letter-spacing: .06em; }
+      .rws-btns { display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: 999px; overflow: hidden; background: var(--panel); }
+      .rws-btn {
+        min-height: 40px; padding: 6px 15px;
+        font: inherit; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
+        border: none; background: transparent; color: var(--ink-soft); cursor: pointer;
+      }
+      .rws-btn[aria-pressed="true"] { background: var(--bronze); color: #fff8ea; }
+      :root[data-theme="dark"] .rws-btn[aria-pressed="true"] { color: #241a08; }
+      .receipt-overlay .receipt-width-switch { width: 100%; margin: 0 0 10px; }
+      .receipt-overlay .rws-label { color: #f0e6d2; }
 
       .receipt-overlay {
         position: fixed; inset: 0; z-index: 110;
@@ -561,7 +609,7 @@
         background: rgba(38, 28, 10, .6);
       }
       .receipt-overlay[hidden] { display: none; }
-      @media (prefers-color-scheme: dark) { .receipt-overlay { background: rgba(0, 0, 0, .68); } }
+      :root[data-theme="dark"] .receipt-overlay { background: rgba(0, 0, 0, .68); }
       .receipt-dialog { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
       .receipt-dialog-head {
         width: 100%; display: flex; align-items: center; gap: 10px;
@@ -580,12 +628,13 @@
       .receipt-dialog-actions .btn { flex: 1 1 auto; justify-content: center; min-height: 46px; background: var(--panel); }
       .receipt-dialog-actions .btn.receipt-print-btn { flex: 2 1 auto; background: var(--bronze); border-color: var(--bronze-dark); color: #fff8ea; font-size: 15px; }
       .receipt-dialog-actions .btn.receipt-pdf-btn { flex: 1 1 auto; }
-      @media (prefers-color-scheme: dark) { .receipt-dialog-actions .btn.receipt-print-btn { color: #241a08; } }
+      :root[data-theme="dark"] .receipt-dialog-actions .btn.receipt-print-btn { color: #241a08; }
       .receipt-print-status { width: 100%; margin-top: 8px; font-size: 13px; font-weight: 700; color: #f0e6d2; min-height: 1.2em; text-align: center; }
       body.receipt-open { overflow: hidden; }
 
       /* The receipt itself: always white paper / black ink, whatever the
-         colour scheme, sized for an 80mm thermal roll (RP-F10). */
+         colour scheme, sized for the selected thermal roll (80mm by
+         default, 58mm with .is-58; the RP-F10 takes both). */
       .receipt-paper {
         width: 100%; max-width: 340px; margin: 0 auto;
         background: #fff; color: #111;
@@ -624,11 +673,30 @@
       .receipt-paper .r-coin b { font-variant-numeric: tabular-nums; }
       .receipt-paper .r-foot { text-align: center; font-size: 11.5px; color: #333; margin-top: 4px; line-height: 1.7; }
 
+      /* 58mm roll: narrower paper, slightly smaller type and tighter
+         dotted leaders, so player names and breakdown rows never spill */
+      .receipt-paper.is-58 { max-width: 248px; padding: 16px 12px 20px; font-size: 12px; }
+      .receipt-paper.is-58 .r-title { font-size: 17px; }
+      .receipt-paper.is-58 .r-subtitle { font-size: 11px; letter-spacing: .34em; text-indent: .34em; }
+      .receipt-paper.is-58 .r-en { font-size: 9px; letter-spacing: .2em; }
+      .receipt-paper.is-58 .r-meta { font-size: 11px; }
+      .receipt-paper.is-58 .r-line { margin: 8px 0; }
+      .receipt-paper.is-58 .r-rank-row { gap: 6px; }
+      .receipt-paper.is-58 .r-rank { font-size: 14px; padding: 0 7px; }
+      .receipt-paper.is-58 .r-name { font-size: 13px; }
+      .receipt-paper.is-58 .r-total { font-size: 22px; }
+      .receipt-paper.is-58 .r-total-row .r-total-label { letter-spacing: .12em; }
+      .receipt-paper.is-58 .r-break-row { font-size: 11.5px; gap: 4px; }
+      .receipt-paper.is-58 .r-break-row .r-dots { min-width: 6px; }
+      .receipt-paper.is-58 .r-coin { font-size: 11px; }
+      .receipt-paper.is-58 .r-foot { font-size: 10.5px; }
+
       /* print-only copy of the receipt: hidden on screen, the only thing
          that reaches the printer */
       #receiptPrintArea { display: none; }
+      /* The @page size itself lives in the #receiptPageStyle element in
+         the head, whose contents the width switch rewrites (58mm/80mm). */
       @media print {
-        @page { size: 80mm auto; margin: 0; }
         html, body { background: #fff !important; }
         body > .wrap, .jump-nav, .help-overlay, .receipt-overlay { display: none !important; }
         #receiptPrintArea { display: block !important; }
@@ -637,6 +705,8 @@
           padding: 4mm 3mm 6mm; box-shadow: none;
           -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
+        /* 58mm roll: keep the print area inside the 54mm printable width */
+        #receiptPrintArea .receipt-paper.is-58 { width: 54mm; padding: 4mm 2mm 6mm; }
       }
 
       section.share { margin-top: 30px; }
@@ -683,10 +753,18 @@
         .p-total { margin-left: 0; }
       }
     </style>
+    <style id="receiptPageStyle">@media print { @page { size: 80mm auto; margin: 0; } }</style>
   </head>
   <body>
     <div class="wrap">
       <header class="hero">
+        <div class="theme-bar">
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="ライト／ダークテーマを切り替える">
+            <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13.6A8.4 8.4 0 1 1 10.4 4 6.7 6.7 0 0 0 20 13.6z"/></svg>
+            <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>
+            <span class="lbl-to-dark">ダーク</span><span class="lbl-to-light">ライト</span>
+          </button>
+        </div>
         <div class="rule"><span>7 WONDERS</span></div>
         <h1>世界の七不思議<span class="en">得 点 計 算</span></h1>
         <p class="lead">項目ごとに、全プレイヤー分を順番に入力していく方式です。軍事→財宝→七不思議→…と上から進めるだけで、カテゴリ別の内訳と順位を自動で計算します。基本ゲームに加え、拡張「指導者（リーダーズ）」と「都市（シティーズ）」に対応しています。</p>
@@ -720,7 +798,6 @@
       <section class="results" id="sec-results" aria-labelledby="resultsTitle">
         <h2 id="resultsTitle">順位</h2>
         <ol class="rank-list" id="rankList"></ol>
-        <p class="note">同点の場合は、コイン（財宝）の枚数が多いプレイヤーが上位になります（公式タイブレーク）。</p>
         <div class="receipt-actions">
           <button class="btn receipt-btn" id="openReceipt" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/></svg>
@@ -730,7 +807,14 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7L19 8.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5A1 1 0 0 1 7 3.5z"/><path d="M13.5 3.5v5.5H19"/><path d="M12 11v6M9.2 14.4L12 17.2l2.8-2.8"/></svg>
             PDFで保存
           </button>
-          <p class="note">結果をレシート幅の用紙風プレビューで確認してから、レシートプリンター（RP-F10など）で印刷できます。iPadでは「PDFで保存」で結果を80mm幅のPDFに書き出し、共有シートから「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して RP-F10 で印刷できます。</p>
+          <div class="receipt-width-switch" role="group" aria-label="レシート幅">
+            <span class="rws-label">レシート幅</span>
+            <div class="rws-btns">
+              <button type="button" class="rws-btn" data-receipt-width="58" aria-pressed="false">58mm</button>
+              <button type="button" class="rws-btn" data-receipt-width="80" aria-pressed="true">80mm</button>
+            </div>
+          </div>
+          <p class="note">結果をレシート幅の用紙風プレビューで確認してから、レシートプリンター（RP-F10など）で印刷できます。レシート幅は58mm／80mmを切り替えられ、選んだ幅はこの端末に保存されます。iPadでは「PDFで保存」で結果を選択中の幅のPDFに書き出し、共有シートから「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して RP-F10 で印刷できます。</p>
           <span class="pdf-status" id="pdfStatus" role="status" aria-live="polite"></span>
         </div>
       </section>
@@ -776,7 +860,14 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-        <p class="receipt-hint">レシートの内容を確認してください。「このレシートを印刷」を押すと印刷ダイアログが開くので、レシートプリンター（RP-F10）を選んで印刷してください。Androidでは SII Print Service 経由で RP-F10 に印刷されます。iPadでは「PDFで保存」を押すと80mm幅のPDFを共有シートで書き出せるので、「ファイルに保存」や SII URL Print Agent などの印刷アプリから RP-F10 に印刷してください。</p>
+        <p class="receipt-hint">レシートの内容を確認してください。「このレシートを印刷」を押すと印刷ダイアログが開くので、レシートプリンター（RP-F10）を選んで印刷してください。Androidでは SII Print Service 経由で RP-F10 に印刷されます。iPadでは「PDFで保存」を押すと選択中の幅のPDFを共有シートで書き出せるので、「ファイルに保存」や SII URL Print Agent などの印刷アプリから RP-F10 に印刷してください。</p>
+        <div class="receipt-width-switch" role="group" aria-label="レシート幅">
+          <span class="rws-label">レシート幅</span>
+          <div class="rws-btns">
+            <button type="button" class="rws-btn" data-receipt-width="58" aria-pressed="false">58mm</button>
+            <button type="button" class="rws-btn" data-receipt-width="80" aria-pressed="true">80mm</button>
+          </div>
+        </div>
         <div class="receipt-paper" id="receiptPreview"></div>
         <div class="receipt-dialog-actions">
           <button type="button" class="btn" id="receiptBack">戻る</button>
@@ -1527,7 +1618,6 @@
           var li = document.createElement("li");
           var row = document.createElement("div");
           row.className = "rank-row" + (rank === 0 ? " first" : "");
-          var tiedNote = (rank > 0 && r.total === rows[rank - 1].total) ? '<span class="tie">同点・コインで判定</span>' : "";
           var breakHtml = visCats.map(function (k) {
             return '<span class="seg"><span class="dot" style="background:' + CAT_META[k].color + '"></span>' + CAT_META[k].name + " " + r.s[k] + "</span>";
           }).join("");
@@ -1538,7 +1628,7 @@
           }).join("");
           row.innerHTML =
             '<span class="rank-badge">' + (rank + 1) + "</span>" +
-            '<span class="rank-name">' + (rank === 0 ? CROWN : "") + '<span class="nm"></span>' + tiedNote + "</span>" +
+            '<span class="rank-name">' + (rank === 0 ? CROWN : "") + '<span class="nm"></span>' + "</span>" +
             '<span class="rank-total">' + r.total + "<small>点</small></span>" +
             '<span class="bar-track" aria-hidden="true">' + barHtml + "</span>" +
             '<span class="rank-break">' + breakHtml + '<span class="seg">コイン ' + coinCount(r.p) + "枚</span></span>";
@@ -1818,18 +1908,55 @@
           out += "</div>";
           out += '<div class="r-line dashed"></div>';
         });
-        out += '<div class="r-foot">同点の場合はコインの枚数が<br>多いプレイヤーが上位です<br>おつかれさまでした！</div>';
         return out;
       }
       var receiptOverlay = el("receiptOverlay");
       var receiptLastFocus = null;
       function syncReceipt() {
         var html = buildReceiptHtml();
+        var narrow = receiptWidthMm === 58;
         var preview = el("receiptPreview");
-        if (preview) preview.innerHTML = html;
+        if (preview) {
+          preview.innerHTML = html;
+          preview.classList.toggle("is-58", narrow);
+        }
         var printArea = el("receiptPrintArea");
-        if (printArea) printArea.innerHTML = '<div class="receipt-paper">' + html + "</div>";
+        if (printArea) printArea.innerHTML = '<div class="receipt-paper' + (narrow ? " is-58" : "") + '">' + html + "</div>";
       }
+
+      /* ---------- receipt roll width: 58mm / 80mm ----------
+         The RP-F10 takes both rolls (printable width 54mm on 58mm
+         paper, 72mm on 80mm paper). The switch drives all three
+         outputs: the preview paper width (the .is-58 class), the
+         print @page size (rewritten into #receiptPageStyle) plus the
+         print-area width, and the PDF page width in buildPdfFile.
+         The choice is kept in localStorage so the shop's usual roll
+         stays selected on this device; default is 80mm. */
+      var RECEIPT_WIDTH_KEY = "7wonders-receipt-width-mm";
+      var receiptWidthMm = 80;
+      try {
+        if (window.localStorage.getItem(RECEIPT_WIDTH_KEY) === "58") receiptWidthMm = 58;
+      } catch (errW) { /* storage unavailable: stay on the 80mm default */ }
+      function setReceiptWidth(mm, skipSave) {
+        receiptWidthMm = mm === 58 ? 58 : 80;
+        var btns = document.querySelectorAll("[data-receipt-width]");
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].setAttribute("aria-pressed", String(parseInt(btns[i].getAttribute("data-receipt-width"), 10) === receiptWidthMm));
+        }
+        var pageStyle = el("receiptPageStyle");
+        if (pageStyle) pageStyle.textContent = "@media print { @page { size: " + receiptWidthMm + "mm auto; margin: 0; } }";
+        if (!skipSave) {
+          try { window.localStorage.setItem(RECEIPT_WIDTH_KEY, String(receiptWidthMm)); } catch (errW2) { /* keep the choice for this session only */ }
+        }
+        syncReceipt();
+      }
+      var rwBtns = document.querySelectorAll("[data-receipt-width]");
+      for (var rwi = 0; rwi < rwBtns.length; rwi++) {
+        rwBtns[rwi].addEventListener("click", function () {
+          setReceiptWidth(parseInt(this.getAttribute("data-receipt-width"), 10));
+        });
+      }
+      setReceiptWidth(receiptWidthMm, true);
       function openReceipt() {
         if (!receiptOverlay) return;
         syncReceipt();
@@ -1869,13 +1996,14 @@
         }
       });
 
-      /* ---------- PDF export (80mm wide, for the iPad route) ----------
+      /* ---------- PDF export (58mm / 80mm wide, for the iPad route) ----------
          iPad cannot print straight from the browser to the RP-F10, so
          the same receipt content is also offered as a real PDF file:
          the receipt layout is drawn onto a canvas with the page's own
          fonts, the canvas is embedded as a JPEG image in a minimal
-         PDF 1.4 file assembled here (page width 80mm = 226.77pt, height
-         follows the content), and the resulting Blob is handed to the
+         PDF 1.4 file assembled here (page width follows the selected
+         roll — 80mm = 226.77pt, 58mm = 164.41pt — height follows the
+         content), and the resulting Blob is handed to the
          share sheet (Web Share API Level 2 file sharing — on iPad the
          user can pick "Save to Files" or a print app such as SII URL
          Print Agent, which accepts PDF data) or downloaded when file
@@ -1913,11 +2041,19 @@
          onto ctx at the given pixel width and returns the total height
          in pixels, so the caller can size the canvas / PDF page. */
       function renderReceiptCanvas(ctx, W) {
-        var M = 30, right = W - M, CW = W - M * 2;
+        /* Draw in a virtual design width and scale the context: for the
+           58mm roll the virtual width only drops from 680 to 600, so the
+           type stays near its 80mm size while every line — names wrap via
+           wrapCanvasText, dotted leaders shorten — still fits the
+           narrower paper. The returned height is in real pixels. */
+        var VW = W < 600 ? 600 : 680;
+        var S = W / VW;
+        ctx.scale(S, S);
+        var M = 30, right = VW - M, CW = VW - M * 2;
         var data = receiptData();
         function center(text, y) {
           ctx.textAlign = "center";
-          ctx.fillText(text, W / 2, y);
+          ctx.fillText(text, VW / 2, y);
           ctx.textAlign = "left";
         }
         function hline(y, width, color, dash) {
@@ -1928,7 +2064,7 @@
           ctx.restore();
         }
         ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, W, 12000);
+        ctx.fillRect(0, 0, VW, 12000);
         ctx.fillStyle = "#111";
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
@@ -2022,13 +2158,8 @@
           y += 17; hline(y, 1.5, "#555", [6, 5]);
           y += 8;
         });
-        /* footer */
-        ctx.font = '400 19px "Noto Sans JP", sans-serif';
-        y += 27; center("同点の場合はコインの枚数が", y);
-        y += 27; center("多いプレイヤーが上位です", y);
-        y += 27; center("おつかれさまでした！", y);
         y += 36;
-        return Math.ceil(y);
+        return Math.ceil(y * S);
       }
       function jpegBytesFromCanvas(canvas) {
         var url = canvas.toDataURL("image/jpeg", 0.92);
@@ -2038,7 +2169,8 @@
         return bytes;
       }
       function buildPdfFile() {
-        var W = 680; /* ~216dpi at 80mm — crisp on thermal and screen alike */
+        /* canvas pixel width follows the selected roll (~216dpi either way) */
+        var W = receiptWidthMm === 58 ? 493 : 680;
         var scratch = document.createElement("canvas");
         scratch.width = W; scratch.height = 240;
         var H = renderReceiptCanvas(scratch.getContext("2d"), W);
@@ -2046,7 +2178,7 @@
         canvas.width = W; canvas.height = H;
         renderReceiptCanvas(canvas.getContext("2d"), W);
         var jpg = jpegBytesFromCanvas(canvas);
-        var pageW = 226.77; /* 80mm in PostScript points */
+        var pageW = Math.round(receiptWidthMm * 72 / 25.4 * 100) / 100; /* roll width in PostScript points: 80mm = 226.77pt, 58mm = 164.41pt */
         var pageH = Math.round(pageW * H / W * 100) / 100;
         var content = "q " + pageW + " 0 0 " + pageH + " 0 0 cm /Im1 Do Q";
         var objs = [];
@@ -2250,6 +2382,24 @@
       document.addEventListener("keydown", function (e) {
         if ((e.key === "Escape" || e.key === "Esc") && helpOverlay && !helpOverlay.hidden) closeHelp();
       });
+
+      /* ---------- theme toggle (light / dark only) ----------
+         The head script has already set data-theme from the saved
+         choice (localStorage "7wonders-theme"), falling back to the OS
+         setting. This button flips between the two themes and saves
+         the choice on this device. The button's icon and label follow
+         data-theme in CSS, so no label syncing is needed here. The
+         receipt and PDF output keep their fixed white-paper styling
+         and never follow the theme. */
+      var THEME_KEY = "7wonders-theme";
+      var themeToggleBtn = el("themeToggle");
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", function () {
+          var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          try { window.localStorage.setItem(THEME_KEY, next); } catch (errT) { /* keep the choice for this session only */ }
+        });
+      }
 
       /* ---------- init ---------- */
       rebuildAll();
