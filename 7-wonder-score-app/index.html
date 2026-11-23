@@ -373,21 +373,25 @@
         background: var(--panel-2); color: var(--bronze-dark); cursor: pointer;
       }
       .quick-add button:active { background: var(--gold-soft); }
-      /* Wonder: the numeric stepper and the +3/+5/+7/reset buttons share
-         one single row (never wraps); the press icons stay on the row below. */
+      /* Wonder: the numeric stepper sits on the left and the quick-add
+         buttons form a two-row grid on the right — +1/+2/+3/+4 on the
+         first row, +5/+7 plus the reset (spanning two columns) on the
+         second — so all six add buttons and the reset stay inside the
+         row at any width. On narrow screens the grid drops below the
+         stepper at full width. The press icons stay below the row. */
       .wonder-field { flex: 1 1 100%; }
-      .wonder-line { display: flex; align-items: stretch; flex-wrap: nowrap; gap: 8px; max-width: 540px; }
+      .wonder-line { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 8px; max-width: 640px; }
       .wonder-line .stepper { flex: none; width: auto; }
       .wonder-line .stepper button { width: 38px; }
       .wonder-line .stepper input { width: 48px; }
-      .wonder-add { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
-      .wonder-add button { flex: 1 1 0; min-width: 0; white-space: nowrap; padding: 6px 4px; font-size: 14.5px; }
-      .wonder-add button:last-child { flex-grow: 1.9; }
+      .wonder-add { flex: 1 1 340px; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+      .wonder-add button { min-width: 0; min-height: 44px; white-space: nowrap; padding: 6px 4px; font-size: 14.5px; }
+      .wonder-add button:last-child { grid-column: span 2; }
       @media (max-width: 480px) {
         .wonder-line { gap: 6px; }
         .wonder-line .stepper button { width: 33px; }
         .wonder-line .stepper input { width: 42px; }
-        .wonder-add { gap: 5px; }
+        .wonder-add { flex-basis: 100%; gap: 5px; }
         .wonder-add button { padding: 6px 2px; font-size: 13px; }
         .wonder-add button:last-child { font-size: 12px; }
       }
@@ -534,6 +538,107 @@
       .bar-track i { display: block; height: 100%; }
 
       .note { margin-top: 16px; font-size: 13px; color: var(--ink-soft); }
+
+      /* ---------- receipt print (preview + OS print) ---------- */
+      .receipt-actions { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+      .receipt-actions .note { margin-top: 0; flex: 1 1 220px; }
+      .btn.receipt-btn {
+        min-height: 46px; padding: 9px 18px; font-size: 15px;
+        background: var(--bronze); border-color: var(--bronze-dark); color: #fff8ea;
+      }
+      @media (prefers-color-scheme: dark) { .btn.receipt-btn { color: #241a08; } }
+      .btn.receipt-btn svg { width: 19px; height: 19px; flex: none; }
+      .btn.receipt-btn:active { background: var(--bronze-dark); }
+      .btn.pdf-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
+      .btn.pdf-btn svg { width: 19px; height: 19px; flex: none; }
+      .receipt-actions .pdf-status { flex: 1 1 100%; font-size: 13px; font-weight: 700; color: var(--bronze-dark); }
+      .receipt-actions .pdf-status:empty { display: none; }
+
+      .receipt-overlay {
+        position: fixed; inset: 0; z-index: 110;
+        overflow-y: auto; display: grid; place-items: start center;
+        padding: 20px 12px calc(20px + env(safe-area-inset-bottom, 0px));
+        background: rgba(38, 28, 10, .6);
+      }
+      .receipt-overlay[hidden] { display: none; }
+      @media (prefers-color-scheme: dark) { .receipt-overlay { background: rgba(0, 0, 0, .68); } }
+      .receipt-dialog { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
+      .receipt-dialog-head {
+        width: 100%; display: flex; align-items: center; gap: 10px;
+        color: #fff8ea; margin-bottom: 8px;
+      }
+      .receipt-dialog-head h3 { flex: 1; margin: 0; font-family: "Noto Serif JP", serif; font-size: 17px; font-weight: 900; letter-spacing: .05em; }
+      .receipt-close {
+        flex: none; width: 36px; height: 36px; min-height: 36px; padding: 0;
+        display: grid; place-items: center; cursor: pointer;
+        border-radius: 50%; border: 1.5px solid rgba(255, 248, 234, .6);
+        background: transparent; color: #fff8ea;
+      }
+      .receipt-close svg { width: 18px; height: 18px; }
+      .receipt-hint { width: 100%; margin: 0 0 12px; font-size: 12.5px; line-height: 1.6; color: #f0e6d2; }
+      .receipt-dialog-actions { width: 100%; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+      .receipt-dialog-actions .btn { flex: 1 1 auto; justify-content: center; min-height: 46px; background: var(--panel); }
+      .receipt-dialog-actions .btn.receipt-print-btn { flex: 2 1 auto; background: var(--bronze); border-color: var(--bronze-dark); color: #fff8ea; font-size: 15px; }
+      .receipt-dialog-actions .btn.receipt-pdf-btn { flex: 1 1 auto; }
+      @media (prefers-color-scheme: dark) { .receipt-dialog-actions .btn.receipt-print-btn { color: #241a08; } }
+      .receipt-print-status { width: 100%; margin-top: 8px; font-size: 13px; font-weight: 700; color: #f0e6d2; min-height: 1.2em; text-align: center; }
+      body.receipt-open { overflow: hidden; }
+
+      /* The receipt itself: always white paper / black ink, whatever the
+         colour scheme, sized for an 80mm thermal roll (RP-F10). */
+      .receipt-paper {
+        width: 100%; max-width: 340px; margin: 0 auto;
+        background: #fff; color: #111;
+        padding: 20px 18px 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans JP", monospace;
+        font-size: 13px; line-height: 1.55;
+      }
+      .receipt-paper .r-head { text-align: center; }
+      .receipt-paper .r-title { font-family: "Noto Serif JP", serif; font-size: 21px; font-weight: 900; letter-spacing: .06em; line-height: 1.3; }
+      .receipt-paper .r-subtitle { font-family: "Noto Serif JP", serif; font-size: 13px; font-weight: 700; letter-spacing: .5em; text-indent: .5em; margin-top: 2px; }
+      .receipt-paper .r-en { font-size: 10px; letter-spacing: .28em; margin-top: 5px; color: #333; }
+      .receipt-paper .r-line { border-top: 2px solid #111; margin: 10px 0; }
+      .receipt-paper .r-line.thin { border-top-width: 1px; }
+      .receipt-paper .r-line.dashed { border-top: 1px dashed #555; }
+      .receipt-paper .r-meta { text-align: center; font-size: 12px; }
+      .receipt-paper .r-meta .r-exp { font-weight: 700; }
+      .receipt-paper .r-player { padding: 2px 0 4px; }
+      .receipt-paper .r-rank-row { display: flex; align-items: baseline; gap: 8px; }
+      .receipt-paper .r-rank {
+        flex: none; font-family: "Noto Serif JP", serif; font-weight: 900; font-size: 16px;
+        border: 1.5px solid #111; border-radius: 999px; padding: 0 9px; line-height: 1.5;
+      }
+      .receipt-paper .r-rank.first { background: #111; color: #fff; }
+      .receipt-paper .r-name { font-weight: 700; font-size: 14.5px; overflow-wrap: anywhere; min-width: 0; }
+      .receipt-paper .r-total-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 6px; }
+      .receipt-paper .r-total-row .r-total-label { font-size: 12px; font-weight: 700; letter-spacing: .2em; }
+      .receipt-paper .r-total { font-family: "Noto Serif JP", serif; font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+      .receipt-paper .r-total small { font-size: 12px; font-weight: 700; }
+      .receipt-paper .r-break { margin-top: 7px; }
+      .receipt-paper .r-break-row { display: flex; align-items: baseline; gap: 6px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+      .receipt-paper .r-break-row .r-cat { flex: none; }
+      .receipt-paper .r-break-row .r-dots { flex: 1; border-bottom: 1px dotted #888; transform: translateY(-3px); min-width: 12px; }
+      .receipt-paper .r-break-row .r-val { flex: none; font-weight: 700; min-width: 2ch; text-align: right; }
+      .receipt-paper .r-coin { margin-top: 6px; font-size: 12px; color: #222; }
+      .receipt-paper .r-coin b { font-variant-numeric: tabular-nums; }
+      .receipt-paper .r-foot { text-align: center; font-size: 11.5px; color: #333; margin-top: 4px; line-height: 1.7; }
+
+      /* print-only copy of the receipt: hidden on screen, the only thing
+         that reaches the printer */
+      #receiptPrintArea { display: none; }
+      @media print {
+        @page { size: 80mm auto; margin: 0; }
+        html, body { background: #fff !important; }
+        body > .wrap, .jump-nav, .help-overlay, .receipt-overlay { display: none !important; }
+        #receiptPrintArea { display: block !important; }
+        #receiptPrintArea .receipt-paper {
+          max-width: none; width: 76mm; margin: 0 auto;
+          padding: 4mm 3mm 6mm; box-shadow: none;
+          -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+      }
+
       section.share { margin-top: 30px; }
       section.share h2 { font-family: "Noto Serif JP", serif; font-size: 18px; margin: 0; letter-spacing: .05em; }
       section.share .note { margin-top: 4px; }
@@ -616,6 +721,18 @@
         <h2 id="resultsTitle">順位</h2>
         <ol class="rank-list" id="rankList"></ol>
         <p class="note">同点の場合は、コイン（財宝）の枚数が多いプレイヤーが上位になります（公式タイブレーク）。</p>
+        <div class="receipt-actions">
+          <button class="btn receipt-btn" id="openReceipt" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/></svg>
+            レシートで印刷
+          </button>
+          <button class="btn pdf-btn" id="savePdfMain" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7L19 8.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5A1 1 0 0 1 7 3.5z"/><path d="M13.5 3.5v5.5H19"/><path d="M12 11v6M9.2 14.4L12 17.2l2.8-2.8"/></svg>
+            PDFで保存
+          </button>
+          <p class="note">結果をレシート幅の用紙風プレビューで確認してから、レシートプリンター（RP-F10など）で印刷できます。iPadでは「PDFで保存」で結果を80mm幅のPDFに書き出し、共有シートから「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して RP-F10 で印刷できます。</p>
+          <span class="pdf-status" id="pdfStatus" role="status" aria-live="polite"></span>
+        </div>
       </section>
 
       <section class="share" id="sec-share" aria-labelledby="shareTitle">
@@ -650,6 +767,27 @@
         </div>
       </div>
     </div>
+
+    <div class="receipt-overlay" id="receiptOverlay" hidden>
+      <div class="receipt-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptDialogTitle">
+        <div class="receipt-dialog-head">
+          <h3 id="receiptDialogTitle">印刷プレビュー</h3>
+          <button type="button" class="receipt-close" id="receiptClose" aria-label="印刷プレビューを閉じる">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <p class="receipt-hint">レシートの内容を確認してください。「このレシートを印刷」を押すと印刷ダイアログが開くので、レシートプリンター（RP-F10）を選んで印刷してください。Androidでは SII Print Service 経由で RP-F10 に印刷されます。iPadでは「PDFで保存」を押すと80mm幅のPDFを共有シートで書き出せるので、「ファイルに保存」や SII URL Print Agent などの印刷アプリから RP-F10 に印刷してください。</p>
+        <div class="receipt-paper" id="receiptPreview"></div>
+        <div class="receipt-dialog-actions">
+          <button type="button" class="btn" id="receiptBack">戻る</button>
+          <button type="button" class="btn receipt-pdf-btn" id="savePdf">PDFで保存</button>
+          <button type="button" class="btn receipt-print-btn" id="doPrintReceipt">このレシートを印刷</button>
+        </div>
+        <p class="receipt-print-status" id="receiptPrintStatus" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div id="receiptPrintArea" aria-hidden="true"></div>
 
     <nav class="jump-nav" aria-label="項目へのジャンプ">
       <button type="button" id="jumpPrev" aria-label="前の項目へ移動">
@@ -738,7 +876,7 @@
       }
       /* wonder press icons are pyramid-shaped: a sand-coloured pyramid
          with a lit left face, a shaded right face and stone-course lines,
-         with the pressed value (+3 / +5 / +7) at its base. Drawn as inline
+         with the pressed value (+1 / +2 / +3 / +4 / +5 / +7) at its base. Drawn as inline
          SVG so the silhouette reads as a pyramid, not a pill. */
       function pyramidTokenSvg(label) {
         return '<svg viewBox="0 0 44 38" fill="none" aria-hidden="true">' +
@@ -890,7 +1028,7 @@
           ]
         },
         {
-          key: "wonder", name: "七不思議", en: "WONDER", hint: "完成した段階の勝利点の合計を入力（+3／+5／+7ボタンで加算できます）。ボタンを押すたびに、下に押したボタンのアイコンが1つずつ増えるので、何回押したか分かります。アイコンは押した順番に関わらず、必ず左から右へ小さい順（+3→+5→+7）に並びます。アイコンをタップすると、そのアイコンだけが消えて勝利点もその分減ります。リセット（0）でアイコンも消えます",
+          key: "wonder", name: "七不思議", en: "WONDER", hint: "完成した段階の勝利点の合計を入力（+1／+2／+3／+4／+5／+7ボタンで加算できます）。ボタンを押すたびに、下に押したボタンのアイコンが1つずつ増えるので、何回押したか分かります。アイコンは押した順番に関わらず、必ず左から右へ小さい順（+1→+2→+3→+4→+5→+7）に並びます。アイコンをタップすると、そのアイコンだけが消えて勝利点もその分減ります。リセット（0）でアイコンも消えます",
           fields: [{ path: "wonder", label: "勝利点", max: 99, quick: "wonder" }]
         },
         {
@@ -969,13 +1107,16 @@
       }
       function el(id) { return document.getElementById(id); }
       function escAttr(s) { return String(s).replace(/"/g, "&quot;"); }
+      function escHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
 
       /* ---------- DOM refs (rebuilt with the panels) ---------- */
       var inputRefs = [];   // {el, pidx, path}
       var tapRefs = [];     // {el, pidx, path}
       var tapVisualRefs = []; // {el, pidx, path}
       var pileVisualRefs = []; // {el, pidx} treasury pile icons
-      var wonderVisualRefs = []; // {el, pidx} wonder +3/+5/+7 press icons
+      var wonderVisualRefs = []; // {el, pidx} wonder +1/+2/+3/+4/+5/+7 press icons
       var ptsRefs = [];     // {box, num, pidx, key}
       var nameRefs = [];    // {el, pidx} block name labels
       var totalRefs = [];   // {el, pidx} setup totals
@@ -1020,8 +1161,8 @@
         return out;
       }
 
-      /* wonder press icons: one icon per +3/+5/+7 button press, always sorted
-         ascending left to right (+3 → +5 → +7), regardless of press order.
+      /* wonder press icons: one icon per +1/+2/+3/+4/+5/+7 button press, always sorted
+         ascending left to right (+1 → +2 → +3 → +4 → +5 → +7), regardless of press order.
          Each icon is a button: tapping it removes just that press and subtracts
          its value. data-windex keeps the index into wonderPresses so removal
          still hits the right entry after sorting for display. */
@@ -1052,9 +1193,9 @@
         var wonderVisual = "";
         var fieldCls = "field";
         if (f.quick === "wonder") {
-          /* one line: the numeric stepper (− | value | ＋) and the
-             +3/+5/+7/reset buttons sit side by side in a single row;
-             the press icons stay below the row */
+          /* the numeric stepper (− | value | ＋) on the left and the
+             +1/+2/+3/+4/+5/+7/reset buttons in a two-row grid on the
+             right (see .wonder-add); the press icons stay below the row */
           return '<div class="field wonder-field"' + modeAttrs + '><span>' + f.label + "</span>" +
             '<div class="wonder-line">' +
             '<div class="stepper">' +
@@ -1063,7 +1204,10 @@
             '<button type="button" data-step="1" data-path="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="増やす">＋</button>' +
             "</div>" +
             '<div class="quick-add wonder-add">' +
+            '<button type="button" data-tapadd="1" data-path="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="1点加える">＋1</button>' +
+            '<button type="button" data-tapadd="2" data-path="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="2点加える">＋2</button>' +
             '<button type="button" data-tapadd="3" data-path="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="3点加える">＋3</button>' +
+            '<button type="button" data-tapadd="4" data-path="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="4点加える">＋4</button>' +
             '<button type="button" data-tapadd="5" data-path="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="5点加える">＋5</button>' +
             '<button type="button" data-tapadd="7" data-path="' + f.path + '" data-pidx="' + pidx + '" data-max="' + f.max + '" aria-label="7点加える">＋7</button>' +
             '<button type="button" data-resetval="1" data-path="' + f.path + '" data-pidx="' + pidx + '" aria-label="0にリセット">リセット（0）</button>' +
@@ -1325,6 +1469,7 @@
         });
         renderRanking();
         updateShareText();
+        if (typeof syncReceipt === "function" && typeof receiptOverlay !== "undefined" && receiptOverlay && !receiptOverlay.hidden) syncReceipt();
       }
 
       /* ---------- share text ---------- */
@@ -1481,7 +1626,7 @@
           }
           syncInputs(); refresh();
         } else if (btn.hasAttribute("data-wonderremove")) {
-          /* tap a wonder +3/+5/+7 icon: remove just that press and subtract its value */
+          /* tap a wonder +1/+2/+3/+4/+5/+7 icon: remove just that press and subtract its value */
           var wIdx = parseInt(btn.getAttribute("data-windex"), 10);
           var wList = p.wonderPresses || [];
           if (wIdx >= 0 && wIdx < wList.length) {
@@ -1627,6 +1772,374 @@
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
         showCopyStatus("ダウンロードしました");
       });
+
+      /* ---------- receipt preview & print (RP-F10 via OS print) ----------
+         Two steps, like the board-game calculator: the results' print
+         button opens a receipt-width preview first, and only the
+         preview's own print button calls window.print() — an in-app
+         browser may not open the print dialog straight from the page.
+         @media print shows only #receiptPrintArea, so none of the
+         on-screen UI (inputs, buttons) ever reaches the printer.
+         Android prints through SII Print Service to the RP-F10. */
+      function buildReceiptHtml() {
+        var rows = players.map(function (p, i) {
+          return { i: i, p: p, s: scores(p), total: totalOf(p) };
+        }).sort(function (x, y) {
+          if (y.total !== x.total) return y.total - x.total;
+          return coinCount(y.p) - coinCount(x.p); // official tiebreak: most coins
+        });
+        var visCats = CAT_ORDER.filter(catEnabled);
+        var d = new Date();
+        var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+        var dateStr = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+        var expParts = [];
+        if (expansions.leaders) expParts.push("指導者（リーダーズ）");
+        if (expansions.cities) expParts.push("都市（シティーズ）");
+        var out = "";
+        out += '<div class="r-head"><div class="r-title">世界の七不思議</div>' +
+          '<div class="r-subtitle">得点計算</div>' +
+          '<div class="r-en">7 WONDERS SCORE</div></div>';
+        out += '<div class="r-line"></div>';
+        out += '<div class="r-meta">' + escHtml(dateStr) +
+          (expParts.length ? '<br><span class="r-exp">拡張：' + escHtml(expParts.join("・")) + "</span>" : "") + "</div>";
+        out += '<div class="r-line"></div>';
+        rows.forEach(function (r, rank) {
+          out += '<div class="r-player">';
+          out += '<div class="r-rank-row"><span class="r-rank' + (rank === 0 ? " first" : "") + '">' + (rank + 1) + '位</span>' +
+            '<span class="r-name">' + escHtml(displayName(r.p)) + "</span></div>";
+          out += '<div class="r-total-row"><span class="r-total-label">合計</span>' +
+            '<span class="r-total">' + r.total + "<small>点</small></span></div>";
+          out += '<div class="r-break">';
+          visCats.forEach(function (k) {
+            out += '<div class="r-break-row"><span class="r-cat">' + escHtml(CAT_META[k].name) + '</span><span class="r-dots"></span><span class="r-val">' + r.s[k] + "</span></div>";
+          });
+          out += "</div>";
+          out += '<div class="r-coin">コイン <b>' + coinCount(r.p) + "枚</b>（同点時はコイン数で判定）</div>";
+          out += "</div>";
+          out += '<div class="r-line dashed"></div>';
+        });
+        out += '<div class="r-foot">同点の場合はコインの枚数が<br>多いプレイヤーが上位です<br>おつかれさまでした！</div>';
+        return out;
+      }
+      var receiptOverlay = el("receiptOverlay");
+      var receiptLastFocus = null;
+      function syncReceipt() {
+        var html = buildReceiptHtml();
+        var preview = el("receiptPreview");
+        if (preview) preview.innerHTML = html;
+        var printArea = el("receiptPrintArea");
+        if (printArea) printArea.innerHTML = '<div class="receipt-paper">' + html + "</div>";
+      }
+      function openReceipt() {
+        if (!receiptOverlay) return;
+        syncReceipt();
+        var st = el("receiptPrintStatus");
+        if (st) st.textContent = "";
+        receiptLastFocus = document.activeElement;
+        receiptOverlay.hidden = false;
+        document.body.classList.add("receipt-open");
+        receiptOverlay.scrollTop = 0;
+        var btn = el("doPrintReceipt");
+        if (btn) btn.focus();
+      }
+      function closeReceipt() {
+        if (!receiptOverlay || receiptOverlay.hidden) return;
+        receiptOverlay.hidden = true;
+        document.body.classList.remove("receipt-open");
+        if (receiptLastFocus && typeof receiptLastFocus.focus === "function") receiptLastFocus.focus();
+        receiptLastFocus = null;
+      }
+      el("openReceipt").addEventListener("click", openReceipt);
+      el("receiptClose").addEventListener("click", closeReceipt);
+      el("receiptBack").addEventListener("click", closeReceipt);
+      receiptOverlay.addEventListener("click", function (e) {
+        if (e.target === receiptOverlay) closeReceipt();
+      });
+      document.addEventListener("keydown", function (e) {
+        if ((e.key === "Escape" || e.key === "Esc") && receiptOverlay && !receiptOverlay.hidden) closeReceipt();
+      });
+      el("doPrintReceipt").addEventListener("click", function () {
+        syncReceipt();
+        var st = el("receiptPrintStatus");
+        try {
+          window.print();
+          if (st) st.textContent = "印刷ダイアログを開きました。レシートプリンター（RP-F10）を選んでください。";
+        } catch (err) {
+          if (st) st.textContent = "印刷ダイアログを開けませんでした。ブラウザのメニューから印刷をお試しください。";
+        }
+      });
+
+      /* ---------- PDF export (80mm wide, for the iPad route) ----------
+         iPad cannot print straight from the browser to the RP-F10, so
+         the same receipt content is also offered as a real PDF file:
+         the receipt layout is drawn onto a canvas with the page's own
+         fonts, the canvas is embedded as a JPEG image in a minimal
+         PDF 1.4 file assembled here (page width 80mm = 226.77pt, height
+         follows the content), and the resulting Blob is handed to the
+         share sheet (Web Share API Level 2 file sharing — on iPad the
+         user can pick "Save to Files" or a print app such as SII URL
+         Print Agent, which accepts PDF data) or downloaded when file
+         sharing is unavailable. No external library is used, so the
+         single-file page keeps working fully offline / standalone. */
+      function receiptData() {
+        var rows = players.map(function (p, i) {
+          return { i: i, p: p, s: scores(p), total: totalOf(p) };
+        }).sort(function (x, y) {
+          if (y.total !== x.total) return y.total - x.total;
+          return coinCount(y.p) - coinCount(x.p); // official tiebreak: most coins
+        });
+        var visCats = CAT_ORDER.filter(catEnabled);
+        var d = new Date();
+        var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+        var dateStr = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+        var expParts = [];
+        if (expansions.leaders) expParts.push("指導者（リーダーズ）");
+        if (expansions.cities) expParts.push("都市（シティーズ）");
+        return { rows: rows, visCats: visCats, dateStr: dateStr, expParts: expParts };
+      }
+      function wrapCanvasText(ctx, text, maxW) {
+        var lines = [], cur = "";
+        for (var i = 0; i < text.length; i++) {
+          var ch = text.charAt(i);
+          if (ch === "\n") { lines.push(cur); cur = ""; continue; }
+          var test = cur + ch;
+          if (cur && ctx.measureText(test).width > maxW) { lines.push(cur); cur = ch; }
+          else cur = test;
+        }
+        if (cur || !lines.length) lines.push(cur);
+        return lines;
+      }
+      /* Draws the receipt (same content and order as buildReceiptHtml)
+         onto ctx at the given pixel width and returns the total height
+         in pixels, so the caller can size the canvas / PDF page. */
+      function renderReceiptCanvas(ctx, W) {
+        var M = 30, right = W - M, CW = W - M * 2;
+        var data = receiptData();
+        function center(text, y) {
+          ctx.textAlign = "center";
+          ctx.fillText(text, W / 2, y);
+          ctx.textAlign = "left";
+        }
+        function hline(y, width, color, dash) {
+          ctx.save();
+          ctx.strokeStyle = color; ctx.lineWidth = width;
+          ctx.setLineDash(dash || []);
+          ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(right, y); ctx.stroke();
+          ctx.restore();
+        }
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, W, 12000);
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+        var y = 0;
+        /* header */
+        y += 54;
+        ctx.font = '900 42px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+        center("世界の七不思議", y);
+        y += 37;
+        ctx.font = '700 23px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+        center("得 点 計 算", y);
+        y += 27;
+        ctx.font = '500 15px "Noto Sans JP", sans-serif';
+        ctx.fillStyle = "#333";
+        center("7 WONDERS SCORE", y);
+        ctx.fillStyle = "#111";
+        y += 16; hline(y, 3, "#111");
+        y += 31;
+        ctx.font = '400 21px "Noto Sans JP", sans-serif';
+        center(data.dateStr, y);
+        if (data.expParts.length) {
+          y += 29;
+          ctx.font = '700 21px "Noto Sans JP", sans-serif';
+          center("拡張：" + data.expParts.join("・"), y);
+        }
+        y += 15; hline(y, 3, "#111");
+        y += 12;
+        /* one block per player, in rank order */
+        data.rows.forEach(function (r, rank) {
+          var startY = y;
+          ctx.font = '700 25px "Noto Sans JP", sans-serif';
+          var nameLines = wrapCanvasText(ctx, displayName(r.p), CW - 58);
+          var headH = Math.max(46, nameLines.length * 33);
+          var cy = startY + 23;
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(M + 23, cy, 21, 0, Math.PI * 2);
+          if (rank === 0) { ctx.fillStyle = "#111"; ctx.fill(); ctx.fillStyle = "#fff"; }
+          else {
+            ctx.fillStyle = "#fff"; ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = "#111"; ctx.stroke();
+            ctx.fillStyle = "#111";
+          }
+          ctx.font = '900 20px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillText((rank + 1) + "位", M + 23, cy + 1);
+          ctx.restore();
+          ctx.font = '700 25px "Noto Sans JP", sans-serif';
+          ctx.fillStyle = "#111";
+          nameLines.forEach(function (ln, li) {
+            ctx.fillText(ln, M + 58, startY + 32 + li * 33);
+          });
+          y = startY + headH + 10;
+          /* total row: label left, big number right with a small 点 */
+          ctx.font = '700 20px "Noto Sans JP", sans-serif';
+          var tenW = ctx.measureText("点").width;
+          ctx.textAlign = "right";
+          ctx.fillText("点", right, y + 32);
+          ctx.font = '900 44px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+          ctx.fillText(String(r.total), right - tenW - 5, y + 37);
+          ctx.textAlign = "left";
+          ctx.font = '700 19px "Noto Sans JP", sans-serif';
+          ctx.fillText("合計", M, y + 32);
+          y += 54;
+          /* category breakdown with dotted leaders */
+          data.visCats.forEach(function (k) {
+            y += 29;
+            ctx.font = '400 21px "Noto Sans JP", sans-serif';
+            var catName = CAT_META[k].name;
+            ctx.fillText(catName, M, y);
+            var nameW = ctx.measureText(catName).width;
+            ctx.font = '700 21px "Noto Sans JP", sans-serif';
+            var valText = String(r.s[k]);
+            var valW = ctx.measureText(valText).width;
+            ctx.fillText(valText, right - valW, y);
+            ctx.save();
+            ctx.strokeStyle = "#888"; ctx.lineWidth = 1.5;
+            ctx.setLineDash([1.5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(M + nameW + 10, y - 5);
+            ctx.lineTo(right - valW - 10, y - 5);
+            ctx.stroke();
+            ctx.restore();
+          });
+          y += 9;
+          y += 28;
+          ctx.font = '400 20px "Noto Sans JP", sans-serif';
+          ctx.fillStyle = "#222";
+          ctx.fillText("コイン " + coinCount(r.p) + "枚（同点時はコイン数で判定）", M, y);
+          ctx.fillStyle = "#111";
+          y += 17; hline(y, 1.5, "#555", [6, 5]);
+          y += 8;
+        });
+        /* footer */
+        ctx.font = '400 19px "Noto Sans JP", sans-serif';
+        y += 27; center("同点の場合はコインの枚数が", y);
+        y += 27; center("多いプレイヤーが上位です", y);
+        y += 27; center("おつかれさまでした！", y);
+        y += 36;
+        return Math.ceil(y);
+      }
+      function jpegBytesFromCanvas(canvas) {
+        var url = canvas.toDataURL("image/jpeg", 0.92);
+        var bin = atob(url.substring(url.indexOf(",") + 1));
+        var bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return bytes;
+      }
+      function buildPdfFile() {
+        var W = 680; /* ~216dpi at 80mm — crisp on thermal and screen alike */
+        var scratch = document.createElement("canvas");
+        scratch.width = W; scratch.height = 240;
+        var H = renderReceiptCanvas(scratch.getContext("2d"), W);
+        var canvas = document.createElement("canvas");
+        canvas.width = W; canvas.height = H;
+        renderReceiptCanvas(canvas.getContext("2d"), W);
+        var jpg = jpegBytesFromCanvas(canvas);
+        var pageW = 226.77; /* 80mm in PostScript points */
+        var pageH = Math.round(pageW * H / W * 100) / 100;
+        var content = "q " + pageW + " 0 0 " + pageH + " 0 0 cm /Im1 Do Q";
+        var objs = [];
+        objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        objs[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        objs[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + pageW + " " + pageH + "] /Resources << /XObject << /Im1 4 0 R >> >> /Contents 5 0 R >>";
+        objs[5] = "<< /Length " + content.length + " >>\nstream\n" + content + "\nendstream";
+        var chunks = [], offsets = [0], pos = 0;
+        function pushStr(s) { chunks.push(s); pos += s.length; } /* all syntax strings are pure ASCII */
+        function pushBytes(b) { chunks.push(b); pos += b.length; }
+        pushStr("%PDF-1.4\n");
+        for (var n = 1; n <= 5; n++) {
+          offsets[n] = pos;
+          if (n === 4) {
+            pushStr("4 0 obj\n<< /Type /XObject /Subtype /Image /Width " + W + " /Height " + H + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + jpg.length + " >>\nstream\n");
+            pushBytes(jpg);
+            pushStr("\nendstream\nendobj\n");
+          } else {
+            pushStr(n + " 0 obj\n" + objs[n] + "\nendobj\n");
+          }
+        }
+        var xrefPos = pos;
+        var xref = "xref\n0 6\n0000000000 65535 f \n";
+        for (var m = 1; m <= 5; m++) {
+          var off = String(offsets[m]);
+          while (off.length < 10) off = "0" + off;
+          xref += off + " 00000 n \n";
+        }
+        pushStr(xref);
+        pushStr("trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xrefPos + "\n%%EOF");
+        var d = new Date();
+        var pad = function (v) { return (v < 10 ? "0" : "") + v; };
+        return {
+          blob: new Blob(chunks, { type: "application/pdf" }),
+          fileName: "7wonders-result-" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + ".pdf"
+        };
+      }
+      function downloadPdfFile(built) {
+        var url = URL.createObjectURL(built.blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = built.fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      }
+      function setPdfStatus(msg, inDialog) {
+        var st = el(inDialog ? "receiptPrintStatus" : "pdfStatus");
+        if (st) st.textContent = msg;
+        if (inDialog) {
+          var st2 = el("pdfStatus");
+          if (st2) st2.textContent = msg;
+        }
+      }
+      function savePdf(inDialog) {
+        var built;
+        try {
+          built = buildPdfFile();
+        } catch (err) {
+          setPdfStatus("PDFを作成できませんでした。もう一度お試しください。", inDialog);
+          return;
+        }
+        var file = null;
+        try {
+          file = new File([built.blob], built.fileName, { type: "application/pdf" });
+        } catch (err2) { file = null; }
+        /* Prefer the share sheet where file sharing exists (iPad Safari):
+           it offers "Save to Files" and print apps (SII URL Print Agent
+           etc.) directly. navigator.share is called synchronously from
+           the tap handler so the user-gesture context is preserved. */
+        if (file && navigator.share && navigator.canShare) {
+          var shareable = false;
+          try { shareable = navigator.canShare({ files: [file] }); } catch (err3) { shareable = false; }
+          if (shareable) {
+            navigator.share({ files: [file], title: "世界の七不思議 得点結果" }).then(function () {
+              setPdfStatus("共有シートを開きました。「ファイルに保存」や印刷アプリを選んでください。", inDialog);
+            }, function (shareErr) {
+              if (shareErr && shareErr.name === "AbortError") {
+                setPdfStatus("共有をキャンセルしました。", inDialog);
+              } else {
+                downloadPdfFile(built);
+                setPdfStatus("PDFをダウンロードしました。", inDialog);
+              }
+            });
+            return;
+          }
+        }
+        downloadPdfFile(built);
+        setPdfStatus("PDFをダウンロードしました。保存したPDFを印刷アプリに渡して印刷してください。", inDialog);
+      }
+      el("savePdfMain").addEventListener("click", function () { savePdf(false); });
+      el("savePdf").addEventListener("click", function () { savePdf(true); });
 
       /* ---------- jump navigation (fixed corner ↑ / ↓) ---------- */
       function jumpTargets() {
