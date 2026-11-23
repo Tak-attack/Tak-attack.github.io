@@ -566,8 +566,20 @@
       .receipt-print .receipt-total-label { text-align: left; font-size: 16px; font-weight: 800; }
       .receipt-print .receipt-total-val { text-align: right; font-size: 16px; font-weight: 800; }
       .receipt-print .receipt-crown { display: inline-block; width: 13px; height: 13px; margin-right: 3px; vertical-align: -1px; color: #000; }
+      /* 58mm: tighter type and padding so the receipt fits the ~54mm printable width */
+      .receipt-print.w58 .receipt-title { font-size: 16px; }
+      .receipt-print.w58 .receipt-meta { font-size: 10px; }
+      .receipt-print.w58 .receipt-table { margin-top: 6px; }
+      .receipt-print.w58 .receipt-table th, .receipt-print.w58 .receipt-table td { padding: 3px 1px; }
+      .receipt-print.w58 .receipt-name-head { font-size: 11px; }
+      .receipt-print.w58 .receipt-cat { font-size: 10.5px; }
+      .receipt-print.w58 .receipt-val { font-size: 12px; }
+      .receipt-print.w58 .receipt-total-label, .receipt-print.w58 .receipt-total-val { font-size: 13px; }
+      .receipt-print.w58 .receipt-crown { width: 11px; height: 11px; }
       .receipt-preview { background: #fff; }
-      .receipt-preview .receipt-print { display: block; width: 100%; padding: 14px 12px; }
+      .receipt-preview .receipt-print { display: block; width: 100%; padding: 14px 12px; margin: 0 auto; }
+      .receipt-preview .receipt-print.w80 { width: min(320px, 100%); }
+      .receipt-preview .receipt-print.w58 { width: min(232px, 100%); padding: 12px 8px; }
       #printPreview {
         position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column;
         background: var(--bg); padding-left: 12px; padding-right: 12px; color: var(--text);
@@ -575,19 +587,27 @@
       }
       #printPreview .pv-inner { margin: 0 auto; display: flex; min-height: 0; width: 100%; max-width: 384px; flex: 1; flex-direction: column; padding: 12px 0; }
       #printPreview .pv-paper { margin-top: 8px; min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,.35); }
+      #printPreview .pv-width-row { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      #printPreview .pv-width-label { font-size: 13px; font-weight: 700; color: var(--dim); }
       #printPreview .pv-print-btn {
-        margin-top: 12px; width: 100%; border-radius: 12px; background: var(--accent); padding: 12px 16px;
+        margin-top: 8px; width: 100%; border-radius: 12px; background: var(--accent); padding: 12px 16px;
         font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--on-accent);
+      }
+      #printPreview .pv-pdf-btn {
+        margin-top: 8px; width: 100%; border-radius: 12px; background: var(--surface); padding: 12px 16px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--text);
       }
       #printPreview .pv-note { margin-top: 6px; text-align: center; font-size: 11px; line-height: 1.4; color: var(--dim); }
       @media print {
-        @page { size: 80mm auto; margin: 2mm; }
         html, body { height: auto; overflow: visible; background-color: #fff; }
         .app-root { position: static !important; height: auto !important; overflow: visible !important; background: #fff !important; }
         .app-root > *:not(.receipt-print) { display: none !important; }
         .receipt-print { display: block; width: 100%; max-width: 72mm; margin: 0 auto; }
+        .receipt-print.w58 { max-width: 54mm; }
       }
     </style>
+    <!-- @page size for the receipt is switched between 58mm / 80mm by script (see applyReceiptWidth) -->
+    <style id="receiptPageStyle">@page { size: 80mm auto; margin: 2mm; }</style>
   </head>
   <body>
     <div id="loadingScreen" role="status" aria-label="読み込み中">
@@ -745,7 +765,15 @@
             <button type="button" class="close-btn" id="pvClose" aria-label="印刷プレビューを閉じる">閉じる</button>
           </div>
           <div class="receipt-preview pv-paper" id="pvPaper"></div>
+          <div class="pv-width-row">
+            <span class="pv-width-label" id="pvWidthLabel">レシート幅</span>
+            <span class="seg" role="group" aria-labelledby="pvWidthLabel">
+              <button type="button" id="pvW58" aria-pressed="false" aria-label="レシート幅を58mmにする">58mm</button>
+              <button type="button" id="pvW80" aria-pressed="true" aria-label="レシート幅を80mmにする">80mm</button>
+            </span>
+          </div>
           <button type="button" class="pv-print-btn" id="pvPrint">このレシートを印刷</button>
+          <button type="button" class="pv-pdf-btn" id="pvPdf">PDFで保存</button>
           <p class="pv-note">印刷ダイアログが開かない場合は、このページをブラウザで開いてから印刷してください</p>
         </div>
       </div>
@@ -775,7 +803,7 @@
       var players = [0, 1].map(function (i) {
         return { id: uid() + "p" + i, name: "", color: PLAYER_COLORS[i] };
       });
-      var categories = [0, 1, 2, 3, 4].map(function (i) {
+      var categories = [0].map(function (i) {
         return { id: uid() + "c" + i, name: "", negative: false, tiebreak: false };
       });
       return {
@@ -792,7 +820,8 @@
         haptics: true,
         floatOpacity: "semi",
         animations: true,
-        keypadScale: 1
+        keypadScale: 1,
+        receiptWidth: "80"
       };
     }
 
@@ -808,23 +837,32 @@
     }
     function N(name) { return { name: name }; }
     function NM(name) { return { name: name, negative: true }; }
+    function NT(name) { return { name: name, tiebreak: true }; }
     var BUILTIN_PRESETS = [
-      { id: "builtin-blank", name: "フリーシート", subtitle: "", title: "ゲーム名", players: builtinPlayers("builtin-blank"),
-        categories: builtinCategories("builtin-blank", [N(""), N(""), N(""), N(""), N("")]) },
+      { id: "builtin-blank", name: "フリーシート", subtitle: "Blank Sheet", title: "フリーシート", players: builtinPlayers("builtin-blank"),
+        categories: builtinCategories("builtin-blank", [N("")]) },
       { id: "builtin-arnak", name: "アルナックの失われし遺跡", subtitle: "Lost Ruins of Arnak", title: "アルナックの失われし遺跡", players: builtinPlayers("builtin-arnak"),
-        categories: builtinCategories("builtin-arnak", [N("研究"), N("寺院"), N("偶像"), N("守護者"), N("アイテム/遺物"), NM("恐怖")]) },
+        categories: builtinCategories("builtin-arnak", [N("研究"), N("寺院"), N("偶像"), N("守護者"), N("アイテム/遺物"), NM("恐怖"), NT("寺院への到達/研究点")]) },
       { id: "builtin-wingspan", name: "ウイングスパン", subtitle: "Wingspan", title: "ウイングスパン", players: builtinPlayers("builtin-wingspan"),
-        categories: builtinCategories("builtin-wingspan", [N("鳥カード"), N("ボーナスカード"), N("ラウンド終了時目的"), N("卵"), N("鳥カード上の餌"), N("差し込んだ鳥カード")]) },
+        categories: builtinCategories("builtin-wingspan", [N("鳥カード"), N("ボーナスカード"), N("ラウンド終了時目的"), N("卵"), N("鳥カード上の餌"), N("差し込んだ鳥カード"), NT("保有する餌トークン")]) },
+      { id: "builtin-wyrmspan", name: "ワイアームスパン", subtitle: "Wyrmspan", title: "ワイアームスパン", players: builtinPlayers("builtin-wyrmspan"),
+        categories: builtinCategories("builtin-wyrmspan", [N("ドラゴンギルドにある自分のマーカー"), N("ドラゴンに書かれた点"), N("ゲーム終了時能力の点"), N("卵(1個1点)"), N("蓄えた資源(1個1点)"), N("差し込んだドラゴンカード(1個1点)"), N("共通の目標"), N("残ったコイン(1枚1点)"), N("残った資源とカードの点(4個1点)"), NT("見えているドラゴンの枚数")]) },
+      { id: "builtin-finspan", name: "フィンスパン", subtitle: "Finspan", title: "フィンスパン", players: builtinPlayers("builtin-finspan"),
+        categories: builtinCategories("builtin-finspan", [N("1週目の業績"), N("2週目の業績"), N("3週目の業績"), N("ゲーム終了時の能力"), N("見えている魚の点数"), N("卵(1枚1点)"), N("幼魚(1枚1点)"), N("群れ(1枚6点)"), N("サンゴ(1個1点+ボーナス)"), N("捕食された魚(1枚1点)"), NT("手札の枚数")]) },
       { id: "builtin-agricola", name: "アグリコラ", subtitle: "Agricola", title: "アグリコラ", players: builtinPlayers("builtin-agricola"),
-        categories: builtinCategories("builtin-agricola", [N("畑"), N("牧場"), N("小麦"), N("野菜"), N("羊"), N("猪"), N("牛"), N("未使用スペース"), N("柵で囲まれた厩"), N("レンガ/石の部屋"), N("家族コマ"), N("カード得点"), N("ボーナス得点"), NM("物乞い")]) },
+        categories: builtinCategories("builtin-agricola", [N("畑"), N("牧場"), N("小麦"), N("野菜"), N("羊"), N("猪"), N("牛"), N("馬(拡張)"), N("未使用スペース"), N("柵で囲まれた厩"), N("レンガ/石の部屋"), N("家族コマ"), N("カード得点"), N("ボーナス得点"), NM("物乞い")]) },
+      { id: "builtin-agricola-animals", name: "アグリコラ 牧場の動物たち", subtitle: "Agricola: All Creatures Big and Small", title: "アグリコラ 牧場の動物たち", players: builtinPlayers("builtin-agricola-animals"),
+        categories: builtinCategories("builtin-agricola-animals", [N("羊(家畜点)"), N("猪(家畜点)"), N("牛(家畜点)"), N("馬(家畜点)"), N("羊(ボーナス点)"), N("猪(ボーナス点)"), N("牛(ボーナス点)"), N("馬(ボーナス点)"), N("農場拡張ボード"), N("建物点"), NT("ラウンド1にスタートプレイヤーではなかった")]) },
       { id: "builtin-odin", name: "オーディンの祝祭", subtitle: "A Feast for Odin", title: "オーディンの祝祭", players: builtinPlayers("builtin-odin"),
         categories: builtinCategories("builtin-odin", [N("船"), N("移住"), N("探検ボード"), N("建物"), N("動物"), N("職業カード"), N("銀貨"), N("最終収入"), N("イングランドの王冠"), NM("ホームボード"), NM("探検ボード"), NM("倉庫と家"), NM("シングの罰則")]) },
       { id: "builtin-nusfjord", name: "ヌースフィヨルド", subtitle: "Nusfjord", title: "ヌースフィヨルド", players: builtinPlayers("builtin-nusfjord"),
         categories: builtinCategories("builtin-nusfjord", [N("船"), N("建物"), N("株券"), N("金貨"), NM("空きスペース"), NM("未発行株")]) },
       { id: "builtin-forest-shuffle", name: "フォレストシャッフル", subtitle: "Forest Shuffle", title: "フォレストシャッフル", players: builtinPlayers("builtin-forest-shuffle"),
-        categories: builtinCategories("builtin-forest-shuffle", [N("樹"), N("湿原"), N("上"), N("左/右"), N("下"), N("洞窟")]) },
-      { id: "builtin-ark-nova-sanctuary", name: "アークノヴァ・サンクチュアリ", subtitle: "Ark Nova", title: "アークノヴァ・サンクチュアリ", players: builtinPlayers("builtin-ark-nova-sanctuary"),
-        categories: builtinCategories("builtin-ark-nova-sanctuary", [N("動物タイル"), N("建物タイル"), N("計画タイル"), N("空き地"), N("保全功績"), N("保全/育児嚢マーカー(2点)"), N("ゲーム終了マーカー"), N("ソロプレイマーカー")]) }
+        categories: builtinCategories("builtin-forest-shuffle", [N("樹"), N("湿原(ダートムーア)"), N("上"), N("左/右"), N("下"), N("洞窟")]) },
+      { id: "builtin-7wonders-duel", name: "世界の七不思議 デュエル", subtitle: "7 Wonders Duel", title: "世界の七不思議 デュエル", players: builtinPlayers("builtin-7wonders-duel"),
+        categories: builtinCategories("builtin-7wonders-duel", [N("青カード"), N("緑カード"), N("黄カード"), N("紫カード"), N("七不思議"), N("進歩トークン"), N("コイン(3個1点)"), N("軍事"), NT("軍事的優位"), NT("科学的優位"), NT("青カードの勝利点")]) },
+      { id: "builtin-ark-nova-sanctuary", name: "アークノヴァ・サンクチュアリ", subtitle: "Sanctuary: An Ark Nova Game", title: "アークノヴァ・サンクチュアリ", players: builtinPlayers("builtin-ark-nova-sanctuary"),
+        categories: builtinCategories("builtin-ark-nova-sanctuary", [N("動物タイル"), N("建物タイル"), N("計画タイル"), N("空き地"), N("保全功績"), N("保全/育児嚢マーカー(2点)"), N("ゲーム終了マーカー"), N("ソロプレイマーカー"), NT("動物タイルの枚数")]) }
     ];
 
     /* ---- external presets (read-only, fetched from GitHub Pages) ----
@@ -896,11 +934,11 @@
       ]},
       { heading: "保存とプリセット", items: [
         "入力内容は自動で保存されます",
-        "プリセット：表の構成（ゲーム名・プレイヤー・項目）を保存・読込・削除できます。組み込みプリセット（フリーシート／アルナックの失われし遺跡／ウイングスパン／アグリコラ／オーディンの祝祭／ヌースフィヨルド／フォレストシャッフル／アークノヴァ・サンクチュアリ）も入っています",
+        "プリセット：表の構成（ゲーム名・プレイヤー・項目）を保存・読込・削除できます。はじめから入っているプリセットは読み込み専用で、オンライン時は最新の内容を読み込み、オフライン時は内蔵分が使われます",
         "履歴：終わったゲームの結果を最大200件まで保存できます。ゲーム名・日時・優勝者・項目ごとの内訳を確認できます"
       ]},
       { heading: "印刷", items: [
-        "履歴から、レシート風レイアウトで結果を印刷できます（レシートプリンター対応）。優勝者の合計には王冠が付きます"
+        "履歴から、レシート風レイアウトで結果を印刷できます（レシートプリンター対応）。印刷プレビューではレシート幅（58mm／80mm）を切り替えられ、選んだ幅は次回も保持されます。同じ内容をPDFで保存することもできます。優勝者の合計には王冠が付きます"
       ]},
       { heading: "表示と操作感", items: [
         "ヘッダーのボタン（？の隣）でフルスクリーン表示に切り替えられます。もう一度押すと元に戻ります",
@@ -1987,11 +2025,34 @@
       h += "</tr></tbody></table>";
       return h;
     }
+    function receiptWidthClass() { return state.receiptWidth === "58" ? "w58" : "w80"; }
+    /* Reflect the selected receipt width (58mm / 80mm) in the preview,
+       the print layout (@page size + printable width) and the toggle. */
+    function applyReceiptWidth() {
+      var w = state.receiptWidth === "58" ? "58" : "80";
+      var cls = "w" + w;
+      var rp = $("receiptPrint");
+      rp.classList.remove("w58", "w80");
+      rp.classList.add(cls);
+      var inner = $("pvPaper").querySelector(".receipt-print");
+      if (inner) { inner.classList.remove("w58", "w80"); inner.classList.add(cls); }
+      $("pvW58").classList.toggle("on", w === "58");
+      $("pvW58").setAttribute("aria-pressed", String(w === "58"));
+      $("pvW80").classList.toggle("on", w === "80");
+      $("pvW80").setAttribute("aria-pressed", String(w === "80"));
+      $("receiptPageStyle").textContent = "@page { size: " + w + "mm auto; margin: 2mm; }";
+    }
+    function setReceiptWidth(w) {
+      state.receiptWidth = w;
+      scheduleSave();
+      applyReceiptWidth();
+    }
     function openPrint(entry) {
       printEntry = entry;
       var html = receiptHTML(entry);
       $("receiptPrint").innerHTML = html;
-      $("pvPaper").innerHTML = '<div class="receipt-print">' + html + "</div>";
+      $("pvPaper").innerHTML = '<div class="receipt-print ' + receiptWidthClass() + '">' + html + "</div>";
+      applyReceiptWidth();
       var pv = $("printPreview");
       pv.hidden = false;
       pv.className = sheetAnimClass();
@@ -2003,6 +2064,176 @@
       $("receiptPrint").innerHTML = "";
     }
     window.addEventListener("afterprint", function () { if (printEntry) closePrint(); });
+
+    /* ---------------- receipt PDF (no external libraries) ----------------
+       The receipt is drawn onto a canvas (so Japanese text renders with
+       the device's own fonts), turned into a JPEG, and wrapped in a
+       minimal hand-built PDF whose page size matches the selected
+       receipt width (58mm / 80mm). */
+    function receiptPdfFilename(entry) {
+      var d = new Date(entry.savedAt);
+      if (Number.isNaN(d.getTime())) d = new Date();
+      var pad = function (n) { return String(n).padStart(2, "0"); };
+      return "boardgame-score-" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + "-" + pad(d.getHours()) + pad(d.getMinutes()) + ".pdf";
+    }
+    function fitText(ctx, text, maxW) {
+      if (ctx.measureText(text).width <= maxW) return text;
+      var t = text;
+      while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1);
+      return t + "…";
+    }
+    function drawCrown(ctx, x, y, s) {
+      ctx.beginPath();
+      ctx.moveTo(x, y + s);
+      ctx.lineTo(x + s * 0.08, y + s * 0.25);
+      ctx.lineTo(x + s * 0.36, y + s * 0.55);
+      ctx.lineTo(x + s * 0.5, y);
+      ctx.lineTo(x + s * 0.64, y + s * 0.55);
+      ctx.lineTo(x + s * 0.92, y + s * 0.25);
+      ctx.lineTo(x + s, y + s);
+      ctx.closePath();
+      ctx.fill();
+    }
+    function generateReceiptPdf(entry) {
+      var w58 = state.receiptWidth === "58";
+      var widthMm = w58 ? 58 : 80;
+      var rank = computeRanking(entry.players, entry.categories, entry.cells);
+      var W = Math.round(widthMm / 25.4 * 96); // design px at 96dpi
+      var padX = w58 ? 8 : 12, padTop = w58 ? 12 : 14, padBot = padTop;
+      var titleSize = w58 ? 16 : 20, metaSize = w58 ? 10 : 12;
+      var headSize = w58 ? 11 : 13, catSize = w58 ? 10.5 : 12.5, valSize = w58 ? 12 : 14;
+      var totalSize = w58 ? 13 : 16;
+      var rowH = w58 ? 19 : 23, headH = w58 ? 20 : 24, totalH = w58 ? 24 : 28;
+      var H = padTop + titleSize + 6 + metaSize + 4 + 8 + headH + entry.categories.length * rowH + totalH + padBot;
+      var RES = 3;
+      var canvas = document.createElement("canvas");
+      canvas.width = W * RES;
+      canvas.height = H * RES;
+      var ctx = canvas.getContext("2d");
+      ctx.scale(RES, RES);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#000";
+      ctx.strokeStyle = "#000";
+      var mono = 'ui-monospace, "Courier New", monospace';
+      var contentW = W - padX * 2;
+      var catW = contentW * 0.3;
+      var colW = contentW * 0.7 / Math.max(1, entry.players.length);
+      var y = padTop;
+      // title + meta
+      ctx.font = "800 " + titleSize + "px " + mono;
+      ctx.textAlign = "left";
+      ctx.fillText(fitText(ctx, entry.title.trim() || "ゲーム名", contentW), padX, y + titleSize * 0.85);
+      y += titleSize + 6;
+      ctx.font = metaSize + "px " + mono;
+      ctx.fillText(fitText(ctx, formatReceiptDate(entry.savedAt) + "　" + entry.players.length + "人", contentW), padX, y + metaSize * 0.85);
+      y += metaSize + 4 + 8;
+      // header row (player names, double rules above and below)
+      var tableTop = y;
+      ctx.font = "800 " + headSize + "px " + mono;
+      ctx.textAlign = "right";
+      entry.players.forEach(function (p, i) {
+        ctx.fillText(fitText(ctx, displayPlayerName(p, i), colW - 4), padX + catW + colW * (i + 1) - 2, y + headH * 0.68);
+      });
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(padX, tableTop); ctx.lineTo(padX + contentW, tableTop); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padX, tableTop + headH); ctx.lineTo(padX + contentW, tableTop + headH); ctx.stroke();
+      y += headH;
+      // category rows
+      entry.categories.forEach(function (c, cIdx) {
+        ctx.font = catSize + "px " + mono;
+        ctx.textAlign = "left";
+        var label = displayCategoryName(c, cIdx) + (c.negative ? " (−)" : "") + (c.tiebreak ? " (TB)" : "");
+        ctx.fillText(fitText(ctx, label, catW - 4), padX, y + rowH * 0.68);
+        ctx.font = "700 " + valSize + "px " + mono;
+        ctx.textAlign = "right";
+        entry.players.forEach(function (p, pi) {
+          var v = evaluate(entry.cells[p.id + ":" + c.id] || "");
+          ctx.fillText(v !== null ? formatTableValue(c.negative ? -v : v) : "0", padX + catW + colW * (pi + 1) - 2, y + rowH * 0.68);
+        });
+        y += rowH;
+        ctx.strokeStyle = "#999";
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(padX + contentW, y); ctx.stroke();
+        ctx.strokeStyle = "#000";
+      });
+      // total row
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(padX + contentW, y); ctx.stroke();
+      ctx.font = "800 " + totalSize + "px " + mono;
+      ctx.textAlign = "left";
+      ctx.fillText("合計", padX, y + totalH * 0.68);
+      ctx.textAlign = "right";
+      entry.players.forEach(function (p, i) {
+        var t = formatTableValue(rank.totals[p.id] || 0);
+        var right = padX + catW + colW * (i + 1) - 2;
+        if (rank.leaderIds[p.id]) {
+          var tw = ctx.measureText(t).width;
+          var cs = w58 ? 11 : 13;
+          drawCrown(ctx, right - tw - cs - 3, y + totalH * 0.68 - cs * 0.85, cs);
+        }
+        ctx.fillText(t, right, y + totalH * 0.68);
+      });
+      // canvas -> JPEG -> PDF
+      var b64 = canvas.toDataURL("image/jpeg", 0.92).split(",")[1];
+      var bin = atob(b64);
+      var jpeg = new Uint8Array(bin.length);
+      for (var bi = 0; bi < bin.length; bi++) jpeg[bi] = bin.charCodeAt(bi);
+      var wPt = widthMm / 25.4 * 72, hPt = H / 96 * 72;
+      return new Blob([buildPdfImage(jpeg, canvas.width, canvas.height, wPt, hPt)], { type: "application/pdf" });
+    }
+    function buildPdfImage(jpeg, imgW, imgH, wPt, hPt) {
+      var enc = new TextEncoder();
+      var chunks = [], len = 0, offsets = [];
+      function push(data) {
+        var b = typeof data === "string" ? enc.encode(data) : data;
+        chunks.push(b);
+        len += b.length;
+      }
+      function f2(n) { return Math.round(n * 100) / 100; }
+      push("%PDF-1.4\n");
+      offsets[1] = len; push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+      offsets[2] = len; push("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+      offsets[3] = len; push("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + f2(wPt) + " " + f2(hPt) + "] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n");
+      offsets[4] = len; push("4 0 obj\n<< /Type /XObject /Subtype /Image /Width " + imgW + " /Height " + imgH + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + jpeg.length + " >>\nstream\n");
+      push(jpeg);
+      push("\nendstream\nendobj\n");
+      var content = "q " + f2(wPt) + " 0 0 " + f2(hPt) + " 0 0 cm /Im0 Do Q";
+      offsets[5] = len; push("5 0 obj\n<< /Length " + content.length + " >>\nstream\n" + content + "\nendstream\nendobj\n");
+      var xrefPos = len;
+      var xref = "xref\n0 6\n0000000000 65535 f \n";
+      for (var i = 1; i <= 5; i++) xref += String(offsets[i]).padStart(10, "0") + " 00000 n \n";
+      push(xref + "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xrefPos + "\n%%EOF");
+      var out = new Uint8Array(len);
+      var pos = 0;
+      chunks.forEach(function (c) { out.set(c, pos); pos += c.length; });
+      return out;
+    }
+    function downloadReceiptPdf(blob, filename) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    }
+    function saveReceiptPdf() {
+      if (!printEntry) return;
+      var filename = receiptPdfFilename(printEntry);
+      var blob;
+      try { blob = generateReceiptPdf(printEntry); } catch (e) { return; }
+      var file = null;
+      try { file = new File([blob], filename, { type: "application/pdf" }); } catch (e) { file = null; }
+      if (file && typeof navigator !== "undefined" && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file] }).catch(function (err) {
+          if (!err || err.name !== "AbortError") downloadReceiptPdf(blob, filename);
+        });
+      } else {
+        downloadReceiptPdf(blob, filename);
+      }
+    }
 
     /* ---------------- menu / theme / help sheets ---------------- */
     function renderMenu() {
@@ -2420,6 +2651,9 @@
     /* print preview */
     $("pvClose").addEventListener("click", closePrint);
     $("pvPrint").addEventListener("click", function () { window.print(); });
+    $("pvW58").addEventListener("click", function () { setReceiptWidth("58"); });
+    $("pvW80").addEventListener("click", function () { setReceiptWidth("80"); });
+    $("pvPdf").addEventListener("click", saveReceiptPdf);
 
     /* float window height tracking */
     if (typeof ResizeObserver !== "undefined") {
