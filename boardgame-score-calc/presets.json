@@ -4,21 +4,11 @@
       "items": [
         {
           "name": ""
-        },
-        {
-          "name": ""
-        },
-        {
-          "name": ""
-        },
-        {
-          "name": ""
-        },
-        {
-          "name": ""
         }
       ],
-      "title": "フリーシート"
+      "subtitle": "Blank Sheet",
+      "title": "フリーシート",
+      "_comment": "この項目は変えないでください / Please do not change this entry"
     },
     {
       "items": [
@@ -40,6 +30,10 @@
         {
           "minus": true,
           "name": "恐怖"
+        },
+        {
+          "tiebreak": true,
+          "name": "寺院への到達/研究点"
         }
       ],
       "subtitle": "Lost Ruins of Arnak",
@@ -64,10 +58,91 @@
         },
         {
           "name": "差し込んだ鳥カード"
+        },
+        {
+          "tiebreak": true,
+          "name": "保有する餌トークン"
         }
       ],
       "subtitle": "Wingspan",
       "title": "ウイングスパン"
+    },
+    {
+      "items": [
+        {
+          "name": "ドラゴンギルドにある自分のマーカー"
+        },
+        {
+          "name": "ドラゴンに書かれた点"
+        },
+        {
+          "name": "ゲーム終了時能力の点"
+        },
+        {
+          "name": "卵(1個1点)"
+        },
+        {
+          "name": "蓄えた資源(1個1点)"
+        },
+        {
+          "name": "差し込んだドラゴンカード(1個1点)"
+        },
+        {
+          "name": "共通の目標"
+        },
+        {
+          "name": "残ったコイン(1枚1点)"
+        },
+        {
+          "name": "残った資源とカードの点(4個1点)"
+        },
+        {
+           "tiebreak": true,
+           "name": "見えているドラゴンの枚数"
+        }
+      ],
+      "subtitle": "Wyrmspan",
+      "title": "ワイアームスパン"
+    },
+    {
+      "items": [
+        {
+          "name": "1週目の業績"
+        },
+        {
+          "name": "2週目の業績"
+        },
+        {
+          "name": "3週目の業績"
+        },
+        {
+          "name": "ゲーム終了時の能力"
+        },
+        {
+          "name": "見えている魚の点数"
+        },
+        {
+          "name": "卵(1枚1点)"
+        },
+        {
+          "name": "幼魚(1枚1点)"
+        },
+        {
+          "name": "群れ(1枚6点)"
+        },
+        {
+          "name": "サンゴ(1個1点+ボーナス)"
+        },
+        {
+          "name": "捕食された魚(1枚1点)"
+        },
+        {
+          "tiebreak": true,
+          "name": "手札の枚数"
+        }
+      ],
+      "subtitle": "Finspan",
+      "title": "フィンスパン"
     },
     {
       "items": [
@@ -91,6 +166,9 @@
         },
         {
           "name": "牛"
+        },
+        {
+          "name": "馬(拡張)"
         },
         {
           "name": "未使用スペース"
@@ -117,6 +195,46 @@
       ],
       "subtitle": "Agricola",
       "title": "アグリコラ"
+    },
+    {
+      "items": [
+        {
+          "name": "羊(家畜点)"
+        },
+        {
+          "name": "猪(家畜点)"
+        },
+        {
+          "name": "牛(家畜点)"
+        },
+        {
+          "name": "馬(家畜点)"
+        },
+        {
+          "name": "羊(ボーナス点)"
+        },
+        {
+          "name": "猪(ボーナス点)"
+        },
+        {
+          "name": "牛(ボーナス点)"
+        },
+        {
+          "name": "馬(ボーナス点)"
+        },
+        {
+          "name": "農場拡張ボード"
+        },
+        {
+          "name": "建物点"
+        },
+        {
+          "tiebreak": true,
+          "name": "ラウンド1にスタートプレイヤーではなかった"
+        }
+      ],
+      "subtitle": "Agricola: All Creatures Big and Small",
+      "title": "アグリコラ 牧場の動物たち"
     },
     {
       "items": [
@@ -199,7 +317,7 @@
           "name": "樹"
         },
         {
-          "name": "湿原"
+          "name": "湿原(ダートムーア)"
         },
         {
           "name": "上"
@@ -216,6 +334,48 @@
       ],
       "subtitle": "Forest Shuffle",
       "title": "フォレストシャッフル"
+    },
+        {
+      "items": [
+        {
+          "name": "青カード"
+        },
+        {
+          "name": "緑カード"
+        },
+        {
+          "name": "黄カード"
+        },
+        {
+          "name": "紫カード"
+        },
+        {
+          "name": "七不思議"
+        },
+        {
+          "name": "進歩トークン"
+        },
+        {
+          "name": "コイン(3個1点)"
+        },
+        {
+          "name": "軍事"
+        },
+        {
+          "tiebreak": true,
+          "name": "軍事的優位"
+        },
+        {
+          "tiebreak": true,
+          "name": "科学的優位"
+        },
+        {
+          "tiebreak": true,
+          "name": "青カードの勝利点"
+        }
+      ],
+      "subtitle": "7 Wonders Duel",
+      "title": "世界の七不思議 デュエル"
     },
     {
       "items": [
@@ -242,9 +402,13 @@
         },
         {
           "name": "ソロプレイマーカー"
+        },
+        {
+          "tiebreak": true,
+          "name": "動物タイルの枚数"
         }
       ],
-      "subtitle": "Ark Nova",
+      "subtitle": "Sanctuary: An Ark Nova Game",
       "title": "アークノヴァ・サンクチュアリ"
     }
   ]
