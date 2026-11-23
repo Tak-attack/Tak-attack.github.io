@@ -584,6 +584,9 @@
       .btn.receipt-btn:active { background: var(--bronze-dark); }
       .btn.pdf-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
       .btn.pdf-btn svg { width: 19px; height: 19px; flex: none; }
+      .btn.sii-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
+      .btn.sii-btn svg { width: 19px; height: 19px; flex: none; }
+      .receipt-actions .sii-note { flex: 1 1 100%; font-size: 12px; line-height: 1.6; color: var(--ink-soft); }
       .receipt-actions .pdf-status { flex: 1 1 100%; font-size: 13px; font-weight: 700; color: var(--bronze-dark); }
       .receipt-actions .pdf-status:empty { display: none; }
 
@@ -628,6 +631,7 @@
       .receipt-dialog-actions .btn { flex: 1 1 auto; justify-content: center; min-height: 46px; background: var(--panel); }
       .receipt-dialog-actions .btn.receipt-print-btn { flex: 2 1 auto; background: var(--bronze); border-color: var(--bronze-dark); color: #fff8ea; font-size: 15px; }
       .receipt-dialog-actions .btn.receipt-pdf-btn { flex: 1 1 auto; }
+      .receipt-dialog-actions .btn.receipt-sii-btn { flex: 1 1 auto; }
       :root[data-theme="dark"] .receipt-dialog-actions .btn.receipt-print-btn { color: #241a08; }
       .receipt-print-status { width: 100%; margin-top: 8px; font-size: 13px; font-weight: 700; color: #f0e6d2; min-height: 1.2em; text-align: center; }
       body.receipt-open { overflow: hidden; }
@@ -807,6 +811,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7L19 8.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5A1 1 0 0 1 7 3.5z"/><path d="M13.5 3.5v5.5H19"/><path d="M12 11v6M9.2 14.4L12 17.2l2.8-2.8"/></svg>
             PDFで保存
           </button>
+          <button class="btn sii-btn" id="siiPrintMain" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/><path d="M17.5 11.5h.01"/></svg>
+            RP-F10で印刷（URL Print Agent）
+          </button>
           <div class="receipt-width-switch" role="group" aria-label="レシート幅">
             <span class="rws-label">レシート幅</span>
             <div class="rws-btns">
@@ -815,6 +823,7 @@
             </div>
           </div>
           <p class="note">結果をレシート幅の用紙風プレビューで確認してから、レシートプリンター（RP-F10など）で印刷できます。レシート幅は58mm／80mmを切り替えられ、選んだ幅はこの端末に保存されます。iPadでは「PDFで保存」で結果を選択中の幅のPDFに書き出し、共有シートから「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して RP-F10 で印刷できます。</p>
+          <span class="sii-note">「RP-F10で印刷（URL Print Agent）」は、SII URL Print Agent アプリが入った端末で、ブラウザ（Safari／Chrome）からこのページを開いたときに使えます。アプリ内ブラウザでは起動しない場合があります。</span>
           <span class="pdf-status" id="pdfStatus" role="status" aria-live="polite"></span>
         </div>
       </section>
@@ -860,7 +869,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-        <p class="receipt-hint">レシートの内容を確認してください。「このレシートを印刷」を押すと印刷ダイアログが開くので、レシートプリンター（RP-F10）を選んで印刷してください。Androidでは SII Print Service 経由で RP-F10 に印刷されます。iPadでは「PDFで保存」を押すと選択中の幅のPDFを共有シートで書き出せるので、「ファイルに保存」や SII URL Print Agent などの印刷アプリから RP-F10 に印刷してください。</p>
+        <p class="receipt-hint">レシートの内容を確認してください。「このレシートを印刷」を押すと印刷ダイアログが開くので、レシートプリンター（RP-F10）を選んで印刷してください。Androidでは SII Print Service 経由で RP-F10 に印刷されます。iPadでは「PDFで保存」を押すと選択中の幅のPDFを共有シートで書き出せるので、「ファイルに保存」や SII URL Print Agent などの印刷アプリから RP-F10 に印刷してください。SII URL Print Agent アプリが入った端末では「RP-F10で印刷」から直接印刷もできます（ブラウザで開いた場合のみ。アプリ内ブラウザでは起動しないことがあります）。</p>
         <div class="receipt-width-switch" role="group" aria-label="レシート幅">
           <span class="rws-label">レシート幅</span>
           <div class="rws-btns">
@@ -872,6 +881,7 @@
         <div class="receipt-dialog-actions">
           <button type="button" class="btn" id="receiptBack">戻る</button>
           <button type="button" class="btn receipt-pdf-btn" id="savePdf">PDFで保存</button>
+          <button type="button" class="btn receipt-sii-btn" id="siiPrint">RP-F10で印刷</button>
           <button type="button" class="btn receipt-print-btn" id="doPrintReceipt">このレシートを印刷</button>
         </div>
         <p class="receipt-print-status" id="receiptPrintStatus" role="status" aria-live="polite"></p>
@@ -2272,6 +2282,83 @@
       }
       el("savePdfMain").addEventListener("click", function () { savePdf(false); });
       el("savePdf").addEventListener("click", function () { savePdf(true); });
+
+      /* ---------- RP-F10 direct print via SII URL Print Agent ----------
+         Follows the official SII URL Print Agent programmer's guide
+         (Android/iOS, Rev.01) and the official sample page: the PDF is
+         Base64-encoded, URL-encoded into the Data parameter, and the
+         agent is launched by assigning the scheme URL to location.href:
+           siiprintagent://1.0/print?Format=pdf&Data=<base64>&...
+         The PDF is the same self-generated file as "PDFで保存"
+         (buildPdfFile), so nothing needs to sit on a server. Parameters:
+           Format=pdf (fixed), BtKeepConnect=always (stated explicitly),
+           CallbackSuccess / CallbackFail = this page's URL without its
+           query string, ErrorDialog=yes, SelectOnError=no,
+           PaperWidth follows the 58mm/80mm receipt-width switch,
+           FitToWidth=no — the generated PDF is already exactly the roll
+           width, so no fitting is wanted. CutType is omitted, which
+           keeps the guide's default (partial).
+         Size guard from the guide: the pre-Base64 PDF should stay
+         under roughly 500KB on iOS / 150KB on Android. Past the limit
+         for this device the print is not launched and a warning is
+         shown instead. The whole scheme URL also gets very long
+         (Base64 inflates the data by about a third, before URL
+         encoding), so whether a given device accepts it can only be
+         confirmed on the real hardware.
+         This only works where the SII URL Print Agent app is installed
+         and the page is open in a browser (Safari / Chrome); in-app
+         browsers may not launch the scheme at all. */
+      function blobToBase64(blob) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            var result = String(reader.result || "");
+            var comma = result.indexOf(",");
+            resolve(comma >= 0 ? result.slice(comma + 1) : result);
+          };
+          reader.onerror = function () { reject(reader.error || new Error("read failed")); };
+          reader.readAsDataURL(blob);
+        });
+      }
+      function printViaSiiAgent(inDialog) {
+        var built;
+        try {
+          built = buildPdfFile();
+        } catch (err) {
+          setPdfStatus("PDFを作成できませんでした。もう一度お試しください。", inDialog);
+          return;
+        }
+        var isAndroid = /Android/i.test(navigator.userAgent || "");
+        var limitBytes = (isAndroid ? 150 : 500) * 1024;
+        if (built.blob.size > limitBytes) {
+          setPdfStatus("PDFデータが大きすぎます（約" + Math.round(built.blob.size / 1024) + "KB）。この端末での目安（約" + (limitBytes / 1024) + "KB）を超えているため、RP-F10印刷は実行しませんでした。「PDFで保存」から印刷をお試しください。", inDialog);
+          return;
+        }
+        setPdfStatus("SII URL Print Agentを起動しています…", inDialog);
+        blobToBase64(built.blob).then(function (base64) {
+          var callbackUrl = String(window.location.href || "").split(/[?#]/)[0];
+          var url = "siiprintagent://1.0/print?" +
+            "Format=" + encodeURIComponent("pdf") + "&" +
+            "Data=" + encodeURIComponent(base64) + "&" +
+            "BtKeepConnect=" + encodeURIComponent("always") + "&" +
+            "CallbackSuccess=" + encodeURIComponent(callbackUrl) + "&" +
+            "CallbackFail=" + encodeURIComponent(callbackUrl) + "&" +
+            "ErrorDialog=" + encodeURIComponent("yes") + "&" +
+            "SelectOnError=" + encodeURIComponent("no") + "&" +
+            "FitToWidth=" + encodeURIComponent("no") + "&" +
+            "PaperWidth=" + encodeURIComponent(String(receiptWidthMm));
+          setPdfStatus("SII URL Print Agentを起動しました。アプリが開かない場合は、ブラウザ（Safari／Chrome）でこのページを開いてお試しください。", inDialog);
+          try {
+            window.location.href = url;
+          } catch (errNav) {
+            setPdfStatus("URL Print Agentを起動できませんでした。ブラウザ（Safari／Chrome）でこのページを開いてお試しください。", inDialog);
+          }
+        }, function () {
+          setPdfStatus("PDFデータの変換に失敗しました。もう一度お試しください。", inDialog);
+        });
+      }
+      el("siiPrintMain").addEventListener("click", function () { printViaSiiAgent(false); });
+      el("siiPrint").addEventListener("click", function () { printViaSiiAgent(true); });
 
       /* ---------- jump navigation (fixed corner ↑ / ↓) ---------- */
       function jumpTargets() {
