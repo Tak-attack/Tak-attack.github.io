@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet" />
     <style>
-      * { box-sizing: border-box; }
+      * { box-sizing: border-box; touch-action: manipulation; }
       [hidden] { display: none !important; }
       button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
       .minh0 { min-height: 0 !important; }
@@ -266,6 +266,7 @@
       .preset-main { min-width: 0; flex: 1; }
       .preset-name-line { display: flex; align-items: center; gap: 6px; }
       .preset-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 14px; font-weight: 800; }
+      .preset-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 500; line-height: 1.3; margin-top: 1px; letter-spacing: .01em; color: var(--dim); opacity: .85; }
       .builtin-badge { flex: none; border-radius: 999px; background: var(--surface2); padding: 2px 6px; font-size: 9px; font-weight: 700; color: var(--dim); }
       .preset-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--dim); }
       .small-btn { flex: none; border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; background: var(--surface2); color: var(--dim); min-height: 2rem; }
@@ -370,6 +371,17 @@
       .del-btn:disabled { opacity: .3; }
       .cancel-btn { border-radius: 12px; background: var(--surface); padding: 10px 16px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
       .done-btn { flex: 1; border-radius: 12px; background: var(--accent); padding: 10px 16px; font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--on-accent); }
+
+      /* ---- editor popup (anchored under the tapped name, overlays the table) ---- */
+      #editorSheet {
+        position: fixed; left: 8px; top: 64px; z-index: 80;
+        width: min(340px, calc(100vw - 16px));
+        max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain;
+        border: 1px solid var(--border); border-top: 1px solid var(--border);
+        border-radius: 16px; background: var(--panel);
+        padding: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.42);
+      }
+      #editorSheet.pop-in { animation: pop-in 90ms ease-out; }
 
       /* ---- help sheet ---- */
       #helpScroll { margin: 8px 0 4px; max-height: 52dvh; overflow-y: auto; overscroll-behavior: contain; }
@@ -760,7 +772,7 @@
     }
 
     function defaultState() {
-      var players = [0, 1, 2, 3].map(function (i) {
+      var players = [0, 1].map(function (i) {
         return { id: uid() + "p" + i, name: "", color: PLAYER_COLORS[i] };
       });
       var categories = [0, 1, 2, 3, 4].map(function (i) {
@@ -785,7 +797,7 @@
     }
 
     function builtinPlayers(prefix) {
-      return [0, 1, 2, 3].map(function (i) {
+      return [0, 1].map(function (i) {
         return { id: prefix + "-p" + i, name: "", color: PLAYER_COLORS[i] };
       });
     }
@@ -797,23 +809,69 @@
     function N(name) { return { name: name }; }
     function NM(name) { return { name: name, negative: true }; }
     var BUILTIN_PRESETS = [
-      { id: "builtin-blank", name: "空欄", title: "ゲーム名", players: builtinPlayers("builtin-blank"),
+      { id: "builtin-blank", name: "空欄", subtitle: "", title: "ゲーム名", players: builtinPlayers("builtin-blank"),
         categories: builtinCategories("builtin-blank", [N(""), N(""), N(""), N(""), N("")]) },
-      { id: "builtin-arnak", name: "アルナックの失われし遺跡", title: "アルナックの失われし遺跡", players: builtinPlayers("builtin-arnak"),
+      { id: "builtin-arnak", name: "アルナックの失われし遺跡", subtitle: "Lost Ruins of Arnak", title: "アルナックの失われし遺跡", players: builtinPlayers("builtin-arnak"),
         categories: builtinCategories("builtin-arnak", [N("研究"), N("寺院"), N("偶像"), N("守護者"), N("アイテム/遺物"), NM("恐怖")]) },
-      { id: "builtin-wingspan", name: "ウイングスパン", title: "ウイングスパン", players: builtinPlayers("builtin-wingspan"),
+      { id: "builtin-wingspan", name: "ウイングスパン", subtitle: "Wingspan", title: "ウイングスパン", players: builtinPlayers("builtin-wingspan"),
         categories: builtinCategories("builtin-wingspan", [N("鳥カード"), N("ボーナスカード"), N("ラウンド終了時目的"), N("卵"), N("鳥カード上の餌"), N("差し込んだ鳥カード")]) },
-      { id: "builtin-agricola", name: "アグリコラ", title: "アグリコラ", players: builtinPlayers("builtin-agricola"),
+      { id: "builtin-agricola", name: "アグリコラ", subtitle: "Agricola", title: "アグリコラ", players: builtinPlayers("builtin-agricola"),
         categories: builtinCategories("builtin-agricola", [N("畑"), N("牧場"), N("小麦"), N("野菜"), N("羊"), N("猪"), N("牛"), N("未使用スペース"), N("柵で囲まれた厩"), N("レンガ/石の部屋"), N("家族コマ"), N("カード得点"), N("ボーナス得点"), NM("物乞い")]) },
-      { id: "builtin-odin", name: "オーディンの祝祭", title: "オーディンの祝祭", players: builtinPlayers("builtin-odin"),
+      { id: "builtin-odin", name: "オーディンの祝祭", subtitle: "A Feast for Odin", title: "オーディンの祝祭", players: builtinPlayers("builtin-odin"),
         categories: builtinCategories("builtin-odin", [N("船"), N("移住"), N("探検ボード"), N("建物"), N("動物"), N("職業カード"), N("銀貨"), N("最終収入"), N("イングランドの王冠"), NM("ホームボード"), NM("探検ボード"), NM("倉庫と家"), NM("シングの罰則")]) },
-      { id: "builtin-nusfjord", name: "ヌースフィヨルド", title: "ヌースフィヨルド", players: builtinPlayers("builtin-nusfjord"),
+      { id: "builtin-nusfjord", name: "ヌースフィヨルド", subtitle: "Nusfjord", title: "ヌースフィヨルド", players: builtinPlayers("builtin-nusfjord"),
         categories: builtinCategories("builtin-nusfjord", [N("船"), N("建物"), N("株券"), N("金貨"), NM("空きスペース"), NM("未発行株")]) },
-      { id: "builtin-forest-shuffle", name: "フォレストシャッフル", title: "フォレストシャッフル", players: builtinPlayers("builtin-forest-shuffle"),
+      { id: "builtin-forest-shuffle", name: "フォレストシャッフル", subtitle: "Forest Shuffle", title: "フォレストシャッフル", players: builtinPlayers("builtin-forest-shuffle"),
         categories: builtinCategories("builtin-forest-shuffle", [N("樹"), N("湿原"), N("上"), N("左/右"), N("下"), N("洞窟")]) },
-      { id: "builtin-ark-nova-sanctuary", name: "アークノヴァ・サンクチュアリ", title: "アークノヴァ・サンクチュアリ", players: builtinPlayers("builtin-ark-nova-sanctuary"),
+      { id: "builtin-ark-nova-sanctuary", name: "アークノヴァ・サンクチュアリ", subtitle: "Ark Nova", title: "アークノヴァ・サンクチュアリ", players: builtinPlayers("builtin-ark-nova-sanctuary"),
         categories: builtinCategories("builtin-ark-nova-sanctuary", [N("動物タイル"), N("建物タイル"), N("計画タイル"), N("空き地"), N("保全功績"), N("保全/育児嚢マーカー(2点)"), N("ゲーム終了マーカー"), N("ソロプレイマーカー")]) }
     ];
+
+    /* ---- external presets (read-only, fetched from GitHub Pages) ----
+       Format: {"presets":[{"title":"日本語名","subtitle":"原語名","items":[{"name":"項目名","minus":false,"tiebreak":false}]}]}
+       minus/tiebreak are optional (default false). Empty name = blank item.
+       On fetch failure the built-in fallback above is used. */
+    var EXTERNAL_PRESETS_URL = "https://tak-attack.github.io/boardgame-score-calc/presets.json";
+    var externalPresets = null;
+    function getBuiltinPresets() { return externalPresets !== null ? externalPresets : BUILTIN_PRESETS; }
+    function convertExternalPresets(json) {
+      if (!json || !Array.isArray(json.presets)) return null;
+      var out = [];
+      json.presets.forEach(function (p, idx) {
+        if (!p || typeof p.title !== "string" || !p.title) return;
+        var prefix = "external-" + idx;
+        var items = Array.isArray(p.items) ? p.items : [];
+        var defs = items.map(function (it) {
+          if (!it || typeof it !== "object") return { name: "" };
+          return { name: typeof it.name === "string" ? it.name : "", negative: !!it.minus, tiebreak: !!it.tiebreak };
+        });
+        if (defs.length === 0) defs = [N(""), N(""), N(""), N(""), N("")];
+        out.push({
+          id: prefix,
+          name: p.title,
+          subtitle: typeof p.subtitle === "string" ? p.subtitle : "",
+          title: p.title,
+          players: builtinPlayers(prefix),
+          categories: builtinCategories(prefix, defs)
+        });
+      });
+      return out.length ? out : null;
+    }
+    function loadExternalPresets() {
+      if (typeof fetch !== "function") return;
+      try {
+        fetch(EXTERNAL_PRESETS_URL, { cache: "no-cache" }).then(function (res) {
+          if (!res.ok) throw new Error("presets fetch failed: " + res.status);
+          return res.json();
+        }).then(function (json) {
+          var converted = convertExternalPresets(json);
+          if (converted) {
+            externalPresets = converted;
+            if (typeof hydrated !== "undefined" && hydrated) renderAll();
+          }
+        }).catch(function () { /* offline etc: keep the built-in fallback */ });
+      } catch (e) { /* fetch unavailable: keep the built-in fallback */ }
+    }
 
     var HELP_SECTIONS = [
       { heading: "得点表", items: [
@@ -1477,7 +1535,7 @@
 
     /* auto-scroll the table so the selected cell stays visible above the float window */
     function autoScroll() {
-      if (!entering) return;
+      if (!entering || editing) return;
       var key = state.selected.playerId + ":" + state.selected.categoryId;
       var el = gridEl.querySelector('[data-cell="' + CSS.escape(key) + '"]');
       if (!el) return;
@@ -1638,7 +1696,7 @@
       openSheetName = null;
       renderAll();
       var input = $("editorInput");
-      input.focus();
+      try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
     }
     function commitEdit() {
       if (!editing) return;
@@ -1779,10 +1837,11 @@
       } else if (pr.players.some(function (p) { return p.name.trim(); })) {
         sub += " ・ " + pr.players.map(function (p, i) { return displayPlayerName(p, i); }).join(" / ");
       }
+      var subtitle = pr.subtitle ? String(pr.subtitle).trim() : "";
       var h = '<div class="preset-row"><div class="preset-main"><div class="preset-name-line">' +
         '<span class="preset-name">' + esc(pr.name) + "</span>" +
         (builtin ? '<span class="builtin-badge">標準</span>' : "") +
-        '</div><div class="preset-sub">' + esc(sub) + "</div></div>";
+        '</div>' + (subtitle ? '<div class="preset-subtitle">' + esc(subtitle) + "</div>" : "") + '<div class="preset-sub">' + esc(sub) + "</div></div>";
       if (!builtin) {
         var dc = confirmDeletePresetId === pr.id;
         h += '<button type="button" class="small-btn' + (dc ? " confirm" : "") + '" data-del-preset="' + esc(pr.id) + '" aria-label="プリセット「' + esc(pr.name) + '」を削除">' + (dc ? "本当に削除？" : "削除") + "</button>";
@@ -1794,7 +1853,7 @@
     }
     function renderPresets() {
       var h = '<p class="cat-label">はじめから入っているプリセット</p>';
-      BUILTIN_PRESETS.forEach(function (pr) { h += presetRowHTML(pr, true); });
+      getBuiltinPresets().forEach(function (pr) { h += presetRowHTML(pr, true); });
       h += '<p class="cat-label">保存したプリセット</p>';
       if (state.presets.length === 0) {
         h += '<p class="empty-note">まだ保存したプリセットがありません。下の欄から今の表を保存できます。</p>';
@@ -1991,13 +2050,40 @@
       $("helpScroll").innerHTML = h;
     }
 
-    /* ---------------- editor sheet ---------------- */
+    /* ---------------- editor popup ---------------- */
+    function positionEditorPopup() {
+      var sheet = $("editorSheet");
+      if (!editing || sheet.hidden) return;
+      var anchor = editing.kind === "player"
+        ? gridEl.querySelector(".pill.editing")
+        : gridEl.querySelector(".cat-name-editing");
+      if (!anchor) { sheet.style.left = "8px"; sheet.style.top = "64px"; return; }
+      // For category rows the visible anchor is the sticky row header cell
+      var anchorEl = anchor.closest(".rh-cat") || anchor.closest(".th-player") || anchor;
+      var rect = anchorEl.getBoundingClientRect();
+      var margin = 8, gap = 6;
+      var popupW = sheet.offsetWidth || Math.min(340, window.innerWidth - margin * 2);
+      var popupH = sheet.offsetHeight || 0;
+      var left = rect.left;
+      left = Math.max(margin, Math.min(left, window.innerWidth - popupW - margin));
+      var top = rect.bottom + gap;
+      if (popupH && top + popupH > window.innerHeight - margin) {
+        var above = rect.top - gap - popupH;
+        top = above >= margin ? above : Math.max(margin, window.innerHeight - popupH - margin);
+      }
+      sheet.style.left = left + "px";
+      sheet.style.top = top + "px";
+    }
     function renderEditor() {
       var sheet = $("editorSheet");
       sheet.hidden = !editing;
       if (!editing) return;
-      sheet.className = "sheet " + sheetAnimClass();
+      sheet.className = state.animations ? "pop-in" : "";
       sheet.id = "editorSheet";
+      /* sync the popup background with the floating window opacity setting
+         (標準／半透明／透明) — same color-mix ratios as renderFloat() */
+      if (state.floatOpacity === "opaque") sheet.style.backgroundColor = "";
+      else sheet.style.backgroundColor = "color-mix(in srgb, var(--panel) " + (state.floatOpacity === "semi" ? 62 : 38) + "%, transparent)";
       var isPlayer = editing.kind === "player";
       var idx = isPlayer
         ? state.players.findIndex(function (p) { return p.id === editing.id; })
@@ -2032,6 +2118,7 @@
       var del = $("editorDelete");
       del.disabled = count <= 1;
       del.setAttribute("aria-label", isPlayer ? "このプレイヤーを削除" : "この項目を削除");
+      positionEditorPopup();
     }
 
     /* ---------------- sheet visibility ---------------- */
@@ -2246,7 +2333,7 @@
       var load = e.target.closest("[data-load-preset]");
       if (load) {
         var id = load.getAttribute("data-load-preset");
-        var all = BUILTIN_PRESETS.concat(state.presets);
+        var all = getBuiltinPresets().concat(state.presets);
         var pr = all.find(function (x) { return x.id === id; });
         if (!pr) return;
         if (confirmLoadId === id) loadPreset(pr);
@@ -2339,7 +2426,9 @@
       var ro = new ResizeObserver(function () { measureFloat(); });
       ro.observe($("floatWin"));
     }
-    window.addEventListener("resize", function () { measureFloat(); });
+    window.addEventListener("resize", function () { measureFloat(); positionEditorPopup(); });
+    tableScrollEl.addEventListener("scroll", function () { if (editing) positionEditorPopup(); }, { passive: true });
+    tableXEl.addEventListener("scroll", function () { if (editing) positionEditorPopup(); }, { passive: true });
 
     /* flush any pending debounced save when the page goes away */
     window.addEventListener("pagehide", function () { if (hydrated) save(); });
@@ -2359,6 +2448,7 @@
         applyTheme();
         if (document.activeElement !== titleInput) titleInput.value = state.title;
         renderAll();
+        loadExternalPresets();
       }, 0);
     });
     </script>
