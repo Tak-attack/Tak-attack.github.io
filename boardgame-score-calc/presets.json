@@ -1,1 +1,251 @@
-{"presets":[{"items":[{"name":""},{"name":""},{"name":""},{"name":""},{"name":""}],"title":"空欄"},{"items":[{"name":"研究"},{"name":"寺院"},{"name":"偶像"},{"name":"守護者"},{"name":"アイテム/遺物"},{"minus":true,"name":"恐怖"}],"subtitle":"Lost Ruins of Arnak","title":"アルナックの失われし遺跡"},{"items":[{"name":"鳥カード"},{"name":"ボーナスカード"},{"name":"ラウンド終了時目的"},{"name":"卵"},{"name":"鳥カード上の餌"},{"name":"差し込んだ鳥カード"}],"subtitle":"Wingspan","title":"ウイングスパン"},{"items":[{"name":"畑"},{"name":"牧場"},{"name":"小麦"},{"name":"野菜"},{"name":"羊"},{"name":"猪"},{"name":"牛"},{"name":"未使用スペース"},{"name":"柵で囲まれた厩"},{"name":"レンガ/石の部屋"},{"name":"家族コマ"},{"name":"カード得点"},{"name":"ボーナス得点"},{"minus":true,"name":"物乞い"}],"subtitle":"Agricola","title":"アグリコラ"},{"items":[{"name":"船"},{"name":"移住"},{"name":"探検ボード"},{"name":"建物"},{"name":"動物"},{"name":"職業カード"},{"name":"銀貨"},{"name":"最終収入"},{"name":"イングランドの王冠"},{"minus":true,"name":"ホームボード"},{"minus":true,"name":"探検ボード"},{"minus":true,"name":"倉庫と家"},{"minus":true,"name":"シングの罰則"}],"subtitle":"A Feast for Odin","title":"オーディンの祝祭"},{"items":[{"name":"船"},{"name":"建物"},{"name":"株券"},{"name":"金貨"},{"minus":true,"name":"空きスペース"},{"minus":true,"name":"未発行株"}],"subtitle":"Nusfjord","title":"ヌースフィヨルド"},{"items":[{"name":"樹"},{"name":"湿原"},{"name":"上"},{"name":"左/右"},{"name":"下"},{"name":"洞窟"}],"subtitle":"Forest Shuffle","title":"フォレストシャッフル"},{"items":[{"name":"動物タイル"},{"name":"建物タイル"},{"name":"計画タイル"},{"name":"空き地"},{"name":"保全功績"},{"name":"保全/育児嚢マーカー(2点)"},{"name":"ゲーム終了マーカー"},{"name":"ソロプレイマーカー"}],"subtitle":"Ark Nova","title":"アークノヴァ・サンクチュアリ"}]}
+{
+  "presets": [
+    {
+      "items": [
+        {
+          "name": ""
+        },
+        {
+          "name": ""
+        },
+        {
+          "name": ""
+        },
+        {
+          "name": ""
+        },
+        {
+          "name": ""
+        }
+      ],
+      "title": "空欄"
+    },
+    {
+      "items": [
+        {
+          "name": "研究"
+        },
+        {
+          "name": "寺院"
+        },
+        {
+          "name": "偶像"
+        },
+        {
+          "name": "守護者"
+        },
+        {
+          "name": "アイテム/遺物"
+        },
+        {
+          "minus": true,
+          "name": "恐怖"
+        }
+      ],
+      "subtitle": "Lost Ruins of Arnak",
+      "title": "アルナックの失われし遺跡"
+    },
+    {
+      "items": [
+        {
+          "name": "鳥カード"
+        },
+        {
+          "name": "ボーナスカード"
+        },
+        {
+          "name": "ラウンド終了時目的"
+        },
+        {
+          "name": "卵"
+        },
+        {
+          "name": "鳥カード上の餌"
+        },
+        {
+          "name": "差し込んだ鳥カード"
+        }
+      ],
+      "subtitle": "Wingspan",
+      "title": "ウイングスパン"
+    },
+    {
+      "items": [
+        {
+          "name": "畑"
+        },
+        {
+          "name": "牧場"
+        },
+        {
+          "name": "小麦"
+        },
+        {
+          "name": "野菜"
+        },
+        {
+          "name": "羊"
+        },
+        {
+          "name": "猪"
+        },
+        {
+          "name": "牛"
+        },
+        {
+          "name": "未使用スペース"
+        },
+        {
+          "name": "柵で囲まれた厩"
+        },
+        {
+          "name": "レンガ/石の部屋"
+        },
+        {
+          "name": "家族コマ"
+        },
+        {
+          "name": "カード得点"
+        },
+        {
+          "name": "ボーナス得点"
+        },
+        {
+          "minus": true,
+          "name": "物乞い"
+        }
+      ],
+      "subtitle": "Agricola",
+      "title": "アグリコラ"
+    },
+    {
+      "items": [
+        {
+          "name": "船"
+        },
+        {
+          "name": "移住"
+        },
+        {
+          "name": "探検ボード"
+        },
+        {
+          "name": "建物"
+        },
+        {
+          "name": "動物"
+        },
+        {
+          "name": "職業カード"
+        },
+        {
+          "name": "銀貨"
+        },
+        {
+          "name": "最終収入"
+        },
+        {
+          "name": "イングランドの王冠"
+        },
+        {
+          "minus": true,
+          "name": "ホームボード"
+        },
+        {
+          "minus": true,
+          "name": "探検ボード"
+        },
+        {
+          "minus": true,
+          "name": "倉庫と家"
+        },
+        {
+          "minus": true,
+          "name": "シングの罰則"
+        }
+      ],
+      "subtitle": "A Feast for Odin",
+      "title": "オーディンの祝祭"
+    },
+    {
+      "items": [
+        {
+          "name": "船"
+        },
+        {
+          "name": "建物"
+        },
+        {
+          "name": "株券"
+        },
+        {
+          "name": "金貨"
+        },
+        {
+          "minus": true,
+          "name": "空きスペース"
+        },
+        {
+          "minus": true,
+          "name": "未発行株"
+        }
+      ],
+      "subtitle": "Nusfjord",
+      "title": "ヌースフィヨルド"
+    },
+    {
+      "items": [
+        {
+          "name": "樹"
+        },
+        {
+          "name": "湿原"
+        },
+        {
+          "name": "上"
+        },
+        {
+          "name": "左/右"
+        },
+        {
+          "name": "下"
+        },
+        {
+          "name": "洞窟"
+        }
+      ],
+      "subtitle": "Forest Shuffle",
+      "title": "フォレストシャッフル"
+    },
+    {
+      "items": [
+        {
+          "name": "動物タイル"
+        },
+        {
+          "name": "建物タイル"
+        },
+        {
+          "name": "計画タイル"
+        },
+        {
+          "name": "空き地"
+        },
+        {
+          "name": "保全功績"
+        },
+        {
+          "name": "保全/育児嚢マーカー(2点)"
+        },
+        {
+          "name": "ゲーム終了マーカー"
+        },
+        {
+          "name": "ソロプレイマーカー"
+        }
+      ],
+      "subtitle": "Ark Nova",
+      "title": "アークノヴァ・サンクチュアリ"
+    }
+  ]
+}
