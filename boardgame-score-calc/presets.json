@@ -97,8 +97,8 @@
           "name": "残った資源とカードの点(4個1点)"
         },
         {
-           "tiebreak": true,
-           "name": "見えているドラゴンの枚数"
+          "tiebreak": true,
+          "name": "見えているドラゴンの枚数"
         }
       ],
       "subtitle": "Wyrmspan",
@@ -335,7 +335,7 @@
       "subtitle": "Forest Shuffle",
       "title": "フォレストシャッフル"
     },
-        {
+    {
       "items": [
         {
           "name": "青カード"
@@ -410,6 +410,92 @@
       ],
       "subtitle": "Sanctuary: An Ark Nova Game",
       "title": "アークノヴァ・サンクチュアリ"
+    },
+    {
+      "title": "ハーモニーズ",
+      "subtitle": "Harmonies",
+      "items": [
+        {
+          "name": "樹木"
+        },
+        {
+          "name": "山岳"
+        },
+        {
+          "name": "平野"
+        },
+        {
+          "name": "建物"
+        },
+        {
+          "name": "水域"
+        },
+        {
+          "name": "動物/精霊カード"
+        },
+        {
+          "name": "動物コマ",
+          "tiebreak": true
+        }
+      ]
+    },
+    {
+      "title": "カスカディア",
+      "subtitle": "Cascadia",
+      "items": [
+        {
+          "name": "クマ"
+        },
+        {
+          "name": "エルク"
+        },
+        {
+          "name": "サケ"
+        },
+        {
+          "name": "タカ"
+        },
+        {
+          "name": "キツネ"
+        },
+        {
+          "name": "山の回廊地帯"
+        },
+        {
+          "name": "山の大きさ比較"
+        },
+        {
+          "name": "森林の回廊地帯"
+        },
+        {
+          "name": "森林の大きさ比較"
+        },
+        {
+          "name": "大平原の回廊地帯"
+        },
+        {
+          "name": "大平原の大きさ比較"
+        },
+        {
+          "name": "湿地の回廊地帯"
+        },
+        {
+          "name": "湿地の大きさ比較"
+        },
+        {
+          "name": "川の回廊地帯"
+        },
+        {
+          "name": "川の大きさ比較"
+        },
+        {
+          "name": "自然トークン"
+        },
+        {
+          "name": "自然トークン",
+          "tiebreak": true
+        }
+      ]
     }
   ]
 }
