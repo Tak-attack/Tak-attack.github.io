@@ -638,7 +638,8 @@
 
       /* The receipt itself: always white paper / black ink, whatever the
          colour scheme, sized for the selected thermal roll (80mm by
-         default, 58mm with .is-58; the RP-F10 takes both). */
+         default, 58mm with .is-58; supported receipt printers
+         take both rolls). */
       .receipt-paper {
         width: 100%; max-width: 340px; margin: 0 auto;
         background: #fff; color: #111;
@@ -813,7 +814,7 @@
           </button>
           <button class="btn sii-btn" id="siiPrintMain" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/><path d="M17.5 11.5h.01"/></svg>
-            RP-F10で印刷（URL Print Agent）
+            レシートプリンターで印刷（URL Print Agent）
           </button>
           <div class="receipt-width-switch" role="group" aria-label="レシート幅">
             <span class="rws-label">レシート幅</span>
@@ -822,8 +823,8 @@
               <button type="button" class="rws-btn" data-receipt-width="80" aria-pressed="true">80mm</button>
             </div>
           </div>
-          <p class="note">結果をレシート幅の用紙風プレビューで確認してから、レシートプリンター（RP-F10など）で印刷できます。レシート幅は58mm／80mmを切り替えられ、選んだ幅はこの端末に保存されます。iPadでは「PDFで保存」で結果を選択中の幅のPDFに書き出し、共有シートから「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して RP-F10 で印刷できます。</p>
-          <span class="sii-note">「RP-F10で印刷（URL Print Agent）」は、SII URL Print Agent アプリが入った端末で、ブラウザ（Safari／Chrome）からこのページを開いたときに使えます。アプリ内ブラウザでは起動しない場合があります。</span>
+          <p class="note">結果をレシート幅の用紙風プレビューで確認してから、対応レシートプリンターで印刷できます。レシート幅は58mm／80mmを切り替えられ、選んだ幅はこの端末に保存されます。iPadでは「PDFで保存」で結果を選択中の幅のPDFに書き出し、共有シートから「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して対応プリンターで印刷できます。</p>
+          <span class="sii-note">「レシートプリンターで印刷（URL Print Agent）」は、SII URL Print Agent アプリが入った端末で、ブラウザ（Safari／Chrome）からこのページを開いたときに使えます。アプリ内ブラウザでは起動しない場合があります。</span>
           <span class="pdf-status" id="pdfStatus" role="status" aria-live="polite"></span>
         </div>
       </section>
@@ -869,7 +870,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-        <p class="receipt-hint">レシートの内容を確認してください。「このレシートを印刷」を押すと印刷ダイアログが開くので、レシートプリンター（RP-F10）を選んで印刷してください。Androidでは SII Print Service 経由で RP-F10 に印刷されます。iPadでは「PDFで保存」を押すと選択中の幅のPDFを共有シートで書き出せるので、「ファイルに保存」や SII URL Print Agent などの印刷アプリから RP-F10 に印刷してください。SII URL Print Agent アプリが入った端末では「RP-F10で印刷」から直接印刷もできます（ブラウザで開いた場合のみ。アプリ内ブラウザでは起動しないことがあります）。</p>
+        <p class="receipt-hint">レシートの内容を確認してください。「このレシートを印刷」を押すと印刷ダイアログが開くので、レシートプリンターを選んで印刷してください。Androidでは SII Print Service 経由で対応プリンターに印刷されます。iPadでは「PDFで保存」を押すと選択中の幅のPDFを共有シートで書き出せるので、「ファイルに保存」や SII URL Print Agent などの印刷アプリから対応プリンターに印刷してください。SII URL Print Agent アプリが入った端末では「レシートプリンターで印刷」から直接印刷もできます（ブラウザで開いた場合のみ。アプリ内ブラウザでは起動しないことがあります）。</p>
         <div class="receipt-width-switch" role="group" aria-label="レシート幅">
           <span class="rws-label">レシート幅</span>
           <div class="rws-btns">
@@ -881,7 +882,7 @@
         <div class="receipt-dialog-actions">
           <button type="button" class="btn" id="receiptBack">戻る</button>
           <button type="button" class="btn receipt-pdf-btn" id="savePdf">PDFで保存</button>
-          <button type="button" class="btn receipt-sii-btn" id="siiPrint">RP-F10で印刷</button>
+          <button type="button" class="btn receipt-sii-btn" id="siiPrint">レシートプリンターで印刷</button>
           <button type="button" class="btn receipt-print-btn" id="doPrintReceipt">このレシートを印刷</button>
         </div>
         <p class="receipt-print-status" id="receiptPrintStatus" role="status" aria-live="polite"></p>
@@ -1873,14 +1874,14 @@
         showCopyStatus("ダウンロードしました");
       });
 
-      /* ---------- receipt preview & print (RP-F10 via OS print) ----------
+      /* ---------- receipt preview & print (receipt printer via OS print) ----------
          Two steps, like the board-game calculator: the results' print
          button opens a receipt-width preview first, and only the
          preview's own print button calls window.print() — an in-app
          browser may not open the print dialog straight from the page.
          @media print shows only #receiptPrintArea, so none of the
          on-screen UI (inputs, buttons) ever reaches the printer.
-         Android prints through SII Print Service to the RP-F10. */
+         Android prints through SII Print Service to a supported printer. */
       function buildReceiptHtml() {
         var rows = players.map(function (p, i) {
           return { i: i, p: p, s: scores(p), total: totalOf(p) };
@@ -1935,7 +1936,7 @@
       }
 
       /* ---------- receipt roll width: 58mm / 80mm ----------
-         The RP-F10 takes both rolls (printable width 54mm on 58mm
+         Supported receipt printers take both rolls (printable width 54mm on 58mm
          paper, 72mm on 80mm paper). The switch drives all three
          outputs: the preview paper width (the .is-58 class), the
          print @page size (rewritten into #receiptPageStyle) plus the
@@ -2000,14 +2001,14 @@
         var st = el("receiptPrintStatus");
         try {
           window.print();
-          if (st) st.textContent = "印刷ダイアログを開きました。レシートプリンター（RP-F10）を選んでください。";
+          if (st) st.textContent = "印刷ダイアログを開きました。レシートプリンターを選んでください。";
         } catch (err) {
           if (st) st.textContent = "印刷ダイアログを開けませんでした。ブラウザのメニューから印刷をお試しください。";
         }
       });
 
       /* ---------- PDF export (58mm / 80mm wide, for the iPad route) ----------
-         iPad cannot print straight from the browser to the RP-F10, so
+         iPad cannot print straight from the browser to a receipt printer, so
          the same receipt content is also offered as a real PDF file:
          the receipt layout is drawn onto a canvas with the page's own
          fonts, the canvas is embedded as a JPEG image in a minimal
@@ -2283,7 +2284,7 @@
       el("savePdfMain").addEventListener("click", function () { savePdf(false); });
       el("savePdf").addEventListener("click", function () { savePdf(true); });
 
-      /* ---------- RP-F10 direct print via SII URL Print Agent ----------
+      /* ---------- direct print to a supported printer via SII URL Print Agent ----------
          Follows the official SII URL Print Agent programmer's guide
          (Android/iOS, Rev.01) and the official sample page: the PDF is
          Base64-encoded, URL-encoded into the Data parameter, and the
@@ -2331,7 +2332,7 @@
         var isAndroid = /Android/i.test(navigator.userAgent || "");
         var limitBytes = (isAndroid ? 150 : 500) * 1024;
         if (built.blob.size > limitBytes) {
-          setPdfStatus("PDFデータが大きすぎます（約" + Math.round(built.blob.size / 1024) + "KB）。この端末での目安（約" + (limitBytes / 1024) + "KB）を超えているため、RP-F10印刷は実行しませんでした。「PDFで保存」から印刷をお試しください。", inDialog);
+          setPdfStatus("PDFデータが大きすぎます（約" + Math.round(built.blob.size / 1024) + "KB）。この端末での目安（約" + (limitBytes / 1024) + "KB）を超えているため、レシートプリンターへの印刷は実行しませんでした。「PDFで保存」から印刷をお試しください。", inDialog);
           return;
         }
         setPdfStatus("SII URL Print Agentを起動しています…", inDialog);
