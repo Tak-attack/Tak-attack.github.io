@@ -701,7 +701,16 @@
         margin-top: 8px; width: 100%; border-radius: 12px; background: var(--surface); padding: 12px 16px;
         font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: var(--text);
       }
+      /* SII URL Print Agent: deep teal green, clearly distinct from the
+         accent print button and the plain PDF buttons in every theme */
+      #printPreview .pv-sii-btn {
+        margin-top: 8px; width: 100%; border-radius: 12px; background: #0f766e; padding: 12px 16px;
+        font-family: "M PLUS Rounded 1c", sans-serif; font-size: 16px; font-weight: 800; color: #fff;
+      }
+      #printPreview .pv-sii-btn:active { background: #115e59; }
       #printPreview .pv-note { margin-top: 6px; text-align: center; font-size: 11px; line-height: 1.4; color: var(--dim); }
+      #printPreview .pv-status { margin-top: 8px; text-align: center; font-size: 12px; font-weight: 700; line-height: 1.4; color: var(--text); }
+      #printPreview .pv-status:empty { display: none; }
       @media print {
         html, body { height: auto; overflow: visible; background-color: #fff; }
         .app-root { position: static !important; height: auto !important; overflow: visible !important; background: #fff !important; }
@@ -711,7 +720,7 @@
       }
     </style>
     <!-- @page size for the receipt is switched between 58mm / 80mm by script (see applyReceiptWidth) -->
-    <style id="receiptPageStyle">@page { size: 80mm auto; margin: 2mm; }</style>
+    <style id="receiptPageStyle">@page { size: 58mm auto; margin: 2mm; }</style>
   </head>
   <body>
     <div id="loadingScreen" role="status" aria-label="読み込み中">
@@ -912,13 +921,17 @@
           <div class="pv-width-row">
             <span class="pv-width-label" id="pvWidthLabel">レシート幅</span>
             <span class="seg" role="group" aria-labelledby="pvWidthLabel">
-              <button type="button" id="pvW58" aria-pressed="false" aria-label="レシート幅を58mmにする">58mm</button>
-              <button type="button" id="pvW80" aria-pressed="true" aria-label="レシート幅を80mmにする">80mm</button>
+              <button type="button" id="pvW58" aria-pressed="true" aria-label="レシート幅を58mmにする">58mm</button>
+              <button type="button" id="pvW80" aria-pressed="false" aria-label="レシート幅を80mmにする">80mm</button>
             </span>
           </div>
-          <button type="button" class="pv-print-btn" id="pvPrint">このレシートを印刷</button>
+          <button type="button" class="pv-print-btn" id="pvPrint">この記録を印刷</button>
           <button type="button" class="pv-pdf-btn" id="pvPdf">PDFで保存</button>
-          <p class="pv-note">印刷する場合は、PDFで保存するか、このページをブラウザで開いてから印刷してください</p>
+          <button type="button" class="pv-pdf-btn" id="pvSharePdf">PDFを共有</button>
+          <button type="button" class="pv-sii-btn" id="pvSiiPrint">レシートプリンターで印刷</button>
+          <p class="pv-note">印刷の内容を確認してください。「この記録を印刷」を押すと印刷ダイアログが開くので、プリンターを選んで印刷してください。iOSでは「PDFを共有」を押すと選択中の幅のPDFを共有シートで書き出せるので、「ファイルに保存」や印刷アプリから対応プリンターで印刷してください（ファイル共有に対応していない環境では、押すとPDFをダウンロードします）。「PDFで保存」はPDFファイルを直接ダウンロードします。SII URL Print Agent アプリが入った端末では「レシートプリンターで印刷」から直接印刷もできます。</p>
+          <p class="pv-note">「レシートプリンターで印刷」は、SII URL Print Agent アプリが入った端末で、ブラウザ（Safari／Chrome）からこのページを開いたときに使えます。アプリ内ブラウザでは起動しない場合があります。また、生成されるPDFのサイズが目安（iOSは約500KB、Androidは約150KB、Base64化前）を超える場合は、印刷は実行されません。</p>
+          <p class="pv-status" id="pvStatus" role="status" aria-live="polite"></p>
         </div>
       </div>
     </div>
@@ -965,7 +978,7 @@
         floatOpacity: 62,
         animations: true,
         keypadScale: 1,
-        receiptWidth: "80"
+        receiptWidth: "58"
       };
     }
 
@@ -1091,7 +1104,7 @@
         "履歴：終わったゲームの結果を最大200件まで保存できます。ゲーム名・日時・優勝者・項目ごとの内訳を確認できます"
       ]},
       { heading: "印刷", items: [
-        "履歴から、レシート風レイアウトで結果を印刷できます（レシートプリンター対応）。印刷プレビューではレシート幅（58mm／80mm）を切り替えられ、選んだ幅は次回も保持されます。同じ内容をPDFで保存することもできます。優勝者の合計には王冠が付きます"
+        "履歴から、レシート風レイアウトで結果を印刷できます（プリンター対応）。印刷プレビューではレシート幅（58mm／80mm）を切り替えられ、選んだ幅は次回も保持されます。同じ内容をPDFで保存することもできます。優勝者の合計には王冠が付きます"
       ]},
       { heading: "表示と操作感", items: [
         "ヘッダーのボタン（？の隣）でフルスクリーン表示に切り替えられます。もう一度押すと元に戻ります",
@@ -2327,6 +2340,7 @@
       $("receiptPrint").innerHTML = html;
       $("pvPaper").innerHTML = '<div class="receipt-print ' + receiptWidthClass() + '">' + html + "</div>";
       applyReceiptWidth();
+      $("pvStatus").textContent = "";
       var pv = $("printPreview");
       pv.hidden = false;
       pv.className = sheetAnimClass();
@@ -2493,20 +2507,135 @@
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
     }
+    function setPvStatus(msg) { $("pvStatus").textContent = msg; }
+    /* The two PDF buttons are split by intent:
+         「PDFで保存」 always downloads the file directly, on every
+           device and browser — it never opens the share sheet.
+         「PDFを共有」 opens the share sheet (Web Share API Level 2
+           file sharing — on iOS the user can pick "ファイルに保存"
+           or a print app such as SII URL Print Agent). The button is
+           always shown; where file sharing is unavailable, tapping
+           it downloads the PDF instead and says so in the status
+           line (see shareReceiptPdf below).
+       The PDF itself (content, roll width, file name) is the same
+       generateReceiptPdf output for both. */
     function saveReceiptPdf() {
       if (!printEntry) return;
       var filename = receiptPdfFilename(printEntry);
       var blob;
-      try { blob = generateReceiptPdf(printEntry); } catch (e) { return; }
+      try { blob = generateReceiptPdf(printEntry); } catch (e) {
+        setPvStatus("PDFを作成できませんでした。もう一度お試しください。");
+        return;
+      }
+      downloadReceiptPdf(blob, filename);
+      setPvStatus("PDFをダウンロードしました。保存したPDFを印刷アプリに渡して印刷してください。");
+    }
+    function shareReceiptPdf() {
+      if (!printEntry) return;
+      var filename = receiptPdfFilename(printEntry);
+      var blob;
+      try { blob = generateReceiptPdf(printEntry); } catch (e) {
+        setPvStatus("PDFを作成できませんでした。もう一度お試しください。");
+        return;
+      }
       var file = null;
       try { file = new File([blob], filename, { type: "application/pdf" }); } catch (e) { file = null; }
-      if (file && typeof navigator !== "undefined" && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file] }).catch(function (err) {
-          if (!err || err.name !== "AbortError") downloadReceiptPdf(blob, filename);
-        });
-      } else {
-        downloadReceiptPdf(blob, filename);
+      var shareable = false;
+      if (file && typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
+        try { shareable = navigator.canShare({ files: [file] }); } catch (e) { shareable = false; }
       }
+      if (!shareable) {
+        /* file sharing is unavailable in this environment (for
+           example an in-app browser or a desktop browser without
+           Web Share): fall back to a plain download and say so */
+        downloadReceiptPdf(blob, filename);
+        setPvStatus("この環境では共有できないため、PDFをダウンロードしました。");
+        return;
+      }
+      /* navigator.share is called synchronously from the tap handler
+         (generateReceiptPdf above is synchronous) so the user-gesture
+         context is preserved. */
+      navigator.share({ files: [file] }).then(function () {
+        setPvStatus("共有シートを開きました。「ファイルに保存」や印刷アプリを選んでください。");
+      }, function (err) {
+        if (err && err.name === "AbortError") {
+          setPvStatus("共有をキャンセルしました。");
+        } else {
+          downloadReceiptPdf(blob, filename);
+          setPvStatus("共有できなかったため、PDFをダウンロードしました。");
+        }
+      });
+    }
+
+    /* ---------------- direct print via SII URL Print Agent ----------------
+       Follows the official SII URL Print Agent programmer's guide
+       (Android/iOS) and the official sample page: the PDF is
+       Base64-encoded, URL-encoded into the Data parameter, and the
+       agent is launched by assigning the scheme URL to location.href:
+         siiprintagent://1.0/print?Format=pdf&Data=<base64>&...
+       The PDF is the same self-generated file as "PDFで保存"
+       (generateReceiptPdf), so nothing needs to sit on a server.
+       Parameters: Format=pdf (fixed), BtKeepConnect=always (stated
+       explicitly), CallbackSuccess / CallbackFail = this page's URL
+       without its query string, ErrorDialog=yes, SelectOnError=no,
+       PaperWidth follows the 58mm/80mm receipt-width switch,
+       FitToWidth=no — the generated PDF is already exactly the roll
+       width, so no fitting is wanted. CutType is omitted, which
+       keeps the guide's default (partial).
+       Size guard from the guide: the pre-Base64 PDF should stay
+       under roughly 500KB on iOS / 150KB on Android. Past the limit
+       for this device the print is not launched and a warning is
+       shown instead.
+       This only works where the SII URL Print Agent app is installed
+       and the page is open in a browser (Safari / Chrome); in-app
+       browsers may not launch the scheme at all. */
+    function blobToBase64(blob) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var result = String(reader.result || "");
+          var comma = result.indexOf(",");
+          resolve(comma >= 0 ? result.slice(comma + 1) : result);
+        };
+        reader.onerror = function () { reject(reader.error || new Error("read failed")); };
+        reader.readAsDataURL(blob);
+      });
+    }
+    function printViaSiiAgent() {
+      if (!printEntry) return;
+      var blob;
+      try { blob = generateReceiptPdf(printEntry); } catch (e) {
+        setPvStatus("PDFを作成できませんでした。もう一度お試しください。");
+        return;
+      }
+      var isAndroid = /Android/i.test(navigator.userAgent || "");
+      var limitBytes = (isAndroid ? 150 : 500) * 1024;
+      if (blob.size > limitBytes) {
+        setPvStatus("PDFデータが大きすぎます（約" + Math.round(blob.size / 1024) + "KB）。この端末での目安（約" + (limitBytes / 1024) + "KB）を超えているため、レシートプリンターへの印刷は実行しませんでした。「PDFで保存」から印刷をお試しください。");
+        return;
+      }
+      setPvStatus("SII URL Print Agentを起動しています…");
+      blobToBase64(blob).then(function (base64) {
+        var callbackUrl = String(window.location.href || "").split(/[?#]/)[0];
+        var url = "siiprintagent://1.0/print?" +
+          "Format=" + encodeURIComponent("pdf") + "&" +
+          "Data=" + encodeURIComponent(base64) + "&" +
+          "BtKeepConnect=" + encodeURIComponent("always") + "&" +
+          "CallbackSuccess=" + encodeURIComponent(callbackUrl) + "&" +
+          "CallbackFail=" + encodeURIComponent(callbackUrl) + "&" +
+          "ErrorDialog=" + encodeURIComponent("yes") + "&" +
+          "SelectOnError=" + encodeURIComponent("no") + "&" +
+          "FitToWidth=" + encodeURIComponent("no") + "&" +
+          "PaperWidth=" + encodeURIComponent(state.receiptWidth === "58" ? "58" : "80");
+        setPvStatus("SII URL Print Agentを起動しました。アプリが開かない場合は、ブラウザ（Safari／Chrome）でこのページを開いてお試しください。");
+        try {
+          window.location.href = url;
+        } catch (e) {
+          setPvStatus("URL Print Agentを起動できませんでした。ブラウザ（Safari／Chrome）でこのページを開いてお試しください。");
+        }
+      }, function () {
+        setPvStatus("PDFデータの変換に失敗しました。もう一度お試しください。");
+      });
     }
 
     /* ---------------- menu / theme / help sheets ---------------- */
@@ -3073,8 +3202,17 @@
     $("pvClose").addEventListener("click", closePrint);
     $("pvW58").addEventListener("click", function () { setReceiptWidth("58"); });
     $("pvW80").addEventListener("click", function () { setReceiptWidth("80"); });
-    $("pvPrint").addEventListener("click", function () { window.print(); });
+    $("pvPrint").addEventListener("click", function () {
+      try {
+        window.print();
+        setPvStatus("印刷ダイアログを開きました。プリンターを選んでください。");
+      } catch (e) {
+        setPvStatus("印刷ダイアログを開けませんでした。ブラウザのメニューから印刷をお試しください。");
+      }
+    });
     $("pvPdf").addEventListener("click", saveReceiptPdf);
+    $("pvSharePdf").addEventListener("click", shareReceiptPdf);
+    $("pvSiiPrint").addEventListener("click", printViaSiiAgent);
 
     /* float window height tracking */
     if (typeof ResizeObserver !== "undefined") {
