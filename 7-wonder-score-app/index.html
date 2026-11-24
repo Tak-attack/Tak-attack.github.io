@@ -60,6 +60,10 @@
         --sii-bg-active: #115e59;
         --sii-border: #0a4f48;
         --sii-ink: #ffffff;
+        --share-bg: #a87b14;
+        --share-bg-active: #8f660e;
+        --share-border: #7c5a0c;
+        --share-ink: #ffffff;
         --gold: #55555c;
         --gold-soft: #e7e7e4;
         --danger: #a83a2c;
@@ -95,6 +99,10 @@
         --sii-bg-active: #2dd4bf;
         --sii-border: #5eead4;
         --sii-ink: #04211d;
+        --share-bg: #d9a441;
+        --share-bg-active: #e7b95c;
+        --share-border: #a87b14;
+        --share-ink: #241a00;
         --gold: #a2a2aa;
         --gold-soft: #333338;
         --danger: #e08a7c;
@@ -793,6 +801,21 @@
       .btn.receipt-btn:active { background: var(--bronze-dark); }
       .btn.pdf-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
       .btn.pdf-btn svg { width: 19px; height: 19px; flex: none; }
+      /* Result-image share button: the primary action of the results
+         area, placed first in the button row. A deep gold face —
+         the colour of the laurel-and-7 app icon and the winner's
+         crown — sets it apart from the bronze printer button, the
+         plain PDF buttons and the teal SII button in both themes
+         (dark theme uses a brighter gold with dark ink). */
+      .btn.share-image-btn {
+        min-height: 46px; padding: 9px 18px; font-size: 15px;
+        background: var(--share-bg); border-color: var(--share-border); color: var(--share-ink);
+      }
+      .btn.share-image-btn svg { width: 19px; height: 19px; flex: none; }
+      .btn.share-image-btn:active { background: var(--share-bg-active); }
+      /* Share button sits on its own row at the head of the button
+         group, centred; its width stays content-sized (unchanged). */
+      .share-row { flex: 1 1 100%; display: flex; justify-content: center; }
       .btn[hidden] { display: none !important; }
       .btn.sii-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
       .btn.sii-btn svg { width: 19px; height: 19px; flex: none; }
@@ -1163,6 +1186,12 @@
         </div>
         </div>
         <div class="receipt-actions">
+          <div class="share-row">
+          <button class="btn share-image-btn" id="shareImageMain" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4.5 17.5l4.7-4.2 3.3 2.9 3-2.6 4 3.5"/></svg>
+            結果を画像で保存／共有
+          </button>
+          </div>
           <button class="btn receipt-btn" id="openReceipt" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/></svg>
             プリンターで印刷
@@ -1174,10 +1203,6 @@
           <button class="btn pdf-btn" id="sharePdfMain" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8L12 3.5 16.5 8"/><path d="M5 13v6.5A1.5 1.5 0 0 0 6.5 21h11A1.5 1.5 0 0 0 19 19.5V13"/></svg>
             PDFを共有
-          </button>
-          <button class="btn pdf-btn" id="shareImageMain" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4.5 17.5l4.7-4.2 3.3 2.9 3-2.6 4 3.5"/></svg>
-            結果を画像で保存／共有
           </button>
           <button class="btn sii-btn" id="siiPrintMain" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/><path d="M17.5 11.5h.01"/></svg>
@@ -1619,13 +1644,17 @@
       }
       /* Paints wrapped name parts: text with fillText, each icon with
          drawSideShape at the exact spot in the line. firstY is the
-         alphabetic baseline of the first line. */
-      function drawCanvasParts(ctx, lines, x, firstY, lineHeight, iconSize, color) {
+         alphabetic baseline of the first line. The optional iconColors
+         map ({A: colour, B: colour}) recolours ONLY the side marks;
+         callers that omit it (the receipt / PDF renderer) draw the
+         marks in `color` exactly as before, so the monochrome print
+         output is untouched. Only the colour result image passes it. */
+      function drawCanvasParts(ctx, lines, x, firstY, lineHeight, iconSize, color, iconColors) {
         lines.forEach(function (segs, li) {
           var cx = x, baseline = firstY + li * lineHeight;
           segs.forEach(function (seg) {
             if (seg.icon) {
-              drawSideShape(ctx, cx + 1, baseline - iconSize * 0.8, iconSize, seg.icon, color);
+              drawSideShape(ctx, cx + 1, baseline - iconSize * 0.8, iconSize, seg.icon, (iconColors && iconColors[seg.icon]) || color);
               cx += iconSize + 2;
             } else {
               ctx.fillText(seg.t, cx, baseline);
@@ -3862,9 +3891,13 @@
       /* ---------- result image export (PNG) ----------
          The standings as a single PNG image, drawn on a canvas with
          the same data as the receipt (receiptData) but in a wider,
-         SNS-friendly layout: rank, name (crown shape for 1st), total and the
-         category breakdown. Always white background / dark ink, so it
-         stays readable whatever the page theme. Sharing follows the
+         SNS-friendly layout: rank, name (gold crown for 1st), total and the
+         category breakdown. The PNG is drawn in COLOUR, matching the
+         on-screen standings in the light theme (player-colour bands,
+         category colour chips, gold crown, sun / moon side marks in
+         colour) whatever the device theme is. Only this image is
+         colour: the receipt HTML and the PDF stay monochrome for
+         thermal printing and share none of these colours. Sharing follows the
          PDF buttons' rule: the share sheet where file sharing works,
          a plain download everywhere else. The PNG bytes are built
          synchronously (toDataURL) so navigator.share can still be
@@ -3886,9 +3919,94 @@
           ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(right, y); ctx.stroke();
           ctx.restore();
         }
-        ctx.fillStyle = "#fff";
+        /* Colour palette: the page's LIGHT theme, so the PNG matches
+           the on-screen standings whatever the device theme is. The
+           receipt / PDF renderer keeps its own monochrome palette and
+           is not affected by anything in this function. */
+        var INK = "#1f1f22", SOFT = "#5d5d63", LINE = "#dbdbd7", LINE_STRONG = "#a2a29c",
+            PANEL = "#ffffff", PANEL2 = "#eeeeec", FIRST_BG = "#e7e7e4",
+            GOLD = "#c9962e", SII = "#0f766e";
+        var CAT_HEX = { wonder: "#716c5e", treasury: "#97751d", military: "#a83c31", civic: "#3a5f8a", commercial: "#a3861f", science: "#43704a", guild: "#62498f", leaders: "#83817b", cities: "#3a3a40", debt: "#8a5a48" };
+        var SIDE_COLORS = { A: "#b58900", B: "#3a5f8a" };
+        function rr(x, y0, w, h, r) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y0);
+          ctx.lineTo(x + w - r, y0); ctx.arcTo(x + w, y0, x + w, y0 + r, r);
+          ctx.lineTo(x + w, y0 + h - r); ctx.arcTo(x + w, y0 + h, x + w - r, y0 + h, r);
+          ctx.lineTo(x + r, y0 + h); ctx.arcTo(x, y0 + h, x, y0 + h - r, r);
+          ctx.lineTo(x, y0 + r); ctx.arcTo(x, y0, x + r, y0, r);
+          ctx.closePath();
+        }
+        /* A standings card like the on-screen rank rows: panel fill,
+           hairline border, and a player-colour band down the left edge
+           (two colours split the band for a team pair). */
+        function drawCard(top, bottom, fill, border, bands) {
+          var cx0 = M - 16, cw0 = CW + 32;
+          ctx.save();
+          rr(cx0, top, cw0, bottom - top, 8);
+          ctx.fillStyle = fill; ctx.fill();
+          ctx.save();
+          rr(cx0, top, cw0, bottom - top, 8);
+          ctx.clip();
+          var bh = (bottom - top) / bands.length;
+          bands.forEach(function (c, bi) {
+            ctx.fillStyle = c;
+            ctx.fillRect(cx0, top + bi * bh, 7, bh + 1);
+          });
+          ctx.restore();
+          rr(cx0, top, cw0, bottom - top, 8);
+          ctx.lineWidth = 1.5; ctx.strokeStyle = border; ctx.stroke();
+          ctx.restore();
+        }
+        /* Category breakdown in colour: each segment carries the small
+           rounded chip the on-screen standings use (the .dot), the text
+           stays in the soft ink, segments join with " ／ " and wrap at
+           segment boundaries. Layout is computed ahead of drawing so
+           the caller can size the card behind the block. */
+        function breakSegs(r) {
+          var segs = data.visCats.map(function (k) {
+            return { color: CAT_HEX[k], text: CAT_META[k].name + " " + breakDisplay(r.p, r.s, k) };
+          });
+          segs.push({ color: "#b58900", text: "コイン " + coinCount(r.p) + "枚" });
+          return segs;
+        }
+        function layoutBreak(segs, maxW) {
+          var sepW = ctx.measureText(" ／ ").width;
+          var lines = [], cur = [], curW = 0;
+          segs.forEach(function (sg) {
+            var w = (sg.color ? 15 : 0) + ctx.measureText(sg.text).width;
+            var need = cur.length ? sepW + w : w;
+            if (cur.length && curW + need > maxW) { lines.push(cur); cur = []; curW = 0; need = w; }
+            cur.push(sg); curW += need;
+          });
+          if (cur.length || !lines.length) lines.push(cur);
+          return lines;
+        }
+        function drawBreak(lines, x, y0) {
+          var yy = y0;
+          lines.forEach(function (ln) {
+            yy += 29;
+            var cx = x;
+            ln.forEach(function (sg, si) {
+              if (si) { ctx.fillStyle = SOFT; ctx.fillText(" ／ ", cx, yy); cx += ctx.measureText(" ／ ").width; }
+              if (sg.color) {
+                ctx.save();
+                ctx.fillStyle = sg.color;
+                rr(cx, yy - 10, 9, 9, 3);
+                ctx.fill();
+                ctx.restore();
+                cx += 15;
+              }
+              ctx.fillStyle = SOFT;
+              ctx.fillText(sg.text, cx, yy);
+              cx += ctx.measureText(sg.text).width;
+            });
+          });
+          return yy;
+        }
+        ctx.fillStyle = "#f4f4f3";
         ctx.fillRect(0, 0, W, 12000);
-        ctx.fillStyle = "#111";
+        ctx.fillStyle = INK;
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
         var y = 0;
@@ -3897,56 +4015,62 @@
         center("世界の七不思議　得点結果", y);
         y += 36;
         ctx.font = '400 21px "Noto Sans JP", sans-serif';
-        ctx.fillStyle = "#444";
+        ctx.fillStyle = SOFT;
         center(data.dateStr + (data.expParts.length ? "　拡張：" + data.expParts.join("・") : ""), y);
-        ctx.fillStyle = "#111";
-        y += 18; hline(y, 3, "#111");
+        ctx.fillStyle = INK;
+        y += 18; hline(y, 3, GOLD);
         y += 14;
         data.rows.forEach(function (r, rank) {
           var startY = y;
-          /* rank badge */
+          /* measure first (name + coloured breakdown) so the card
+             behind the block can be painted before the text */
+          ctx.font = "700 27px " + NAME_FONT;
+          var imgCrownSpace = rank === 0 ? 40 : 0;
+          var nameLines = wrapCanvasParts(ctx, displayNameParts(r.p), CW - 190 - imgCrownSpace, 25);
+          ctx.font = '400 20px "Noto Sans JP", sans-serif';
+          var breakLines = layoutBreak(breakSegs(r), CW - 62);
+          var headEndY = startY + Math.max(52, nameLines.length * 34) + 8;
+          var sepY = headEndY + breakLines.length * 29 + 16;
+          drawCard(startY - 8, sepY - 6, rank === 0 ? FIRST_BG : PANEL, rank === 0 ? GOLD : LINE, [playerColor(r.p, r.i)]);
+          /* rank badge: gold for 1st, the screen's grey badge otherwise */
           ctx.save();
           ctx.beginPath();
           ctx.arc(M + 24, startY + 26, 23, 0, Math.PI * 2);
-          if (rank === 0) { ctx.fillStyle = "#c9962e"; ctx.fill(); ctx.fillStyle = "#fff"; }
-          else { ctx.fillStyle = "#fff"; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "#111"; ctx.stroke(); ctx.fillStyle = "#111"; }
+          if (rank === 0) { ctx.fillStyle = GOLD; ctx.fill(); ctx.fillStyle = "#fff"; }
+          else { ctx.fillStyle = PANEL2; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = LINE_STRONG; ctx.stroke(); ctx.fillStyle = SOFT; }
           ctx.font = '900 22px "Noto Serif JP", "Hiragino Mincho ProN", serif';
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText(String(rank + 1), M + 24, startY + 27);
           ctx.restore();
-          ctx.fillStyle = "#111";
-          /* name (wraps), with a single-colour crown shape for the winner */
+          /* name (wraps), with a gold crown for the winner and the
+             board-side marks in their sun / moon colours */
+          ctx.fillStyle = INK;
           ctx.font = "700 27px " + NAME_FONT;
-          var imgCrownSpace = rank === 0 ? 40 : 0;
-          var nameLines = wrapCanvasParts(ctx, displayNameParts(r.p), CW - 190 - imgCrownSpace, 25);
-          if (rank === 0) drawCrownShape(ctx, M + 62, startY + 8, 35, 31, "#111");
-          drawCanvasParts(ctx, nameLines, M + 62 + imgCrownSpace, startY + 36, 34, 25, "#111");
+          if (rank === 0) drawCrownShape(ctx, M + 62, startY + 8, 35, 31, GOLD);
+          drawCanvasParts(ctx, nameLines, M + 62 + imgCrownSpace, startY + 36, 34, 25, INK, SIDE_COLORS);
           /* total on the right */
           ctx.font = '700 20px "Noto Sans JP", sans-serif';
+          ctx.fillStyle = SOFT;
           var tenW = ctx.measureText("点").width;
           ctx.textAlign = "right";
           ctx.fillText("点", right, startY + 36);
           ctx.font = '900 46px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+          ctx.fillStyle = INK;
           ctx.fillText(String(r.total), right - tenW - 6, startY + 40);
           ctx.textAlign = "left";
-          y = startY + Math.max(52, nameLines.length * 34) + 8;
-          /* breakdown, wrapped */
+          /* breakdown, wrapped, with category colour chips */
           ctx.font = '400 20px "Noto Sans JP", sans-serif';
-          ctx.fillStyle = "#333";
-          var breakText = data.visCats.map(function (k) { return CAT_META[k].name + " " + breakDisplay(r.p, r.s, k); }).join(" ／ ") + " ／ コイン " + coinCount(r.p) + "枚";
-          wrapCanvasText(ctx, breakText, CW - 62).forEach(function (ln) {
-            y += 29;
-            ctx.fillText(ln, M + 62, y);
-          });
-          ctx.fillStyle = "#111";
-          y += 16; hline(y, 1.5, "#333", [10, 6]);
+          y = drawBreak(breakLines, M + 62, headEndY);
+          ctx.fillStyle = INK;
+          y += 16; hline(y, 1.5, LINE_STRONG, [10, 6]);
           y += 12;
         });
         if (data.team) {
           y += 8;
           ctx.font = '900 28px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+          ctx.fillStyle = INK;
           center("チーム順位", y + 22);
-          y += 38; hline(y, 3, "#111");
+          y += 38; hline(y, 3, GOLD);
           y += 8;
           if (data.team.pairs.length) {
             data.team.pairs.forEach(function (pr) {
@@ -3955,42 +4079,53 @@
               var imgPairParts = textParts(pr.rank + "位　").concat(displayNameParts(players[pr.a]), textParts(" ＆ "), displayNameParts(players[pr.b]), textParts("　合計 " + pr.total + "点"));
               var imgPairLines = wrapCanvasParts(ctx, imgPairParts, CW - imgPairCrownSpace, 22);
               var imgPairFirstY = y + 33;
-              if (pr.rank === 1) drawCrownShape(ctx, M, imgPairFirstY - 24, 33, 29, "#111");
-              drawCanvasParts(ctx, imgPairLines, M + imgPairCrownSpace, imgPairFirstY, 33, 22, "#111");
-              y = imgPairFirstY + (imgPairLines.length - 1) * 33;
               ctx.font = '400 20px "Noto Sans JP", sans-serif';
-              ctx.fillStyle = "#333";
               var imgDetailParts = displayNameParts(players[pr.a]).concat(textParts(" " + pr.ta + "点 ／ "), displayNameParts(players[pr.b]), textParts(" " + pr.tb + "点　コイン合計 " + pr.coins + "枚"));
               var imgDetailLines = wrapCanvasParts(ctx, imgDetailParts, CW, 18);
-              var imgDetailFirstY = y + 29;
-              drawCanvasParts(ctx, imgDetailLines, M, imgDetailFirstY, 29, 18, "#333");
+              var imgDetailFirstY = imgPairFirstY + (imgPairLines.length - 1) * 33 + 29;
+              var imgSepY = imgDetailFirstY + (imgDetailLines.length - 1) * 29 + 14;
+              /* pair card: the left band is split between the two
+                 members' player colours; the winning pair takes the
+                 teal tint of the on-screen team standings */
+              drawCard(imgPairFirstY - 30, imgSepY - 6, pr.rank === 1 ? "#e9f2f0" : PANEL, pr.rank === 1 ? SII : LINE,
+                [playerColor(players[pr.a], pr.a), playerColor(players[pr.b], pr.b)]);
+              ctx.font = "700 24px " + NAME_FONT;
+              ctx.fillStyle = INK;
+              if (pr.rank === 1) drawCrownShape(ctx, M, imgPairFirstY - 24, 33, 29, GOLD);
+              drawCanvasParts(ctx, imgPairLines, M + imgPairCrownSpace, imgPairFirstY, 33, 22, INK, SIDE_COLORS);
+              y = imgPairFirstY + (imgPairLines.length - 1) * 33;
+              ctx.font = '400 20px "Noto Sans JP", sans-serif';
+              ctx.fillStyle = SOFT;
+              drawCanvasParts(ctx, imgDetailLines, M, imgDetailFirstY, 29, 18, SOFT, SIDE_COLORS);
               y = imgDetailFirstY + (imgDetailLines.length - 1) * 29;
-              ctx.fillStyle = "#111";
-              y += 14; hline(y, 1.5, "#333", [10, 6]);
+              ctx.fillStyle = INK;
+              y += 14; hline(y, 1.5, LINE_STRONG, [10, 6]);
               y += 8;
             });
           } else {
             y += 30;
             ctx.font = '400 20px "Noto Sans JP", sans-serif';
+            ctx.fillStyle = SOFT;
             ctx.fillText("（ペア未設定）", M, y);
+            ctx.fillStyle = INK;
           }
           if (data.team.unpaired.length) {
             ctx.font = '400 19px "Noto Sans JP", sans-serif';
-            ctx.fillStyle = "#333";
+            ctx.fillStyle = SOFT;
             var imgUpParts = textParts("チーム未設定（対象外）：");
             data.team.unpaired.forEach(function (i, ui) { if (ui) imgUpParts.push({ t: "、" }); imgUpParts = imgUpParts.concat(displayNameParts(players[i])); });
             var imgUpLines = wrapCanvasParts(ctx, imgUpParts, CW, 17);
             var imgUpFirstY = y + 27;
-            drawCanvasParts(ctx, imgUpLines, M, imgUpFirstY, 27, 17, "#333");
+            drawCanvasParts(ctx, imgUpLines, M, imgUpFirstY, 27, 17, SOFT, SIDE_COLORS);
             y = imgUpFirstY + (imgUpLines.length - 1) * 27;
-            ctx.fillStyle = "#111";
+            ctx.fillStyle = INK;
           }
         }
         y += 34;
         ctx.font = '400 18px "Noto Sans JP", sans-serif';
-        ctx.fillStyle = "#666";
+        ctx.fillStyle = SOFT;
         center("7 WONDERS SCORE", y);
-        ctx.fillStyle = "#111";
+        ctx.fillStyle = INK;
         y += 30;
         return Math.ceil(y);
       }
