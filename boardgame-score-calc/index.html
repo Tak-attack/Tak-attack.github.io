@@ -88,6 +88,9 @@
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
       button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; }
       input { font: inherit; }
+      /* keyboard focus ring (PC operation): only shown for
+         keyboard-style focus, never for taps */
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
       .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
@@ -1174,7 +1177,7 @@
           <span class="sheet-title">ヘルプ</span>
           <button type="button" class="close-btn" id="helpClose" aria-label="ヘルプを閉じる">閉じる</button>
         </div>
-        <div id="helpScroll"></div>
+        <div id="helpScroll" tabindex="0" aria-label="ヘルプ本文"></div>
       </div>
 
       <!-- print-only receipt (only thing on paper) -->
@@ -4545,6 +4548,301 @@
     window.addEventListener("pagehide", function () { if (hydrated) save(); });
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "hidden" && hydrated) save();
+    });
+
+    /* ---------------- keyboard support (PC) ----------------
+       Physical-keyboard operation for desktop use.
+       Main view: digits and operators feed the on-screen keypad
+       (0-9, + - * / ( ) . and ^ for x²), Enter is the "next player"
+       button (Shift+Enter goes back to the previous player), the
+       arrow keys move the cell selection (Left / Right step through
+       the cells in reading order, Up / Down move within the column),
+       Backspace deletes (the quick-mode undo while quick mode is
+       on), Delete clears the cell, and Escape cancels a pending
+       tens digit or ends input. Letter shortcuts: M menu, H or ?
+       help, F fullscreen, Q quick-mode toggle while entering.
+       While a sheet is open: ArrowUp / ArrowDown move between the
+       sheet's items, Enter / Space decides (the focused button's
+       own activation), Escape cancels — sub-sheets return to the
+       menu, the menu and help close. Segmented controls switch
+       with ArrowLeft / ArrowRight. In the menu, letter keys jump
+       straight to an item: P preset, H history, T theme, O opacity,
+       F font size, A animation, L landscape, V vibration,
+       W keep-awake, K keypad layout. In the theme sheet, 1-4 picks
+       a theme. In the print preview, ArrowLeft / ArrowRight switch
+       the receipt width and Escape closes.
+       Nothing fires while text is being typed into a field or an
+       IME composition is in progress, and keys a focused control
+       already handled (the drag handles' arrows, the editor input)
+       are left alone via the defaultPrevented check. */
+    var SHEET_EL_IDS = { menu: "menuSheet", preset: "presetSheet", theme: "themeSheet", history: "historySheet", opacity: "opacitySheet", help: "helpSheet", anim: "animSheet", land: "landSheet", font: "fontSheet" };
+    function sheetFocusableEls(sheetEl) {
+      if (!sheetEl) return [];
+      var els = sheetEl.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex="0"]');
+      var out = [];
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        if (el.closest("[hidden]")) continue;
+        if (el.offsetParent === null && el !== document.activeElement) continue;
+        out.push(el);
+      }
+      return out;
+    }
+    function firstSheetTarget(list) {
+      for (var i = 0; i < list.length; i++) {
+        if (!list[i].classList.contains("close-btn")) return list[i];
+      }
+      return list.length ? list[0] : null;
+    }
+    function moveSheetFocus(sheetEl, delta) {
+      var list = sheetFocusableEls(sheetEl);
+      if (!list.length) return;
+      var idx = list.indexOf(document.activeElement);
+      var next = idx < 0 ? (delta > 0 ? 0 : list.length - 1) : (idx + delta + list.length) % list.length;
+      list[next].focus();
+    }
+    function focusFirstInSheet(name) {
+      var sheetEl = $(SHEET_EL_IDS[name] || "");
+      if (!sheetEl) return;
+      var target = firstSheetTarget(sheetFocusableEls(sheetEl));
+      if (target) target.focus();
+    }
+    function focusSelectedCell() {
+      var key = state.selected.playerId + ":" + state.selected.categoryId;
+      var el = gridEl.querySelector('[data-cell="' + CSS.escape(key) + '"]');
+      if (!el) return;
+      try { el.focus({ preventScroll: true }); } catch (err) { el.focus(); }
+    }
+    function moveSelectionByArrow(key) {
+      var np = state.players.length, nc = state.categories.length;
+      if (!np || !nc) return;
+      if (key === "ArrowRight" || key === "ArrowLeft") {
+        var t = stepCell(key === "ArrowRight" ? 1 : -1);
+        if (t) select(t.playerId, t.categoryId, key === "ArrowRight" ? "next" : "prev");
+        return;
+      }
+      var pi = selIdx();
+      var ci = state.categories.findIndex(function (c) { return c.id === selCategory().id; });
+      if (ci < 0) ci = 0;
+      var nci = (ci + (key === "ArrowDown" ? 1 : -1) + nc) % nc;
+      select(state.players[pi].id, state.categories[nci].id, "jump");
+    }
+    function handleSheetKey(e, key) {
+      var sheetEl = $(SHEET_EL_IDS[openSheetName] || "");
+      if (key === "Escape") {
+        e.preventDefault();
+        if (openSheetName === "menu" || openSheetName === "help") { closeSheets(); renderAll(); }
+        else { sheetNav = "back"; openSheetName = "menu"; renderAll(); focusFirstInSheet("menu"); }
+        return;
+      }
+      /* the help sheet has a single button: arrows scroll its body */
+      if (openSheetName === "help" && (key === "ArrowDown" || key === "ArrowUp")) {
+        e.preventDefault();
+        $("helpScroll").scrollTop += key === "ArrowDown" ? 80 : -80;
+        return;
+      }
+      /* segmented controls: Left / Right switches the option and
+         keeps focus on the newly selected option */
+      var active = document.activeElement;
+      var segBtn = active && active.closest ? active.closest(".seg button") : null;
+      if (segBtn && (key === "ArrowLeft" || key === "ArrowRight")) {
+        var seg = segBtn.closest(".seg");
+        var btns = Array.prototype.slice.call(seg.querySelectorAll("button:not([disabled])"));
+        var si = btns.indexOf(segBtn);
+        var sn = btns[(si + (key === "ArrowRight" ? 1 : -1) + btns.length) % btns.length];
+        if (sn && sn !== segBtn) { e.preventDefault(); sn.focus(); sn.click(); }
+        return;
+      }
+      if (key === "ArrowDown" || key === "ArrowUp") {
+        if (sheetFocusableEls(sheetEl).length > 1) {
+          e.preventDefault();
+          moveSheetFocus(sheetEl, key === "ArrowDown" ? 1 : -1);
+        }
+        return;
+      }
+      if ((key === "ArrowLeft" || key === "ArrowRight") && openSheetName === "theme") {
+        e.preventDefault();
+        moveSheetFocus(sheetEl, key === "ArrowRight" ? 1 : -1);
+        return;
+      }
+      if ((key === "ArrowLeft" || key === "ArrowRight") && openSheetName === "opacity") {
+        var slider = $("opacitySlider");
+        if (slider) {
+          e.preventDefault();
+          slider.value = String(Math.min(100, Math.max(20, Number(slider.value) + (key === "ArrowRight" ? 2 : -2))));
+          slider.dispatchEvent(new Event("input"));
+        }
+        return;
+      }
+      if (key === "Home" || key === "End") {
+        var list = sheetFocusableEls(sheetEl);
+        if (list.length) { e.preventDefault(); list[key === "Home" ? 0 : list.length - 1].focus(); }
+        return;
+      }
+      if (e.repeat) return;
+      /* Enter with nothing focused decides the sheet's first item;
+         with a button focused, the browser's own Enter / Space
+         activation is the decision, so nothing is intercepted */
+      if (key === "Enter") {
+        if (!active || active === document.body || active === appEl) {
+          var target = firstSheetTarget(sheetFocusableEls(sheetEl));
+          if (target) { e.preventDefault(); target.focus(); target.click(); }
+        }
+        return;
+      }
+      if (openSheetName === "menu" && key.length === 1) {
+        if (key.toLowerCase() === "m") { e.preventDefault(); closeSheets(); renderAll(); return; }
+        var menuKeys = { p: "#menuPreset", h: "#menuHistory", t: "#menuTheme", o: "#menuOpacity", f: "#menuFont", a: "#menuAnimNav", l: "#menuLand", v: "#menuHaptics", w: "#menuWake" };
+        var sel = menuKeys[key.toLowerCase()];
+        if (sel) {
+          var mt = document.querySelector(sel);
+          if (mt) {
+            e.preventDefault();
+            mt.click();
+            if (openSheetName && openSheetName !== "menu") focusFirstInSheet(openSheetName);
+          }
+          return;
+        }
+        if (key.toLowerCase() === "k") {
+          var other = document.querySelector("[data-layout]:not(.on)");
+          if (other) { e.preventDefault(); other.click(); }
+          return;
+        }
+      }
+      if (openSheetName === "theme" && ["1", "2", "3", "4"].indexOf(key) >= 0) {
+        var picks = document.querySelectorAll("[data-theme-pick]");
+        var pick = picks[Number(key) - 1];
+        if (pick) { e.preventDefault(); pick.click(); }
+        return;
+      }
+    }
+    document.addEventListener("keydown", function (e) {
+      if (!hydrated) return;
+      if (e.isComposing || e.keyCode === 229) return; // IME conversion in progress
+      if (e.defaultPrevented) return; // a focused control already used this key
+      var key = e.key;
+      var target = e.target;
+      var inText = !!(target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable));
+      /* print preview overlay: Escape closes, Left / Right switch width */
+      var pv = $("printPreview");
+      if (pv && !pv.hidden) {
+        if (key === "Escape") { e.preventDefault(); closePrint(); return; }
+        if (!inText && (key === "ArrowLeft" || key === "ArrowRight")) {
+          e.preventDefault();
+          setReceiptWidth(key === "ArrowLeft" ? "58" : "80");
+        }
+        return;
+      }
+      /* editor popup: its input handles Enter / Escape itself;
+         Escape pressed anywhere else in the popup cancels too */
+      if (editing) {
+        if (key === "Escape") { e.preventDefault(); editing = null; renderAll(); }
+        return;
+      }
+      /* typing in a field: every key belongs to the field, except
+         Escape, which blurs (from the opacity slider it leaves the
+         sub-sheet instead, since a slider has nothing to blur out of) */
+      if (inText) {
+        if (key === "Escape") {
+          e.preventDefault();
+          if (target.type === "range" && openSheetName && openSheetName !== "menu" && openSheetName !== "help") {
+            sheetNav = "back"; openSheetName = "menu"; renderAll(); focusFirstInSheet("menu");
+          } else if (target.blur) target.blur();
+        }
+        return;
+      }
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        /* Ctrl+Z / Cmd+Z while entering mirrors the quick-mode undo key */
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && (key === "z" || key === "Z") && entering && state.quickMode) {
+          e.preventDefault();
+          quickUndo();
+        }
+        return;
+      }
+      /* a sheet is open: item movement / decision / cancel live there */
+      if (openSheetName) { handleSheetKey(e, key); return; }
+      /* ---------------- main view ---------------- */
+      var activeEl = document.activeElement;
+      /* the keypad-height handle and the split divider use the
+         arrow keys themselves (their own handlers run first) */
+      if (activeEl && (activeEl.id === "kpHandle" || activeEl.id === "splitDivider") && key.indexOf("Arrow") === 0) return;
+      if (key === "Enter") {
+        /* header and action buttons keep their native Enter; Enter
+           anywhere else — body, a score cell, a keypad key, the
+           next button itself — is the next-player button */
+        var tagBtn = activeEl && activeEl.tagName === "BUTTON" ? activeEl : null;
+        if (tagBtn && !tagBtn.closest("#kpGrid") && !tagBtn.closest("#grid") && tagBtn.id !== "nextBtn") return;
+        e.preventDefault();
+        if (e.repeat) return;
+        if (!entering) { entering = true; renderAll(); focusSelectedCell(); return; }
+        if (e.shiftKey) goPrev(); else goNext();
+        focusSelectedCell();
+        return;
+      }
+      if (key === "ArrowRight" || key === "ArrowLeft" || key === "ArrowDown" || key === "ArrowUp") {
+        e.preventDefault();
+        moveSelectionByArrow(key);
+        focusSelectedCell();
+        return;
+      }
+      if (key === "Backspace") {
+        if (!entering) return;
+        e.preventDefault();
+        if (state.quickMode) { if (!e.repeat) quickUndo(); }
+        else backspace();
+        return;
+      }
+      if (key === "Delete") {
+        if (!entering) return;
+        e.preventDefault();
+        clearCell();
+        return;
+      }
+      if (key === "Escape") {
+        if (pendingTens !== null) { e.preventDefault(); pendingTens = null; renderAll(); }
+        else if (entering) { e.preventDefault(); entering = false; renderAll(); }
+        return;
+      }
+      /* single-letter shortcuts (formulas never use letters) */
+      if (key.length === 1 && !e.repeat) {
+        var lk = key.toLowerCase();
+        if (lk === "m") {
+          e.preventDefault();
+          $("menuBtn").click();
+          if (openSheetName === "menu") focusFirstInSheet("menu");
+          return;
+        }
+        if (lk === "h" || key === "?") {
+          e.preventDefault();
+          $("helpBtn").click();
+          if (openSheetName === "help") focusFirstInSheet("help");
+          return;
+        }
+        if (lk === "f") { e.preventDefault(); $("fsBtn").click(); return; }
+        if (lk === "q" && entering) { e.preventDefault(); toggleQuick(); return; }
+      }
+      /* digits, operators and friends feed the selected cell; the
+         first keystroke also opens the keypad, like tapping a cell */
+      function ensureEntering() { if (!entering) { entering = true; renderAll(); } }
+      var digit = null;
+      if (/^[0-9]$/.test(key)) digit = key;
+      else if (/^Numpad[0-9]$/.test(e.code || "")) digit = e.code.slice(6);
+      if (digit !== null) {
+        e.preventDefault();
+        ensureEntering();
+        pushKeyDigit(digit);
+        return;
+      }
+      var op = null;
+      if (key === "+" || e.code === "NumpadAdd") op = "+";
+      else if (key === "-" || key === "−" || e.code === "NumpadSubtract") op = "-";
+      else if (key === "*" || key === "×" || e.code === "NumpadMultiply") op = "×";
+      else if (key === "/" || key === "÷" || e.code === "NumpadDivide") op = "÷";
+      if (op) { e.preventDefault(); ensureEntering(); pushOp(op); return; }
+      if (key === "." || key === "," || e.code === "NumpadDecimal") { e.preventDefault(); ensureEntering(); pushDot(); return; }
+      if (key === "(") { e.preventDefault(); ensureEntering(); pushOpenParen(); return; }
+      if (key === ")") { e.preventDefault(); ensureEntering(); pushCloseParen(); return; }
+      if (key === "^" || key === "²") { e.preventDefault(); ensureEntering(); pushSquare(); return; }
     });
 
     /* ---------------- boot ----------------
