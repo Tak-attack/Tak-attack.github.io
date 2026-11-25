@@ -9,7 +9,7 @@
          fallback in the page script injects an embedded manifest when
          those files are absent (e.g. index.html copied on its own to
          GitHub Pages). -->
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f4f3" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#2b5ea7" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1a1c" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -56,16 +56,28 @@
         --line-strong: #a2a29c;
         --bronze: #3d3d42;
         --bronze-dark: #232327;
+        /* main accent — lapis blue (Babylon's glazed brick): the colour
+           of operation only. Selected / pressed states, primary buttons,
+           focus rings and the pager take this; the neutral base, the
+           category colours and the player colours do not. */
+        --accent: #2b5ea7;
+        --accent-deep: #224e8c;
+        --accent-soft: #e3ecf8;
+        --accent-ink: #1e4a86;
+        --on-accent: #ffffff;
         --sii-bg: #0f766e;
         --sii-bg-active: #115e59;
         --sii-border: #0a4f48;
         --sii-ink: #ffffff;
-        --share-bg: #a87b14;
-        --share-bg-active: #8f660e;
-        --share-border: #7c5a0c;
+        --share-bg: #a87f2d;
+        --share-bg-active: #8a6824;
+        --share-border: #7a5e20;
         --share-ink: #ffffff;
-        --gold: #55555c;
-        --gold-soft: #e7e7e4;
+        /* antique gold — the victory colour only: 1st place, the crown
+           and the share button. Never an operation colour. */
+        --gold: #a87f2d;
+        --gold-strong: #7a5e20;
+        --gold-soft: #f4ecd8;
         --danger: #a83a2c;
         --on-danger: #ffffff;
         --fresh: #3e7c4f;
@@ -95,16 +107,22 @@
         --line-strong: #62626a;
         --bronze: #d2d2d7;
         --bronze-dark: #f0f0f2;
+        --accent: #6e9bd8;
+        --accent-deep: #8fb4e4;
+        --accent-soft: #273a56;
+        --accent-ink: #a9c7ee;
+        --on-accent: #0f2440;
         --sii-bg: #14b8a6;
         --sii-bg-active: #2dd4bf;
         --sii-border: #5eead4;
         --sii-ink: #04211d;
-        --share-bg: #d9a441;
-        --share-bg-active: #e7b95c;
-        --share-border: #a87b14;
+        --share-bg: #d9a83f;
+        --share-bg-active: #e5b95a;
+        --share-border: #a87f2d;
         --share-ink: #241a00;
-        --gold: #a2a2aa;
-        --gold-soft: #333338;
+        --gold: #d9a83f;
+        --gold-strong: #e5be5f;
+        --gold-soft: #3a3122;
         --danger: #e08a7c;
         --on-danger: #2b0f0c;
         --fresh: #6fae7d;
@@ -138,14 +156,14 @@
       .hero .rule { display: flex; align-items: center; gap: 12px; max-width: 420px; margin: 0 auto 10px; }
       .hero .rule::before, .hero .rule::after {
         content: ""; flex: 1; height: 1px;
-        background: var(--line-strong);
+        background: color-mix(in srgb, var(--accent) 55%, var(--line));
       }
-      .hero .rule span { color: var(--bronze); font-size: 13px; letter-spacing: .35em; text-indent: .35em; }
+      .hero .rule span { color: var(--accent); font-size: 13px; letter-spacing: .35em; text-indent: .35em; }
       h1 {
         font-family: "Noto Sans JP", sans-serif; font-weight: 900;
         font-size: clamp(26px, 6vw, 38px); margin: 0; letter-spacing: .04em;
       }
-      h1 .en { display: block; font-size: clamp(12px, 3vw, 15px); font-weight: 600; letter-spacing: .42em; color: var(--bronze); margin-top: 6px; }
+      h1 .en { display: block; font-size: clamp(12px, 3vw, 15px); font-weight: 600; letter-spacing: .42em; color: var(--accent); margin-top: 6px; }
       .hero p.lead { color: var(--ink-soft); font-size: 14px; margin: 12px auto 0; max-width: 560px; }
 
       /* ---------- theme toggle (light / dark, choice saved on device) ---------- */
@@ -159,8 +177,8 @@
         box-shadow: var(--shadow);
       }
       .theme-toggle svg { width: 18px; height: 18px; flex: none; }
-      .theme-toggle:active { background: var(--gold-soft); transform: translateY(1px); }
-      .theme-toggle:focus-visible { outline: 2.5px solid var(--bronze); outline-offset: 2px; }
+      .theme-toggle:active { background: var(--accent-soft); transform: translateY(1px); }
+      .theme-toggle:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
       /* the button names the theme it switches TO: moon + ダーク in light
          mode, sun + ライト in dark mode (pure CSS, driven by data-theme) */
       .theme-toggle .ico-sun, .theme-toggle .lbl-to-light { display: none; }
@@ -179,7 +197,7 @@
         background: var(--panel); color: var(--ink-soft);
         box-shadow: var(--shadow);
       }
-      .exp-btn[aria-pressed="true"] { border-color: var(--bronze); background: var(--gold-soft); color: var(--bronze-dark); }
+      .exp-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
 
       .btn {
         display: inline-flex; align-items: center; gap: 6px;
@@ -193,6 +211,7 @@
       .btn.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
       .btn.danger.armed { background: var(--danger); color: #fff; }
       .btn:disabled { opacity: .45; cursor: not-allowed; }
+      .btn:focus-visible, .exp-btn:focus-visible, .rws-btn:focus-visible, .pager-dot:focus-visible, select:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
 
       /* ---------- long-press reset buttons (two hold animations) ----------
          The two reset buttons deliberately use different hold
@@ -257,6 +276,7 @@
       .sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 26px 0 10px; }
       .sec-head h2, section.results h2 {
         font-family: "Noto Sans JP", sans-serif; font-size: 18px; margin: 0; letter-spacing: .05em;
+        border-left: 4px solid var(--accent); padding-left: 10px;
       }
       .sec-head p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-soft); }
       /* Players header: the add-player button sits on its own row below
@@ -288,7 +308,7 @@
       .player-row input.pname::placeholder { color: var(--ink-soft); font-weight: 500; font-size: 14px; }
       .player-row select.board-select {
         font: inherit; font-size: 15.5px; font-weight: 700; color: var(--ink);
-        background: var(--panel); border: 1.5px solid var(--bronze); border-radius: 5px;
+        background: var(--panel); border: 1.5px solid var(--accent); border-radius: 5px;
         padding: 7px 10px; width: min(220px, 56vw); min-height: 42px; cursor: pointer;
       }
       .player-row select.partner-select {
@@ -383,8 +403,8 @@
         font-family: "Noto Sans JP", sans-serif; font-size: 15px; font-weight: 900; line-height: 1;
         -webkit-tap-highlight-color: transparent; touch-action: manipulation;
       }
-      .help-btn:active { background: var(--gold-soft); transform: translateY(1px); }
-      .help-btn:focus-visible { outline: 2.5px solid var(--bronze); outline-offset: 2px; }
+      .help-btn:active { background: var(--accent-soft); transform: translateY(1px); }
+      .help-btn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
 
       /* ---------- help popup ---------- */
       .help-overlay {
@@ -418,7 +438,7 @@
         background: var(--panel-2); color: var(--ink-soft);
       }
       .help-close svg { width: 18px; height: 18px; }
-      .help-close:active { background: var(--gold-soft); }
+      .help-close:active { background: var(--accent-soft); }
       .help-body { margin: 12px 0 0; font-size: 14.5px; line-height: 1.75; color: var(--ink); overflow-wrap: anywhere; white-space: pre-line; }
       .help-actions { margin-top: 18px; display: flex; justify-content: flex-end; }
       .help-actions .btn { min-width: 96px; justify-content: center; }
@@ -493,7 +513,7 @@
         color: var(--bronze-dark); font-size: 20px; font-weight: 700; cursor: pointer;
         display: grid; place-items: center; line-height: 1; font-family: inherit;
       }
-      .stepper button:active { background: var(--gold-soft); }
+      .stepper button:active { background: var(--accent-soft); }
       .stepper input {
         width: 58px; border: none; border-left: 1px solid var(--line); border-right: 1px solid var(--line);
         background: transparent; color: var(--ink);
@@ -511,8 +531,8 @@
         font: inherit; font-size: 13px; font-weight: 600;
         border: none; background: var(--panel); color: var(--ink-soft); cursor: pointer;
       }
-      .mode-switch button[aria-pressed="true"] { background: var(--bronze); color: #ffffff; }
-      :root[data-theme="dark"] .mode-switch button[aria-pressed="true"] { color: #1b1b1e; }
+      .mode-switch button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+      :root[data-theme="dark"] .mode-switch button[aria-pressed="true"] { color: var(--on-accent); }
       .quick-add { display: flex; flex-wrap: wrap; gap: 6px; }
       .quick-add button {
         min-width: 54px; min-height: 44px; padding: 6px 10px;
@@ -520,7 +540,7 @@
         border: 1.5px solid var(--line-strong); border-radius: 5px;
         background: var(--panel-2); color: var(--bronze-dark); cursor: pointer;
       }
-      .quick-add button:active { background: var(--gold-soft); }
+      .quick-add button:active { background: var(--accent-soft); }
       /* Wonder: the numeric stepper sits on the left and the quick-add
          buttons form a two-row grid on the right — +1/+2/+3/+4 on the
          first row, +5/+7 plus the reset (spanning two columns) on the
@@ -554,7 +574,7 @@
         font-family: inherit; font-weight: 700; cursor: pointer;
         display: grid; place-items: center; line-height: 1; min-height: 44px; padding: 0;
       }
-      .combo button:active { background: var(--gold-soft); }
+      .combo button:active { background: var(--accent-soft); }
       .combo .combo-quick { width: 52px; flex: none; font-size: 15px; font-variant-numeric: tabular-nums; }
       .combo .combo-quick:first-child { border-right: 1px solid var(--line); }
       .combo .combo-quick:last-child { border-left: 1px solid var(--line); }
@@ -577,7 +597,7 @@
         background: var(--panel-2); color: var(--ink);
         -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: manipulation;
       }
-      .tap-main:active { background: var(--gold-soft); }
+      .tap-main:active { background: var(--accent-soft); }
       .tap-main .tap-ico { width: 22px; height: 22px; color: var(--c-science); display: grid; place-items: center; flex: none; }
       .tap-main .tap-ico svg { width: 22px; height: 22px; }
       .tap-count { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.05; }
@@ -591,7 +611,7 @@
         border: 1px solid var(--line); border-radius: 5px;
         background: var(--panel); color: var(--danger);
       }
-      .tap-reset:active { background: var(--gold-soft); }
+      .tap-reset:active { background: var(--accent-soft); }
       .tap-visual { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; align-items: center; max-width: 100%; min-width: 0; }
       .tap-visual:empty { display: none; margin-top: 0; }
       /* Icons under a tap counter stay inside that counter's own column:
@@ -632,7 +652,7 @@
       button.v-pile, button.v-coin { background: none; border: none; padding: 0; }
       button.v-token:active, button.v-pile:active, button.v-coin:active { transform: scale(.88); }
       button.v-token:focus-visible, button.v-pile:focus-visible, button.v-coin:focus-visible {
-        outline: 2.5px solid var(--bronze); outline-offset: 2px;
+        outline: 2.5px solid var(--accent); outline-offset: 2px;
       }
       /* military tokens: the button itself is unstyled — the shape is
          drawn by the inline SVG inside (victory = red banner token,
@@ -672,13 +692,13 @@
         background: var(--panel-2); border: 1.5px solid var(--line-strong); color: var(--ink-soft);
       }
       .rank-row.first { border-color: var(--gold); background: var(--gold-soft); }
-      .rank-row.first .rank-badge { background: var(--gold); border-color: var(--bronze); color: #ffffff; }
+      .rank-row.first .rank-badge { background: var(--gold); border-color: var(--gold-strong); color: #ffffff; }
       :root[data-theme="dark"] .rank-row.first .rank-badge { color: #1b1b1e; }
       .rank-name { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
       /* Winner's crown: a single-colour vector mark filled with the
          current text colour (currentColor), never an emoji font, so it
          stays monochrome in every theme and prints cleanly in B/W. */
-      .rank-name .crown { width: 22px; height: 22px; color: var(--ink); flex: none; }
+      .rank-name .crown { width: 22px; height: 22px; color: var(--gold); flex: none; }
       .rank-total { font-family: "Noto Sans JP", sans-serif; font-size: 32px; font-weight: 900; color: var(--bronze-dark); font-variant-numeric: tabular-nums; line-height: 1; }
       .rank-total small { font-size: 13px; font-weight: 700; }
       .rank-break { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
@@ -749,7 +769,7 @@
       .missing-check[hidden] { display: none !important; }
       /* 0点 button: pressed state + the confirmed block is dimmed */
       .zero-btn { flex: none; }
-      .zero-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+      .zero-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent-deep); color: var(--on-accent); }
       .player-block.is-zero .cat-inputs,
       .player-block.is-zero .mode-switch,
       .player-block.is-zero .sci-formula,
@@ -764,16 +784,16 @@
         font: inherit; font-size: 13.5px; font-weight: 700;
         border: none; background: transparent; color: var(--ink-soft); cursor: pointer;
       }
-      .side-switch button[aria-pressed="true"] { background: var(--bronze); color: #ffffff; }
-      :root[data-theme="dark"] .side-switch button[aria-pressed="true"] { color: #1b1b1e; }
+      .side-switch button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+      :root[data-theme="dark"] .side-switch button[aria-pressed="true"] { color: var(--on-accent); }
       .side-switch button { display: inline-flex; align-items: center; gap: 4px; }
       .side-ico { width: 15px; height: 15px; flex: none; vertical-align: -2px; }
       /* board-side icons inside running text (standings, category
          headings, missing lists, receipt): sized to the surrounding
          type and baseline-aligned like the glyph they replace */
       .rank-name .side-ico, .p-name .side-ico { width: 16px; height: 16px; }
-      .receipt-paper .side-ico { width: 14px; height: 14px; vertical-align: -2px; }
-      .receipt-paper.is-58 .side-ico { width: 13px; height: 13px; }
+      .receipt-paper .side-ico { width: 17px; height: 17px; vertical-align: -2px; }
+      .receipt-paper.is-58 .side-ico { width: 15px; height: 15px; }
       /* players setup: long explanation collapsed behind 詳しい説明 */
       .players-details { margin-top: 8px; }
       .players-details summary {
@@ -790,21 +810,21 @@
       .note { margin-top: 16px; font-size: 13px; color: var(--ink-soft); }
 
       /* ---------- receipt print (preview + OS print) ---------- */
-      .receipt-actions { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+      .receipt-actions { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; }
       .receipt-actions .note { margin-top: 0; flex: 1 1 220px; }
       .btn.receipt-btn {
         min-height: 46px; padding: 9px 18px; font-size: 15px;
-        background: var(--bronze); border-color: var(--bronze-dark); color: #ffffff;
+        background: var(--accent); border-color: var(--accent-deep); color: var(--on-accent);
       }
-      :root[data-theme="dark"] .btn.receipt-btn { color: #1b1b1e; }
+      :root[data-theme="dark"] .btn.receipt-btn { color: var(--on-accent); }
       .btn.receipt-btn svg { width: 19px; height: 19px; flex: none; }
-      .btn.receipt-btn:active { background: var(--bronze-dark); }
+      .btn.receipt-btn:active { background: var(--accent-deep); }
       .btn.pdf-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
       .btn.pdf-btn svg { width: 19px; height: 19px; flex: none; }
       /* Result-image share button: the primary action of the results
          area, placed first in the button row. A deep gold face —
          the colour of the laurel-and-7 app icon and the winner's
-         crown — sets it apart from the bronze printer button, the
+         crown — sets it apart from the lapis printer button, the
          plain PDF buttons and the teal SII button in both themes
          (dark theme uses a brighter gold with dark ink). */
       .btn.share-image-btn {
@@ -817,24 +837,20 @@
          group, centred; its width stays content-sized (unchanged). */
       .share-row { flex: 1 1 100%; display: flex; justify-content: center; }
       .btn[hidden] { display: none !important; }
-      .btn.sii-btn { min-height: 46px; padding: 9px 16px; font-size: 15px; }
-      .btn.sii-btn svg { width: 19px; height: 19px; flex: none; }
-      /* SII URL Print Agent buttons: deep teal green, clearly distinct
-         from the bronze receipt-print button and the plain PDF buttons,
-         in both themes (dark theme uses a brighter teal with dark ink) */
-      .btn.sii-btn,
+      /* SII URL Print Agent button (inside the receipt preview):
+         deep teal green, clearly distinct from the lapis
+         receipt-print button and the plain PDF buttons, in both
+         themes (dark theme uses a brighter teal with dark ink) */
       .receipt-dialog-actions .btn.receipt-sii-btn {
         background: var(--sii-bg); border-color: var(--sii-border); color: var(--sii-ink);
       }
-      .btn.sii-btn:active,
       .receipt-dialog-actions .btn.receipt-sii-btn:active { background: var(--sii-bg-active); }
-      .receipt-actions .sii-note { flex: 1 1 100%; font-size: 12px; line-height: 1.6; color: var(--ink-soft); }
       .receipt-actions .print-details { flex: 1 1 100%; }
       .receipt-actions .pdf-status { flex: 1 1 100%; font-size: 13px; font-weight: 700; color: var(--bronze-dark); }
       .receipt-actions .pdf-status:empty { display: none; }
 
-      /* receipt roll width switch (58mm / 80mm) — shown beside the print
-         buttons and again inside the preview dialog; both stay in sync */
+      /* receipt roll width switch (58mm / 80mm) — shown only inside
+         the preview dialog */
       .receipt-width-switch { display: inline-flex; align-items: center; gap: 8px; }
       .receipt-width-switch .rws-label { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); letter-spacing: .06em; }
       .rws-btns { display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: 6px; overflow: hidden; background: var(--panel); }
@@ -843,9 +859,9 @@
         font: inherit; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
         border: none; background: transparent; color: var(--ink-soft); cursor: pointer;
       }
-      .rws-btn[aria-pressed="true"] { background: var(--bronze); color: #ffffff; }
-      :root[data-theme="dark"] .rws-btn[aria-pressed="true"] { color: #1b1b1e; }
-      .receipt-overlay .receipt-width-switch { width: 100%; margin: 0 0 10px; }
+      .rws-btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+      :root[data-theme="dark"] .rws-btn[aria-pressed="true"] { color: var(--on-accent); }
+      .receipt-overlay .receipt-width-switch { width: 100%; margin: 12px 0 0; }
       .receipt-overlay .rws-label { color: #e9e9e7; }
 
       .receipt-overlay {
@@ -870,17 +886,17 @@
       }
       .receipt-close svg { width: 18px; height: 18px; }
       .receipt-hint { width: 100%; margin: 0 0 12px; font-size: 12.5px; line-height: 1.6; color: #e9e9e7; }
-      /* the print details fold inside the preview dialog sits on the
-         dark overlay, so its body text takes the dialog's light ink */
-      .receipt-overlay .print-details { width: 100%; margin: 0 0 12px; }
-      .receipt-overlay .print-details p { color: #e9e9e7; }
+      /* the print explanation sits at the very bottom of the preview
+         dialog, always visible (no fold); it sits on the dark overlay,
+         so its text takes the dialog's light ink */
+      .receipt-overlay .receipt-details-note { width: 100%; margin: 14px 0 0; font-size: 12.5px; line-height: 1.65; color: #e9e9e7; }
       .receipt-dialog-actions { width: 100%; margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
       .receipt-dialog-actions .btn { flex: 1 1 auto; justify-content: center; min-height: 46px; background: var(--panel); }
-      .receipt-dialog-actions .btn.receipt-print-btn { flex: 2 1 auto; background: var(--bronze); border-color: var(--bronze-dark); color: #ffffff; font-size: 15px; }
+      .receipt-dialog-actions .btn.receipt-print-btn { flex: 2 1 auto; background: var(--accent); border-color: var(--accent-deep); color: var(--on-accent); font-size: 15px; }
       .receipt-dialog-actions .btn.receipt-pdf-btn { flex: 1 1 auto; }
       .receipt-dialog-actions .btn.receipt-share-btn { flex: 1 1 auto; }
       .receipt-dialog-actions .btn.receipt-sii-btn { flex: 1 1 auto; }
-      :root[data-theme="dark"] .receipt-dialog-actions .btn.receipt-print-btn { color: #1b1b1e; }
+      :root[data-theme="dark"] .receipt-dialog-actions .btn.receipt-print-btn { color: var(--on-accent); }
       .receipt-print-status { width: 100%; margin-top: 8px; font-size: 13px; font-weight: 700; color: #e9e9e7; min-height: 1.2em; text-align: center; }
       body.receipt-open { overflow: hidden; }
 
@@ -894,62 +910,62 @@
         padding: 20px 18px 24px;
         box-shadow: none; border: 1px solid #c8c8c8;
         font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans JP", monospace;
-        font-size: 13px; line-height: 1.55;
+        font-size: 15.5px; line-height: 1.55;
       }
       .receipt-paper .r-head { text-align: center; }
-      .receipt-paper .r-title { font-family: "Noto Serif JP", serif; font-size: 21px; font-weight: 900; letter-spacing: .06em; line-height: 1.3; }
-      .receipt-paper .r-subtitle { font-family: "Noto Serif JP", serif; font-size: 13px; font-weight: 700; letter-spacing: .5em; text-indent: .5em; margin-top: 2px; }
-      .receipt-paper .r-en { font-size: 10px; letter-spacing: .28em; margin-top: 5px; color: #333; }
-      .receipt-paper .r-line { border-top: 2px solid #111; margin: 10px 0; }
+      .receipt-paper .r-title { font-family: "Noto Serif JP", serif; font-size: 25px; font-weight: 900; letter-spacing: .06em; line-height: 1.3; }
+      .receipt-paper .r-subtitle { font-family: "Noto Serif JP", serif; font-size: 15.5px; font-weight: 700; letter-spacing: .5em; text-indent: .5em; margin-top: 2px; }
+      .receipt-paper .r-en { font-size: 12px; letter-spacing: .28em; margin-top: 6px; color: #333; }
+      .receipt-paper .r-line { border-top: 2px solid #111; margin: 12px 0; }
       .receipt-paper .r-line.thin { border-top-width: 1px; }
       .receipt-paper .r-line.dashed { border-top: 1.5px dashed #111; }
-      .receipt-paper .r-meta { text-align: center; font-size: 12px; }
+      .receipt-paper .r-meta { text-align: center; font-size: 14.5px; overflow-wrap: anywhere; }
       .receipt-paper .r-meta .r-exp { font-weight: 700; }
-      .receipt-paper .r-player { padding: 2px 0 4px; }
+      .receipt-paper .r-player { padding: 2px 0 5px; }
       .receipt-paper .r-rank-row { display: flex; align-items: baseline; gap: 8px; }
       .receipt-paper .r-rank {
-        flex: none; font-family: "Noto Serif JP", serif; font-weight: 900; font-size: 16px;
-        border: 1.5px solid #111; border-radius: 999px; padding: 0 9px; line-height: 1.5;
+        flex: none; font-family: "Noto Serif JP", serif; font-weight: 900; font-size: 19px;
+        border: 1.5px solid #111; border-radius: 999px; padding: 0 11px; line-height: 1.5;
       }
       .receipt-paper .r-rank.first { background: #111; color: #fff; }
-      .receipt-paper .r-name { font-weight: 700; font-size: 14.5px; overflow-wrap: anywhere; min-width: 0; }
-      .receipt-paper .r-crown { width: 16px; height: 16px; vertical-align: -2px; }
-      .receipt-paper .r-total-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 6px; }
-      .receipt-paper .r-total-row .r-total-label { font-size: 12px; font-weight: 700; letter-spacing: .2em; }
-      .receipt-paper .r-total { font-family: "Noto Serif JP", serif; font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
-      .receipt-paper .r-total small { font-size: 12px; font-weight: 700; }
-      .receipt-paper .r-break { margin-top: 7px; }
-      .receipt-paper .r-break-row { display: flex; align-items: baseline; gap: 6px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+      .receipt-paper .r-name { font-weight: 700; font-size: 17.5px; overflow-wrap: anywhere; min-width: 0; }
+      .receipt-paper .r-crown { width: 19px; height: 19px; vertical-align: -2px; }
+      .receipt-paper .r-total-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 7px; }
+      .receipt-paper .r-total-row .r-total-label { font-size: 14.5px; font-weight: 700; letter-spacing: .2em; }
+      .receipt-paper .r-total { font-family: "Noto Serif JP", serif; font-size: 31px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+      .receipt-paper .r-total small { font-size: 14.5px; font-weight: 700; }
+      .receipt-paper .r-break { margin-top: 8px; }
+      .receipt-paper .r-break-row { display: flex; align-items: baseline; gap: 6px; font-size: 15px; font-variant-numeric: tabular-nums; }
       .receipt-paper .r-break-row .r-cat { flex: none; }
-      .receipt-paper .r-break-row .r-dots { flex: 1; border-bottom: 1.7px dotted #333; transform: translateY(-3px); min-width: 12px; }
+      .receipt-paper .r-break-row .r-dots { flex: 1; border-bottom: 1.7px dotted #333; transform: translateY(-4px); min-width: 12px; }
       .receipt-paper .r-break-row .r-val { flex: none; font-weight: 700; min-width: 2ch; text-align: right; }
-      .receipt-paper .r-coin { margin-top: 6px; font-size: 12px; color: #222; }
+      .receipt-paper .r-coin { margin-top: 7px; font-size: 14.5px; color: #222; }
       .receipt-paper .r-coin b { font-variant-numeric: tabular-nums; }
-      .receipt-paper .r-foot { text-align: center; font-size: 11.5px; color: #333; margin-top: 4px; line-height: 1.7; }
-      .receipt-paper .r-team-title { text-align: center; font-family: "Noto Serif JP", serif; font-size: 15px; font-weight: 900; letter-spacing: .14em; margin: 2px 0 6px; }
-      .receipt-paper .r-team-row { padding: 2px 0 4px; }
-      .receipt-paper .r-team-names { font-weight: 700; font-size: 13.5px; overflow-wrap: anywhere; }
-      .receipt-paper .r-team-detail { font-size: 12px; color: #222; margin-top: 2px; font-variant-numeric: tabular-nums; }
-      .receipt-paper .r-team-unpaired { font-size: 11.5px; color: #333; margin-top: 4px; overflow-wrap: anywhere; }
+      .receipt-paper .r-foot { text-align: center; font-size: 14px; color: #333; margin-top: 5px; line-height: 1.7; }
+      .receipt-paper .r-team-title { text-align: center; font-family: "Noto Serif JP", serif; font-size: 18px; font-weight: 900; letter-spacing: .14em; margin: 2px 0 7px; }
+      .receipt-paper .r-team-row { padding: 2px 0 5px; }
+      .receipt-paper .r-team-names { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+      .receipt-paper .r-team-detail { font-size: 14.5px; color: #222; margin-top: 2px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+      .receipt-paper .r-team-unpaired { font-size: 14px; color: #333; margin-top: 5px; overflow-wrap: anywhere; }
 
       /* 58mm roll: narrower paper, slightly smaller type and tighter
          dotted leaders, so player names and breakdown rows never spill */
-      .receipt-paper.is-58 { max-width: 248px; padding: 16px 19px 20px 14px; font-size: 12px; }
-      .receipt-paper.is-58 .r-title { font-size: 17px; }
-      .receipt-paper.is-58 .r-subtitle { font-size: 11px; letter-spacing: .34em; text-indent: .34em; }
-      .receipt-paper.is-58 .r-en { font-size: 9px; letter-spacing: .2em; }
-      .receipt-paper.is-58 .r-meta { font-size: 11px; }
-      .receipt-paper.is-58 .r-line { margin: 8px 0; }
+      .receipt-paper.is-58 { max-width: 248px; padding: 16px 19px 20px 14px; font-size: 14.5px; }
+      .receipt-paper.is-58 .r-title { font-size: 20.5px; }
+      .receipt-paper.is-58 .r-subtitle { font-size: 13px; letter-spacing: .34em; text-indent: .34em; }
+      .receipt-paper.is-58 .r-en { font-size: 11px; letter-spacing: .2em; }
+      .receipt-paper.is-58 .r-meta { font-size: 13px; }
+      .receipt-paper.is-58 .r-line { margin: 10px 0; }
       .receipt-paper.is-58 .r-rank-row { gap: 6px; }
-      .receipt-paper.is-58 .r-rank { font-size: 14px; padding: 0 7px; }
-      .receipt-paper.is-58 .r-name { font-size: 13px; }
-      .receipt-paper.is-58 .r-crown { width: 14px; height: 14px; vertical-align: -2px; }
-      .receipt-paper.is-58 .r-total { font-size: 22px; }
+      .receipt-paper.is-58 .r-rank { font-size: 17px; padding: 0 8px; }
+      .receipt-paper.is-58 .r-name { font-size: 15.5px; }
+      .receipt-paper.is-58 .r-crown { width: 17px; height: 17px; vertical-align: -2px; }
+      .receipt-paper.is-58 .r-total { font-size: 26.5px; }
       .receipt-paper.is-58 .r-total-row .r-total-label { letter-spacing: .12em; }
-      .receipt-paper.is-58 .r-break-row { font-size: 11.5px; gap: 4px; }
+      .receipt-paper.is-58 .r-break-row { font-size: 14px; gap: 4px; }
       .receipt-paper.is-58 .r-break-row .r-dots { min-width: 6px; }
-      .receipt-paper.is-58 .r-coin { font-size: 11px; }
-      .receipt-paper.is-58 .r-foot { font-size: 10.5px; }
+      .receipt-paper.is-58 .r-coin { font-size: 12.5px; }
+      .receipt-paper.is-58 .r-foot { font-size: 12.5px; }
 
       /* print-only copy of the receipt: hidden on screen, the only thing
          that reaches the printer */
@@ -970,7 +986,7 @@
       }
 
       section.share { margin-top: 30px; }
-      section.share h2 { font-family: "Noto Sans JP", sans-serif; font-size: 18px; margin: 0; letter-spacing: .05em; }
+      section.share h2 { font-family: "Noto Sans JP", sans-serif; font-size: 18px; margin: 0; letter-spacing: .05em; border-left: 4px solid var(--accent); padding-left: 10px; }
       section.share .note { margin-top: 4px; }
       .share-text {
         width: 100%; margin-top: 12px; padding: 12px 14px;
@@ -998,14 +1014,14 @@
         font: inherit; font-size: 14px; font-weight: 700;
         border: none; background: transparent; color: var(--ink-soft); cursor: pointer;
       }
-      .vm-switch button[aria-pressed="true"] { background: var(--bronze); color: #ffffff; }
-      :root[data-theme="dark"] .vm-switch button[aria-pressed="true"] { color: #1b1b1e; }
+      .vm-switch button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+      :root[data-theme="dark"] .vm-switch button[aria-pressed="true"] { color: var(--on-accent); }
       .view-mode-bar .vm-hint { font-size: 12.5px; color: var(--ink-soft); flex: 1 1 200px; }
       /* pager bar: sticky so the current page is always visible */
       .pager-bar {
         position: sticky; top: 6px; z-index: 55;
         margin-top: 12px; padding: 10px 12px;
-        background: var(--panel); border: 1.5px solid var(--bronze); border-radius: 6px;
+        background: var(--panel); border: 1.5px solid var(--accent); border-radius: 6px;
         box-shadow: var(--shadow);
       }
       .pager-bar[hidden] { display: none; }
@@ -1015,7 +1031,7 @@
       .pager-center { flex: 1 1 auto; min-width: 0; text-align: center; }
       .pager-indicator {
         font-family: "Noto Sans JP", sans-serif; font-size: 16.5px; font-weight: 900;
-        letter-spacing: .04em; color: var(--bronze-dark); font-variant-numeric: tabular-nums;
+        letter-spacing: .04em; color: var(--accent-ink); font-variant-numeric: tabular-nums;
         overflow-wrap: anywhere;
       }
       .pager-dots { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
@@ -1023,7 +1039,7 @@
         width: 11px; height: 11px; min-height: 11px; padding: 0; border-radius: 50%;
         border: 1.5px solid var(--line-strong); background: transparent; cursor: pointer;
       }
-      .pager-dot.active { background: var(--bronze); border-color: var(--bronze); transform: scale(1.25); }
+      .pager-dot.active { background: var(--accent); border-color: var(--accent); transform: scale(1.25); }
       .pager-dot.has-missing { border-color: var(--danger); box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent); }
       .pager-dot.has-missing.active { background: var(--danger); }
       /* missing-input summary directly under the page indicator */
@@ -1034,7 +1050,7 @@
         background: color-mix(in srgb, var(--danger) 7%, var(--panel)); color: var(--ink);
       }
       .pager-missing .pm-title { font-weight: 700; color: var(--danger); }
-      .pager-missing .pm-go { display: block; font-size: 12px; font-weight: 700; color: var(--bronze-dark); margin-top: 2px; }
+      .pager-missing .pm-go { display: block; font-size: 12px; font-weight: 700; color: var(--accent-ink); margin-top: 2px; }
       .pager-missing.complete {
         border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-soft); cursor: default;
       }
@@ -1082,13 +1098,13 @@
       .jump-nav button {
         width: 50px; height: 50px; min-height: 50px; padding: 0;
         display: grid; place-items: center; cursor: pointer;
-        border-radius: 8px; border: 1.5px solid var(--bronze);
-        background: var(--panel); color: var(--bronze-dark);
+        border-radius: 8px; border: 1.5px solid var(--accent);
+        background: var(--panel); color: var(--accent-ink);
         box-shadow: none;
         -webkit-tap-highlight-color: transparent; touch-action: manipulation;
       }
       .jump-nav button svg { width: 24px; height: 24px; }
-      .jump-nav button:active { background: var(--gold-soft); transform: translateY(1px); }
+      .jump-nav button:active { background: var(--accent-soft); transform: translateY(1px); }
       .jump-nav button:disabled { opacity: .35; cursor: not-allowed; box-shadow: var(--shadow); }
       .jump-nav button:disabled:active { background: var(--panel); transform: none; }
       @media (max-width: 480px) {
@@ -1116,7 +1132,7 @@
         </div>
         <div class="rule"><span>7 WONDERS</span></div>
         <h1>世界の七不思議<span class="en">得 点 計 算</span></h1>
-        <p class="lead">項目ごとに、全プレイヤー分を順番に入力していく方式です。七不思議→財産→軍事紛争→…と上から進めるだけで、カテゴリ別の内訳と順位を自動で計算します。基本ゲームに加え、拡張「指導者（リーダーズ）」と「都市（シティーズ）」に対応しています。</p>
+        <p class="lead">基本ゲームと拡張「指導者（LEADERS）」「都市（CITIES）」に対応しています。</p>
       </header>
 
       <div class="view-mode-bar" id="viewModeBar">
@@ -1125,7 +1141,7 @@
           <button type="button" id="vmAll" aria-pressed="true">全表示</button>
           <button type="button" id="vmPaged" aria-pressed="false">1項目ずつ</button>
         </div>
-        <span class="vm-hint">「1項目ずつ」は項目ごとに1ページ表示します。前へ／次へボタンと横スワイプで移動できます。</span>
+        <span class="vm-hint">「1項目ずつ」では横スワイプでも移動できます。</span>
       </div>
 
       <div class="pager-bar" id="pagerBar" hidden>
@@ -1143,20 +1159,19 @@
       <div class="exp-row" id="expRow">
         <span class="exp-label" id="expLabel">使う拡張</span>
         <div class="exp-btns" role="group" aria-labelledby="expLabel">
-          <button class="exp-btn" id="expLeaders" type="button" aria-pressed="false">指導者（リーダーズ）</button>
-          <button class="exp-btn" id="expCities" type="button" aria-pressed="false">都市（シティーズ）</button>
+          <button class="exp-btn" id="expLeaders" type="button" aria-pressed="false">指導者（LEADERS）</button>
+          <button class="exp-btn" id="expCities" type="button" aria-pressed="false">都市（CITIES）</button>
           <button class="exp-btn" id="teamToggle" type="button" aria-pressed="false" disabled>チーム戦（2人1組）</button>
         </div>
-        <span class="team-note" id="teamNote">チーム戦は都市（シティーズ）拡張をONにすると選べます。ONにすると、各プレイヤーの「相方」を選んでペアの合計点でチーム順位を出せます。</span>
+        <span class="team-note" id="teamNote">チーム戦は都市（CITIES）拡張をONにすると選べます。</span>
       </div>
 
       <div class="sec-head" id="sec-players-head">
         <div>
           <h2>プレイヤー</h2>
-          <p>各プレイヤーのボード（七不思議）を選んでください。</p>
           <details class="players-details">
             <summary>詳しい説明</summary>
-            <p>拡張のボード（ROMA／ABU SIMBEL／PETRA／BYZANTIUM）も一覧に表示されますが、対応する拡張を有効にしないと選べません。ボードの面はA面／B面を切り替えられます（初期はA面で、選んだ面は結果や印刷にも「RHODOS（☀A面）」「RHODOS（☾B面）」のように、単色の太陽／月のマークと一緒に表示されます）。プレイヤーは2〜7人で、都市（シティーズ）をONにすると8人まで追加できます（追加／削除ボタンは上限・下限で止まります）。プレイヤー名は任意で、16文字まで入力できます。表示名は、ボードと名前の両方がある場合は「ボード名（☀A面）（名前）」、ボードだけの場合は「ボード名（☀A面）」、名前だけの場合は名前、どちらも無い場合は「（ボード未選択）」と表示されます。「入力をクリア」は、そのプレイヤーの得点入力だけをゼロに戻します（ボード・名前・面・相方は残りますが、財産・市民の入力モードは初期値に戻ります）。</p>
+            <p>拡張のボード（ROMA／ABU SIMBEL／PETRA／BYZANTIUM）は、対応する拡張を有効にしないと選べません。ボードの面はA面／B面を切り替えられ、結果や印刷にも☀A面／☾B面と表示されます。プレイヤーは2〜7人（都市（CITIES）ONで8人まで）。プレイヤー名は16文字まで入力できます。「入力をクリア」は得点入力だけをゼロに戻し、財産・市民の入力モードも初期値に戻ります（ボード・名前・面・相方は残ります）。</p>
           </details>
         </div>
         <button class="btn" id="addPlayer" type="button">＋ プレイヤーを追加</button>
@@ -1166,7 +1181,6 @@
       <div class="sec-head" id="sec-score-head">
         <div>
           <h2>得点入力（項目ごと）</h2>
-          <p>各項目で、全員分を順番に入力してから次の項目へ進んでください。</p>
         </div>
       </div>
       <div id="categories"></div>
@@ -1194,7 +1208,7 @@
           </div>
           <button class="btn receipt-btn" id="openReceipt" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/></svg>
-            プリンターで印刷
+            印刷プレビュー
           </button>
           <button class="btn pdf-btn" id="savePdfMain" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7L19 8.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5A1 1 0 0 1 7 3.5z"/><path d="M13.5 3.5v5.5H19"/><path d="M12 11v6M9.2 14.4L12 17.2l2.8-2.8"/></svg>
@@ -1204,30 +1218,17 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8L12 3.5 16.5 8"/><path d="M5 13v6.5A1.5 1.5 0 0 0 6.5 21h11A1.5 1.5 0 0 0 19 19.5V13"/></svg>
             PDFを共有
           </button>
-          <button class="btn sii-btn" id="siiPrintMain" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3.5h10V8"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13.5h10V21H7z"/><path d="M17.5 11.5h.01"/></svg>
-            レシートプリンターで印刷（URL Print Agent）
-          </button>
-          <div class="receipt-width-switch" role="group" aria-label="レシート幅">
-            <span class="rws-label">レシート幅</span>
-            <div class="rws-btns">
-              <button type="button" class="rws-btn" data-receipt-width="58" aria-pressed="true">58mm</button>
-              <button type="button" class="rws-btn" data-receipt-width="80" aria-pressed="false">80mm</button>
-            </div>
-          </div>
-          <p class="note">結果はレシート幅の用紙風プレビューで確認してから印刷できます。レシート幅は58mm／80mmを切り替えられます。</p>
           <details class="players-details print-details">
             <summary>詳しい説明</summary>
-            <p>結果をレシート幅の用紙風プレビューで確認してから、対応プリンターで印刷できます。レシート幅は58mm／80mmを切り替えられ、選んだ幅はこの端末に保存されます。「PDFで保存」は結果を選択中の幅のPDFファイルとして直接ダウンロードします。「PDFを共有」は共有シートを開きます（iPadでは「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して対応プリンターで印刷できます）。ファイル共有に対応していない環境では、「PDFを共有」を押すとPDFをダウンロードします。「結果を画像で保存／共有」は順位結果をPNG画像として書き出します（ファイル共有に対応した環境では共有シートを開き、非対応環境ではダウンロードします）。</p>
+            <p>レシート幅（58mm／80mm）はこの端末に保存されます。「PDFを共有」は、ファイル共有に対応していない環境ではPDFをダウンロードします。iPadでは共有シートから「ファイルに保存」や SII URL Print Agent などの印刷アプリに渡して印刷できます。</p>
           </details>
-          <span class="sii-note">「レシートプリンターで印刷（URL Print Agent）」は、SII URL Print Agent アプリが入った端末で、ブラウザ（Safari／Chrome）からこのページを開いたときに使えます。アプリ内ブラウザでは起動しない場合があります。また、生成されるPDFのサイズが上限（Androidは約150KB、iOSは約500KB）を超える場合は、印刷は実行されません。</span>
           <span class="pdf-status" id="pdfStatus" role="status" aria-live="polite"></span>
         </div>
       </section>
 
       <section class="share" id="sec-share" aria-labelledby="shareTitle">
         <h2 id="shareTitle">結果をテキストでシェア</h2>
-        <p class="note">順位とカテゴリ別の内訳をテキストにまとめました。コピーしてLINEやSNSなどに貼り付けたり、ファイルとして保存できます。テキスト自体は上の「結果発表」を押すまで表示されません。</p>
+        <p class="note">テキストは上の「結果発表」を押すまで表示されません。</p>
         <div id="shareRevealWrap" hidden>
         <textarea class="share-text" id="shareText" readonly rows="10" aria-label="シェア用テキスト"></textarea>
         <div class="share-actions">
@@ -1243,16 +1244,16 @@
           <span class="hold-fill" aria-hidden="true"></span>
           <span class="hold-label">新しいゲーム（長押し）</span>
         </button>
-        <p class="reset-hint" id="resetHint">次のゲーム用に、得点入力だけを全員ゼロに戻します（プレイヤー・ボード・名前・拡張・チーム設定はそのまま残ります）。財産・市民の入力モードも初期値（財産は「枚数で入力」、市民は「カード枚数」）に戻ります。</p>
+        <p class="reset-hint" id="resetHint">得点入力だけを全員ゼロに戻します（プレイヤー・ボード・名前・拡張・チーム設定は残ります）。財産・市民の入力モードも初期値（財産＝枚数で入力、市民＝カード枚数）に戻ります。</p>
         <button class="btn hold-btn all-reset" id="allReset" type="button" aria-describedby="allResetHint">
           <span class="hold-deep" aria-hidden="true"></span>
           <span class="hold-label">すべての入力をリセット（長押し）</span>
         </button>
-        <p class="reset-hint" id="allResetHint">名前・ボード・拡張も含めすべて初期状態に戻します（プレイヤーは3人、ボードは未選択、名前は空、拡張・チーム戦はOFFに戻ります）。テーマとレシート幅の設定は残ります。</p>
+        <p class="reset-hint" id="allResetHint">すべて初期状態に戻します（プレイヤー3人、ボード未選択、名前は空、拡張・チーム戦はOFF）。テーマとレシート幅の設定は残ります。</p>
         <span class="copy-status" id="resetStatus" role="status" aria-live="polite"></span>
       </div>
 
-      <footer id="pageFooter">「世界の七不思議（7 Wonders）」基本ゲームと拡張「指導者（リーダーズ）」「都市（シティーズ）」の得点計算用ページです。その他の拡張（「大海戦」など）のカテゴリには対応していません。</footer>
+      <footer id="pageFooter">「世界の七不思議（7 Wonders）」基本ゲームと拡張「指導者（LEADERS）」「都市（CITIES）」の得点計算用ページです。その他の拡張（「大海戦」など）のカテゴリには対応していません。</footer>
 
       <div class="pager-bottom" id="pagerBottom" hidden>
         <button type="button" class="btn pager-prev" aria-label="前のページへ移動">← 前へ</button>
@@ -1284,11 +1285,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-        <p class="receipt-hint">印刷の内容を確認してください。問題なければ「この記録を印刷」から印刷できます。</p>
-        <details class="players-details print-details">
-          <summary>詳しい説明</summary>
-          <p>印刷の内容を確認してください。「この記録を印刷」を押すと印刷ダイアログが開くので、プリンターを選んで印刷してください。iOSでは「PDFを共有」を押すと選択中の幅のPDFを共有シートで書き出せるので、「ファイルに保存」や印刷アプリから対応プリンターで印刷してください（ファイル共有に対応していない環境では、押すとPDFをダウンロードします）。「PDFで保存」はPDFファイルを直接ダウンロードします。SII URL Print Agent アプリが入った端末では「レシートプリンターで印刷」から直接印刷もできます。</p>
-        </details>
+        <div class="receipt-paper" id="receiptPreview"></div>
         <div class="receipt-width-switch" role="group" aria-label="レシート幅">
           <span class="rws-label">レシート幅</span>
           <div class="rws-btns">
@@ -1296,7 +1293,6 @@
             <button type="button" class="rws-btn" data-receipt-width="80" aria-pressed="false">80mm</button>
           </div>
         </div>
-        <div class="receipt-paper" id="receiptPreview"></div>
         <div class="receipt-dialog-actions">
           <button type="button" class="btn" id="receiptBack">戻る</button>
           <button type="button" class="btn receipt-pdf-btn" id="savePdf">PDFで保存</button>
@@ -1305,6 +1301,7 @@
           <button type="button" class="btn receipt-print-btn" id="doPrintReceipt">この記録を印刷</button>
         </div>
         <p class="receipt-print-status" id="receiptPrintStatus" role="status" aria-live="polite"></p>
+        <p class="receipt-details-note">iOSでは「PDFを共有」から「ファイルに保存」や印刷アプリ経由で印刷できます（ファイル共有に対応していない環境では、押すとPDFをダウンロードします）。「レシートプリンターで印刷」は、SII URL Print Agent アプリが入った端末で、ブラウザ（Safari／Chrome）からこのページを開いたときに使えます。アプリ内ブラウザでは起動しない場合があります。また、生成されるPDFのサイズが上限（Androidは約150KB、iOSは約500KB）を超える場合は、印刷は実行されません。</p>
       </div>
     </div>
 
@@ -2069,12 +2066,12 @@
       /* ---------- category definitions (input order) ---------- */
       var CATS = [
         {
-          key: "wonder", name: "七不思議", en: "WONDER", hint: "完成した段階の勝利点の合計を入力（+1／+2／+3／+4／+5／+7ボタンで加算できます）。ボタンを押すたびに、下に押したボタンのアイコンが1つずつ増えるので、何回押したか分かります。アイコンは押した順番に関わらず、必ず左から右へ小さい順（+1→+2→+3→+4→+5→+7）に並びます。アイコンをタップすると、そのアイコンだけが消えて勝利点もその分減ります。リセット（0）でアイコンも消えます。勝利点は99点まで入力できます。",
+          key: "wonder", name: "七不思議", en: "WONDER", hint: "完成した段階の勝利点の合計を入力します（上限99点）。並んだアイコンをタップすると1つ消えます。",
           fields: [{ path: "wonder", label: "勝利点", max: 99, quick: "wonder" }]
         },
 
         {
-          key: "treasury", name: "財産", en: "TREASURY", hint: "手元のコイン3枚につき1点。入力方法はプレイヤーごとに切り替えできます。どちらのモードでも、下の専用エリアにコイン3枚分が金の「3」コインのアイコンで表示され、余りはその右側に銀の「1」コインとして表示されます。「3」コインや「1」コインのアイコンをタップすると、その分だけ値も減ります（「3」コインはコイン3枚分）。山モードでは余りコイン（0〜2枚）も記録できます。余りコインは同点決着で影響する場合があります。入力の上限は、コイン99枚・山99個（余りコインは2枚まで）です。", modeSwitch: true, pileStrip: true,
+          key: "treasury", name: "財産", en: "TREASURY", hint: "手元のコイン3枚につき1点。コインのアイコンをタップすると、その分だけ減ります。山モードでは余りコイン（0〜2枚）も記録できます。余りコインは同点決着で影響する場合があります。入力の上限は、コイン99枚・山99個です。", modeSwitch: true, pileStrip: true,
           fields: [
             { path: "coins", label: "コインの枚数", max: 99, mode: "count", quick: true },
             { path: "piles", label: "3枚の山の数（＝得点）", max: 99, mode: "piles" },
@@ -2083,17 +2080,17 @@
         },
 
         {
-          key: "military", name: "軍事紛争", en: "MILITARY CONFLICT", hint: "紛争トークンをタップした回数で入力（勝利トークンは点数ごと、敗北トークンは1枚−1点）。タップするたびに下にトークンのアイコンが増えます。アイコンをタップすると1つ消えて枚数も減ります。間違えたらリセットで0に戻せます", teamHint: "チーム戦ではチームメイト同士は軍事紛争をしません。相手チームの隣国と軍事力を比べ、勝利／敗北トークンを2倍受け取ります（受け取った枚数をそのまま入力してください）。外交トークンを持っている場合も紛争に参加しますが、受け取るトークンは1枚だけです。自分と紛争相手の両方が外交トークンを持っている場合は、どちらのトークンも受け取りません。", milFormula: true,
+          key: "military", name: "軍事紛争", en: "MILITARY CONFLICT", hint: "勝利トークンは点数分、敗戦トークンは1枚−1点（上限：勝利は各6枚、敗戦は12枚）。並んだトークンをタップすると1つ消えます。", teamHint: "チーム戦ではチームメイト同士は軍事紛争をしません。相手チームの隣国と軍事力を比べ、勝利／敗戦トークンを2倍受け取ります（受け取った枚数をそのまま入力してください）。外交トークンを持っている場合も紛争に参加しますが、受け取るトークンは1枚だけです。自分と紛争相手の両方が外交トークンを持っている場合は、どちらのトークンも受け取りません。", milFormula: true,
           fields: [
-            { path: "mil.w1", label: "勝利 +1 トークン", tap: true },
-            { path: "mil.w3", label: "勝利 +3 トークン", tap: true },
-            { path: "mil.w5", label: "勝利 +5 トークン", tap: true },
-            { path: "mil.lose", label: "敗北 −1 トークン", tap: true }
+            { path: "mil.w1", label: "勝利 +1 トークン", max: 6, tap: true },
+            { path: "mil.w3", label: "勝利 +3 トークン", max: 6, tap: true },
+            { path: "mil.w5", label: "勝利 +5 トークン", max: 6, tap: true },
+            { path: "mil.lose", label: "敗戦 −1 トークン", max: 12, tap: true }
           ]
         },
 
         {
-          key: "civic", name: "市民建造物", en: "CIVIC（青）", hint: "青カードの勝利点を入力。入力方法はプレイヤーごとに切り替えできます（初期はカードの枚数）。枚数モードではタップするたびに下にカードのアイコンが増えます。アイコンをタップすると1枚消えて枚数も減ります。入力の上限は、直接入力が99点まで、カード枚数が各15枚までです。", civicModeSwitch: true, civicFormula: true,
+          key: "civic", name: "市民建造物", en: "CIVIC（青）", hint: "青カードの勝利点の合計を入力します（直接入力は上限99点、カード枚数は各15枚まで）。枚数モードでは、並んだアイコンをタップすると1枚消えます。", civicModeSwitch: true, civicFormula: true,
           fields: [
             { path: "civic", label: "勝利点", max: 99, quick: true, cmode: "direct" },
             { path: "civCards.v3", label: "3点カード", max: 15, cmode: "cards", tap: true },
@@ -2106,12 +2103,12 @@
         },
 
         {
-          key: "commercial", name: "商業建造物", en: "COMMERCIAL（黄）", hint: "黄カードで得た勝利点の合計を、全員分順番に入力（上限99点）",
+          key: "commercial", name: "商業建造物", en: "COMMERCIAL（黄）", hint: "黄カードで得た勝利点の合計を入力します（上限99点）",
           fields: [{ path: "commercial", label: "勝利点", max: 99, quick: true }]
         },
 
         {
-          key: "science", name: "科学", en: "SCIENCE（緑）", hint: "シンボルをタップした回数で入力（各シンボルは枚数の2乗＋3種セットで7点）。タップするたびに下にシンボルのアイコンが増えます。アイコンをタップすると1つ消えて枚数も減ります。ワイルドは最も得点が高くなるシンボルへ自動で振り分けます。入力の上限は、各シンボル20枚まで、ワイルドは10枚までです。",
+          key: "science", name: "科学", en: "SCIENCE（緑）", hint: "各シンボルは枚数の2乗、3種セットで7点。ワイルドは最も得点が高くなるシンボルへ自動で振り分けます（上限：各シンボル20枚、ワイルド10枚）。並んだアイコンをタップすると1つ消えます。",
           fields: [
             { path: "sci.gear", label: "歯車", icon: "gear", max: 20, tap: true },
             { path: "sci.compass", label: "コンパス", icon: "compass", max: 20, tap: true },
@@ -2122,22 +2119,22 @@
         },
 
         {
-          key: "guild", name: "ギルド", en: "GUILDS（紫）", hint: "紫カードの勝利点の合計を、全員分順番に入力（上限99点）",
+          key: "guild", name: "ギルド", en: "GUILDS（紫）", hint: "紫カードの勝利点の合計を入力します（上限99点）",
           fields: [{ path: "guild", label: "勝利点", max: 99, quick: true }]
         },
 
         {
-          key: "leaders", name: "指導者", en: "LEADERS（白）", hint: "白カード（指導者）の勝利点の合計を、全員分順番に入力（上限99点）", exp: "leaders",
+          key: "leaders", name: "指導者", en: "LEADERS（白）", hint: "白カード（指導者）の勝利点の合計を入力します（上限99点）", exp: "leaders",
           fields: [{ path: "leaders", label: "勝利点", max: 99, quick: true }]
         },
 
         {
-          key: "cities", name: "都市建造物", en: "CITIES（黒）", hint: "黒カードの勝利点の合計を、全員分順番に入力（上限99点）", exp: "cities",
+          key: "cities", name: "都市建造物", en: "CITIES（黒）", hint: "黒カードの勝利点の合計を入力します（上限99点）", exp: "cities",
           fields: [{ path: "black", label: "勝利点", max: 99, quick: true }]
         },
 
         {
-          key: "debt", name: "借財トークン", en: "DEBT（都市）", hint: "借財トークン1枚につき −1点。入力の上限は99枚です。", exp: "cities",
+          key: "debt", name: "借財トークン", en: "DEBT（都市）", hint: "借財トークン1枚につき −1点（上限99枚）。", exp: "cities",
           fields: [{ path: "debt", label: "借財トークンの枚数", max: 99 }]
         }
       ];
@@ -2560,7 +2557,7 @@
           if (mf) {
             var mv = p.mil;
             mf.innerHTML =
-              "+1点×" + mv.w1 + "（<b>" + mv.w1 * 1 + "</b>）＋ +3点×" + mv.w3 + "（<b>" + mv.w3 * 3 + "</b>）＋ +5点×" + mv.w5 + "（<b>" + mv.w5 * 5 + "</b>）− 敗北×" + mv.lose + "（<b>−" + mv.lose * 1 + "</b>）＝ <b>" + s.military + "点</b>";
+              "+1点×" + mv.w1 + "（<b>" + mv.w1 * 1 + "</b>）＋ +3点×" + mv.w3 + "（<b>" + mv.w3 * 3 + "</b>）＋ +5点×" + mv.w5 + "（<b>" + mv.w5 * 5 + "</b>）− 敗戦×" + mv.lose + "（<b>−" + mv.lose * 1 + "</b>）＝ <b>" + s.military + "点</b>";
           }
           var cf = civicFormulaRefs[i];
           if (cf && p.civicMode === "cards") {
@@ -2593,8 +2590,8 @@
         var expNote = "";
         if (expansions.leaders || expansions.cities) {
           var parts = [];
-          if (expansions.leaders) parts.push("指導者（リーダーズ）");
-          if (expansions.cities) parts.push("都市（シティーズ）");
+          if (expansions.leaders) parts.push("指導者（LEADERS）");
+          if (expansions.cities) parts.push("都市（CITIES）");
           if (teamMode) parts.push("チーム戦");
           expNote = "拡張：" + parts.join("・") + "\n";
         }
@@ -2886,7 +2883,9 @@
           var cur4 = getPath(p, path4); if (cur4 == null) cur4 = 0;
           var max4 = parseInt(btn.getAttribute("data-max"), 10);
           if (isNaN(max4)) max4 = Infinity;
-          setPath(p, path4, clamp(cur4 + 1, 0, max4));
+          /* at (or already above) the cap a tap changes nothing — a
+             saved value over the cap is kept as-is, never cut down */
+          if (cur4 < max4) setPath(p, path4, clamp(cur4 + 1, 0, max4));
           markTouchedForPath(pidx, path4);
           refresh();
         } else if (btn.hasAttribute("data-tapreset")) {
@@ -3169,12 +3168,12 @@
         b.setAttribute("aria-pressed", teamMode ? "true" : "false");
         var note = el("teamNote");
         if (note) note.textContent = !expansions.cities
-          ? "チーム戦は都市（シティーズ）拡張をONにすると選べます。ONにすると、各プレイヤーの「相方」を選んでペアの合計点でチーム順位を出せます。"
+          ? "チーム戦は都市（CITIES）拡張をONにすると選べます。"
           : !countOk
             ? "チーム戦は4人・6人（非公式ルールで8人）でプレイします。今の人数（" + players.length + "人）ではONにできません。"
             : teamMode
               ? "チーム戦ON：プレイヤー設定で各プレイヤーの「相方」を選んでください。チームメイト同士が隣り合うように座り、ゲーム中は相談したり互いの手札を見せ合ったりできます（コインの貸し借りやカードの交換はできません。不利益を与えるカードはチームメイトにも影響します）。順位はペア2人の合計点で決まり、同点のときはペアのコイン合計で判定します。コインも同点のときは勝利を分かち合います（両チーム優勝）。"
-              : "チーム戦ONにすると、各プレイヤーの「相方」を選んでペアの合計点でチーム順位を出せます。";
+              : "各プレイヤーの「相方」を選んで、ペアの合計点でチーム順位を出します。";
       }
       /* if the player count leaves the official team counts (4 / 6 /
          8) while team mode is on, team mode turns itself off — the
@@ -3209,7 +3208,7 @@
             players.splice(removedIdx, 1);
             remapPartnersAfterRemoval(removedIdx);
             rebuildAll();
-            showToast("都市（シティーズ）をOFFにしたため、8人目（" + removedName + "）を削除しました。");
+            showToast("都市（CITIES）をOFFにしたため、8人目（" + removedName + "）を削除しました。");
           }
         }
         syncTeamToggle();
@@ -3234,7 +3233,7 @@
       }
 
       /* ---------- PWA: manifest fallback + service worker ----------
-         The head links data:application/octet-stream;base64,eyJiYWNrZ3JvdW5kX2NvbG9yIjoiI2Y0ZjRmMyIsImRlc2NyaXB0aW9uIjoi44CM5LiW55WM44Gu5LiD5LiN5oCd6K2w77yINyBXb25kZXJz77yJ44CN5Z+65pys44Ky44O844Og44Go5ouh5by144CM5oyH5bCO6ICF44CN44CM6YO95biC44CN44Gu5b6X54K56KiI566X44Oa44O844K4IiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJpY29ucyI6W3sicHVycG9zZSI6ImFueSIsInNpemVzIjoiMTkyeDE5MiIsInNyYyI6Imljb24tMTkyLnBuZyIsInR5cGUiOiJpbWFnZS9wbmcifSx7InB1cnBvc2UiOiJhbnkiLCJzaXplcyI6IjUxMng1MTIiLCJzcmMiOiJpY29uLTUxMi5wbmciLCJ0eXBlIjoiaW1hZ2UvcG5nIn0seyJwdXJwb3NlIjoibWFza2FibGUiLCJzaXplcyI6IjUxMng1MTIiLCJzcmMiOiJpY29uLW1hc2thYmxlLTUxMi5wbmciLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dLCJsYW5nIjoiamEiLCJuYW1lIjoi5LiW55WM44Gu5LiD5LiN5oCd6K2wIOW+l+eCueioiOeulyIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQiLCJzY29wZSI6Ii4uLyIsInNob3J0X25hbWUiOiLkuIPkuI3mgJ3orbAg5b6X54K56KiI566XIiwic3RhcnRfdXJsIjoiLi4vaW5kZXguaHRtbCIsInRoZW1lX2NvbG9yIjoiI2Y0ZjRmMyJ9 and the PNG icons
+         The head links data:application/octet-stream;base64,eyJiYWNrZ3JvdW5kX2NvbG9yIjoiI2Y0ZjRmMyIsImRlc2NyaXB0aW9uIjoi44CM5LiW55WM44Gu5LiD5LiN5oCd6K2w77yINyBXb25kZXJz77yJ44CN5Z+65pys44Ky44O844Og44Go5ouh5by144CM5oyH5bCO6ICF44CN44CM6YO95biC44CN44Gu5b6X54K56KiI566X44Oa44O844K4IiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJpY29ucyI6W3sicHVycG9zZSI6ImFueSIsInNpemVzIjoiMTkyeDE5MiIsInNyYyI6Imljb24tMTkyLnBuZyIsInR5cGUiOiJpbWFnZS9wbmcifSx7InB1cnBvc2UiOiJhbnkiLCJzaXplcyI6IjUxMng1MTIiLCJzcmMiOiJpY29uLTUxMi5wbmciLCJ0eXBlIjoiaW1hZ2UvcG5nIn0seyJwdXJwb3NlIjoibWFza2FibGUiLCJzaXplcyI6IjUxMng1MTIiLCJzcmMiOiJpY29uLW1hc2thYmxlLTUxMi5wbmciLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dLCJsYW5nIjoiamEiLCJuYW1lIjoi5LiW55WM44Gu5LiD5LiN5oCd6K2wIOW+l+eCueioiOeulyIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQiLCJzY29wZSI6Ii4uLyIsInNob3J0X25hbWUiOiLkuIPkuI3mgJ3orbAg5b6X54K56KiI566XIiwic3RhcnRfdXJsIjoiLi4vaW5kZXguaHRtbCIsInRoZW1lX2NvbG9yIjoiIzJiNWVhNyJ9 and the PNG icons
          under assets/. When those files are missing — for example when
          index.html alone was copied to GitHub Pages — an embedded
          manifest is generated at runtime (Blob URL) with an inline SVG
@@ -3260,7 +3259,7 @@
               scope: ".",
               display: "standalone",
               background_color: "#f4f4f3",
-              theme_color: "#f4f4f3",
+              theme_color: "#2b5ea7",
               lang: "ja",
               icons: [{ src: svgIcon, sizes: "any", type: "image/svg+xml", purpose: "any" }]
             };
@@ -3356,8 +3355,8 @@
         var pad = function (n) { return (n < 10 ? "0" : "") + n; };
         var dateStr = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
         var expParts = [];
-        if (expansions.leaders) expParts.push("指導者（リーダーズ）");
-        if (expansions.cities) expParts.push("都市（シティーズ）");
+        if (expansions.leaders) expParts.push("指導者（LEADERS）");
+        if (expansions.cities) expParts.push("都市（CITIES）");
         if (teamMode) expParts.push("チーム戦");
         var out = "";
         out += '<div class="r-head"><div class="r-title">世界の七不思議</div>' +
@@ -3378,7 +3377,7 @@
             out += '<div class="r-break-row"><span class="r-cat">' + escHtml(printCatName(k)) + '</span><span class="r-dots"></span><span class="r-val">' + breakDisplay(r.p, r.s, k) + "</span></div>";
           });
           out += "</div>";
-          out += '<div class="r-coin">コイン <b>' + coinCount(r.p) + "枚</b>（同点時はコイン数で判定）</div>";
+          out += '<div class="r-coin">コイン <b>' + coinCount(r.p) + "枚</b>（同点時に判定）</div>";
           out += "</div>";
           out += '<div class="r-line dashed"></div>';
         });
@@ -3464,7 +3463,22 @@
         document.body.classList.add("receipt-open");
         receiptOverlay.scrollTop = 0;
         var btn = el("doPrintReceipt");
-        if (btn) btn.focus();
+        if (btn) {
+          /* Focus without scrolling: the print button sits near the
+             bottom of the dialog, so a plain focus() makes the browser
+             scroll the overlay down to it and the preview opens already
+             scrolled. preventScroll keeps the view at the top. */
+          try { btn.focus({ preventScroll: true }); } catch (errFocus) { btn.focus(); }
+        }
+        /* Reset again after the focus (and once more on the next frame,
+           after layout settles) so the preview always opens at the top,
+           even on browsers that ignore preventScroll. */
+        receiptOverlay.scrollTop = 0;
+        if (window.requestAnimationFrame) {
+          window.requestAnimationFrame(function () {
+            if (receiptOverlay && !receiptOverlay.hidden) receiptOverlay.scrollTop = 0;
+          });
+        }
       }
       function closeReceipt() {
         if (!receiptOverlay || receiptOverlay.hidden) return;
@@ -3519,8 +3533,8 @@
         var pad = function (n) { return (n < 10 ? "0" : "") + n; };
         var dateStr = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
         var expParts = [];
-        if (expansions.leaders) expParts.push("指導者（リーダーズ）");
-        if (expansions.cities) expParts.push("都市（シティーズ）");
+        if (expansions.leaders) expParts.push("指導者（LEADERS）");
+        if (expansions.cities) expParts.push("都市（CITIES）");
         if (teamMode) expParts.push("チーム戦");
         return { rows: rows, visCats: visCats, dateStr: dateStr, expParts: expParts, team: teamMode ? teamData() : null };
       }
@@ -3622,154 +3636,168 @@
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
         var y = 0;
-        /* header */
-        y += 54;
-        ctx.font = '900 42px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+        /* header — type enlarged ~1.2x (fixed, no size toggle); the
+           vertical rhythm grows with it so lines never collide */
+        y += 65;
+        ctx.font = '900 50px "Noto Serif JP", "Hiragino Mincho ProN", serif';
         center("世界の七不思議", y);
-        y += 37;
-        ctx.font = '700 23px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+        y += 44;
+        ctx.font = '700 28px "Noto Serif JP", "Hiragino Mincho ProN", serif';
         center("得 点 計 算", y);
-        y += 27;
-        ctx.font = '500 15px "Noto Sans JP", sans-serif';
+        y += 32;
+        ctx.font = '500 18px "Noto Sans JP", sans-serif';
         ctx.fillStyle = "#333";
         center("7 WONDERS SCORE", y);
         ctx.fillStyle = "#111";
-        y += 16; hline(y, 3, "#111");
-        y += 31;
-        ctx.font = '400 21px "Noto Sans JP", sans-serif';
+        y += 19; hline(y, 3, "#111");
+        y += 37;
+        ctx.font = '400 25px "Noto Sans JP", sans-serif';
         center(data.dateStr, y);
         if (data.expParts.length) {
-          y += 29;
-          ctx.font = '700 21px "Noto Sans JP", sans-serif';
-          center("拡張：" + data.expParts.join("・"), y);
+          y += 35;
+          /* the expansion line is the longest centred line: at the
+             enlarged size it can exceed the 58mm content width when
+             both expansions and team mode are on, so shrink just this
+             line to fit rather than letting it clip at the edges */
+          var expText = "拡張：" + data.expParts.join("・");
+          var expSize = 25;
+          ctx.font = '700 ' + expSize + 'px "Noto Sans JP", sans-serif';
+          var expW = ctx.measureText(expText).width;
+          if (expW > CW) {
+            expSize = Math.max(17, Math.floor(25 * CW / expW));
+            ctx.font = '700 ' + expSize + 'px "Noto Sans JP", sans-serif';
+          }
+          center(expText, y);
         }
-        y += 15; hline(y, 3, "#111");
-        y += 12;
+        y += 18; hline(y, 3, "#111");
+        y += 14;
         /* one block per player, in rank order */
         data.rows.forEach(function (r, rank) {
           var startY = y;
-          ctx.font = '700 25px "Noto Sans JP", sans-serif';
-          var crownSpace = rank === 0 ? 38 : 0;
-          var nameLines = wrapCanvasParts(ctx, displayNameParts(r.p), CW - 58 - crownSpace, 23);
-          var headH = Math.max(46, nameLines.length * 33);
-          var cy = startY + 23;
+          ctx.font = '700 30px "Noto Sans JP", sans-serif';
+          var crownSpace = rank === 0 ? 46 : 0;
+          var nameLines = wrapCanvasParts(ctx, displayNameParts(r.p), CW - 70 - crownSpace, 28);
+          var headH = Math.max(55, nameLines.length * 40);
+          var cy = startY + 28;
           ctx.save();
           ctx.beginPath();
-          ctx.arc(M + 23, cy, 21, 0, Math.PI * 2);
+          ctx.arc(M + 28, cy, 25, 0, Math.PI * 2);
           if (rank === 0) { ctx.fillStyle = "#111"; ctx.fill(); ctx.fillStyle = "#fff"; }
           else {
             ctx.fillStyle = "#fff"; ctx.fill();
             ctx.lineWidth = 2; ctx.strokeStyle = "#111"; ctx.stroke();
             ctx.fillStyle = "#111";
           }
-          ctx.font = '900 20px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+          ctx.font = '900 24px "Noto Serif JP", "Hiragino Mincho ProN", serif';
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          ctx.fillText((rank + 1) + "位", M + 23, cy + 1);
+          ctx.fillText((rank + 1) + "位", M + 28, cy + 1);
           ctx.restore();
-          ctx.font = '700 25px "Noto Sans JP", sans-serif';
+          ctx.font = '700 30px "Noto Sans JP", sans-serif';
           ctx.fillStyle = "#111";
-          if (rank === 0) drawCrownShape(ctx, M + 58, startY + 6, 33, 29, "#111");
-          drawCanvasParts(ctx, nameLines, M + 58 + crownSpace, startY + 32, 33, 23, "#111");
-          y = startY + headH + 10;
+          if (rank === 0) drawCrownShape(ctx, M + 70, startY + 7, 40, 35, "#111");
+          drawCanvasParts(ctx, nameLines, M + 70 + crownSpace, startY + 38, 40, 28, "#111");
+          y = startY + headH + 12;
           /* total row: label left, big number right with a small 点 */
-          ctx.font = '700 20px "Noto Sans JP", sans-serif';
+          ctx.font = '700 24px "Noto Sans JP", sans-serif';
           var tenW = ctx.measureText("点").width;
           ctx.textAlign = "right";
-          ctx.fillText("点", right, y + 32);
-          ctx.font = '900 44px "Noto Serif JP", "Hiragino Mincho ProN", serif';
-          ctx.fillText(String(r.total), right - tenW - 5, y + 37);
+          ctx.fillText("点", right, y + 38);
+          ctx.font = '900 53px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+          ctx.fillText(String(r.total), right - tenW - 6, y + 44);
           ctx.textAlign = "left";
-          ctx.font = '700 19px "Noto Sans JP", sans-serif';
-          ctx.fillText("合計", M, y + 32);
-          y += 54;
+          ctx.font = '700 23px "Noto Sans JP", sans-serif';
+          ctx.fillText("合計", M, y + 38);
+          y += 65;
           /* category breakdown with dotted leaders */
           data.visCats.forEach(function (k) {
-            y += 29;
-            ctx.font = '400 21px "Noto Sans JP", sans-serif';
+            y += 35;
+            ctx.font = '400 25px "Noto Sans JP", sans-serif';
             var catName = printCatName(k);
             ctx.fillText(catName, M, y);
             var nameW = ctx.measureText(catName).width;
-            ctx.font = '700 21px "Noto Sans JP", sans-serif';
+            ctx.font = '700 25px "Noto Sans JP", sans-serif';
             var valText = String(breakDisplay(r.p, r.s, k));
             var valW = ctx.measureText(valText).width;
             ctx.fillText(valText, right - valW, y);
+            /* dotted leader: width stays 1.7 (and the dot pitch 4.5)
+               by request — only the type grew, not the dots */
             ctx.save();
             ctx.strokeStyle = "#111"; ctx.lineWidth = 1.7;
             ctx.lineCap = "round";
             ctx.setLineDash([0.01, 4.5]);
             ctx.beginPath();
-            ctx.moveTo(M + nameW + 10, y - 5);
-            ctx.lineTo(right - valW - 10, y - 5);
+            ctx.moveTo(M + nameW + 12, y - 6);
+            ctx.lineTo(right - valW - 12, y - 6);
             ctx.stroke();
             ctx.restore();
           });
-          y += 9;
-          y += 28;
-          ctx.font = '400 20px "Noto Sans JP", sans-serif';
+          y += 11;
+          y += 34;
+          ctx.font = '400 24px "Noto Sans JP", sans-serif';
           ctx.fillStyle = "#222";
-          ctx.fillText("コイン " + coinCount(r.p) + "枚（同点時はコイン数で判定）", M, y);
+          ctx.fillText("コイン " + coinCount(r.p) + "枚（同点時に判定）", M, y);
           ctx.fillStyle = "#111";
-          y += 17; hline(y, 1.5, "#111", [10, 6]);
-          y += 8;
+          y += 20; hline(y, 1.5, "#111", [10, 6]);
+          y += 10;
         });
         /* team standings (team mode only): pair names wrap, then the
            pair total and each member's own points */
         if (data.team) {
-          y += 10;
-          ctx.font = '900 26px "Noto Serif JP", "Hiragino Mincho ProN", serif';
-          center("チーム順位", y + 20);
-          y += 34; hline(y, 3, "#111");
-          y += 6;
+          y += 12;
+          ctx.font = '900 31px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+          center("チーム順位", y + 24);
+          y += 41; hline(y, 3, "#111");
+          y += 7;
           if (data.team.pairs.length) {
             data.team.pairs.forEach(function (pr) {
-              ctx.font = '700 23px "Noto Sans JP", sans-serif';
-              var pairCrownSpace = pr.rank === 1 ? 38 : 0;
+              ctx.font = '700 28px "Noto Sans JP", sans-serif';
+              var pairCrownSpace = pr.rank === 1 ? 46 : 0;
               var pairParts = textParts(pr.rank + "位　").concat(displayNameParts(players[pr.a]), textParts(" ＆ "), displayNameParts(players[pr.b]));
-              var pairLines = wrapCanvasParts(ctx, pairParts, CW - pairCrownSpace, 21);
-              var pairFirstY = y + 31;
-              if (pr.rank === 1) drawCrownShape(ctx, M, pairFirstY - 22, 31, 27, "#111");
-              drawCanvasParts(ctx, pairLines, M + pairCrownSpace, pairFirstY, 31, 21, "#111");
-              y = pairFirstY + (pairLines.length - 1) * 31;
-              y += 6;
-              ctx.font = '700 20px "Noto Sans JP", sans-serif';
+              var pairLines = wrapCanvasParts(ctx, pairParts, CW - pairCrownSpace, 25);
+              var pairFirstY = y + 37;
+              if (pr.rank === 1) drawCrownShape(ctx, M, pairFirstY - 26, 37, 32, "#111");
+              drawCanvasParts(ctx, pairLines, M + pairCrownSpace, pairFirstY, 37, 25, "#111");
+              y = pairFirstY + (pairLines.length - 1) * 37;
+              y += 7;
+              ctx.font = '700 24px "Noto Sans JP", sans-serif';
               var tenW2 = ctx.measureText("点").width;
               ctx.textAlign = "right";
-              ctx.fillText("点", right, y + 32);
-              ctx.font = '900 40px "Noto Serif JP", "Hiragino Mincho ProN", serif';
-              ctx.fillText(String(pr.total), right - tenW2 - 5, y + 36);
+              ctx.fillText("点", right, y + 38);
+              ctx.font = '900 48px "Noto Serif JP", "Hiragino Mincho ProN", serif';
+              ctx.fillText(String(pr.total), right - tenW2 - 6, y + 43);
               ctx.textAlign = "left";
-              ctx.font = '700 19px "Noto Sans JP", sans-serif';
-              ctx.fillText("チーム合計", M, y + 32);
-              y += 52;
-              ctx.font = '400 20px "Noto Sans JP", sans-serif';
+              ctx.font = '700 23px "Noto Sans JP", sans-serif';
+              ctx.fillText("チーム合計", M, y + 38);
+              y += 62;
+              ctx.font = '400 24px "Noto Sans JP", sans-serif';
               ctx.fillStyle = "#222";
               var detailParts = displayNameParts(players[pr.a]).concat(textParts(" " + pr.ta + "点 ／ "), displayNameParts(players[pr.b]), textParts(" " + pr.tb + "点　コイン合計 " + pr.coins + "枚"));
-              var detailLines = wrapCanvasParts(ctx, detailParts, CW, 18);
-              var detailFirstY = y + 28;
-              drawCanvasParts(ctx, detailLines, M, detailFirstY, 28, 18, "#222");
-              y = detailFirstY + (detailLines.length - 1) * 28;
+              var detailLines = wrapCanvasParts(ctx, detailParts, CW, 22);
+              var detailFirstY = y + 34;
+              drawCanvasParts(ctx, detailLines, M, detailFirstY, 34, 22, "#222");
+              y = detailFirstY + (detailLines.length - 1) * 34;
               ctx.fillStyle = "#111";
-              y += 15; hline(y, 1.5, "#111", [10, 6]);
-              y += 6;
+              y += 18; hline(y, 1.5, "#111", [10, 6]);
+              y += 7;
             });
           } else {
-            y += 30;
-            ctx.font = '400 20px "Noto Sans JP", sans-serif';
+            y += 36;
+            ctx.font = '400 24px "Noto Sans JP", sans-serif';
             ctx.fillText("（ペア未設定）", M, y);
           }
           if (data.team.unpaired.length) {
-            ctx.font = '400 19px "Noto Sans JP", sans-serif';
+            ctx.font = '400 23px "Noto Sans JP", sans-serif';
             ctx.fillStyle = "#333";
             var upParts = textParts("チーム未設定（対象外）：");
             data.team.unpaired.forEach(function (i, ui) { if (ui) upParts.push({ t: "、" }); upParts = upParts.concat(displayNameParts(players[i])); });
-            var upLines = wrapCanvasParts(ctx, upParts, CW, 17);
-            var upFirstY = y + 27;
-            drawCanvasParts(ctx, upLines, M, upFirstY, 27, 17, "#333");
-            y = upFirstY + (upLines.length - 1) * 27;
+            var upLines = wrapCanvasParts(ctx, upParts, CW, 20);
+            var upFirstY = y + 32;
+            drawCanvasParts(ctx, upLines, M, upFirstY, 32, 20, "#333");
+            y = upFirstY + (upLines.length - 1) * 32;
             ctx.fillStyle = "#111";
           }
         }
-        y += 36;
+        y += 43;
         return Math.ceil(y * S);
       }
       function jpegBytesFromCanvas(canvas) {
@@ -3914,12 +3942,16 @@
          The standings as a single PNG image, drawn on a canvas with
          the same data as the receipt (receiptData) but in a wider,
          SNS-friendly layout: rank, name (gold crown for 1st), total and the
-         category breakdown. The PNG is drawn in COLOUR, matching the
-         on-screen standings in the light theme (player-colour bands,
-         category colour chips, gold crown, sun / moon side marks in
-         colour) whatever the device theme is. Only this image is
-         colour: the receipt HTML and the PDF stay monochrome for
-         thermal printing and share none of these colours. Sharing follows the
+         category breakdown. The PNG is drawn in COLOUR, following the
+         theme in effect when the image is generated (see the palette
+         below): in the light theme it matches the light on-screen
+         standings, in the dark theme it uses the dark palette (dark
+         background and cards, bright lapis and bright gold), with the
+         player-colour bands, category colour chips, gold crown and
+         sun / moon side marks kept visible in each theme. Only this
+         image follows the theme: the receipt HTML and the PDF stay
+         fixed white / monochrome for thermal printing and share none
+         of these colours. Sharing follows the
          PDF buttons' rule: the share sheet where file sharing works,
          a plain download everywhere else. The PNG bytes are built
          synchronously (toDataURL) so navigator.share can still be
@@ -3941,15 +3973,48 @@
           ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(right, y); ctx.stroke();
           ctx.restore();
         }
-        /* Colour palette: the page's LIGHT theme, so the PNG matches
-           the on-screen standings whatever the device theme is. The
-           receipt / PDF renderer keeps its own monochrome palette and
-           is not affected by anything in this function. */
-        var INK = "#1f1f22", SOFT = "#5d5d63", LINE = "#dbdbd7", LINE_STRONG = "#a2a29c",
-            PANEL = "#ffffff", PANEL2 = "#eeeeec", FIRST_BG = "#e7e7e4",
-            GOLD = "#c9962e", SII = "#0f766e";
-        var CAT_HEX = { wonder: "#716c5e", treasury: "#97751d", military: "#a83c31", civic: "#3a5f8a", commercial: "#a3861f", science: "#43704a", guild: "#62498f", leaders: "#83817b", cities: "#3a3a40", debt: "#8a5a48" };
-        var SIDE_COLORS = { A: "#b58900", B: "#3a5f8a" };
+        /* Colour palette: the theme in effect at generation time,
+           read from the data-theme attribute the page itself uses
+           (set from the saved choice / OS setting and flipped by the
+           theme toggle), so the PNG follows the current theme. Each
+           palette mirrors the matching CSS custom properties in the
+           style block above — background, panel, ink, lines, lapis
+           accent (--accent: #2b5ea7 light / #6e9bd8 dark), gold
+           (--gold / --gold-soft) and the category colours (--c-*) —
+           with the player bands brightened in the dark palette where
+           the screen colours would sink into the dark panel. The
+           receipt / PDF renderer keeps its own fixed white /
+           monochrome palette and is not affected by anything here. */
+        var IMG_DARK = document.documentElement.getAttribute("data-theme") === "dark";
+        var BG, INK, SOFT, LINE, LINE_STRONG, PANEL, PANEL2, FIRST_BG,
+            GOLD, ON_GOLD, ACCENT, SII, TEAM_FIRST_BG, COIN_HEX, CAT_HEX, SIDE_COLORS, IMG_PLAYER_COLORS;
+        if (IMG_DARK) {
+          BG = "#1a1a1c"; INK = "#ededee"; SOFT = "#a6a6ac";
+          LINE = "#3a3a3f"; LINE_STRONG = "#62626a";
+          PANEL = "#232326"; PANEL2 = "#2b2b2f"; FIRST_BG = "#3a3122";
+          GOLD = "#d9a83f"; ON_GOLD = "#1b1b1e"; ACCENT = "#6e9bd8";
+          SII = "#14b8a6"; TEAM_FIRST_BG = "#213535"; COIN_HEX = "#e0aa3e";
+          CAT_HEX = { wonder: "#b0aa9c", treasury: "#cfa14e", military: "#d97a6d", civic: "#84a7d4", commercial: "#d3b34e", science: "#8fb98a", guild: "#b394e0", leaders: "#c4c2ba", cities: "#a3a3ae", debt: "#d29a7c" };
+          SIDE_COLORS = { A: "#e5be5f", B: ACCENT };
+          /* brightened twins of PLAYER_COLORS, same order / hues, so
+             every band stays distinct and visible on the dark panel
+             (the purple and wine in particular are too dark as-is) */
+          IMG_PLAYER_COLORS = ["#3d9bd6", "#e87e33", "#26b78e", "#cc79a7", "#e0aa3e", "#56b4e9", "#a586d6", "#c2517f"];
+        } else {
+          BG = "#f4f4f3"; INK = "#1f1f22"; SOFT = "#5d5d63";
+          LINE = "#dbdbd7"; LINE_STRONG = "#a2a29c";
+          PANEL = "#ffffff"; PANEL2 = "#eeeeec"; FIRST_BG = "#f4ecd8";
+          GOLD = "#a87f2d"; ON_GOLD = "#ffffff"; ACCENT = "#2b5ea7";
+          SII = "#0f766e"; TEAM_FIRST_BG = "#e9f2f0"; COIN_HEX = "#b58900";
+          CAT_HEX = { wonder: "#716c5e", treasury: "#97751d", military: "#a83c31", civic: "#3a5f8a", commercial: "#a3861f", science: "#43704a", guild: "#62498f", leaders: "#83817b", cities: "#3a3a40", debt: "#8a5a48" };
+          SIDE_COLORS = { A: "#b58900", B: ACCENT };
+          IMG_PLAYER_COLORS = null; /* light: the screen colours as-is */
+        }
+        function imgPlayerColor(p, i) {
+          if (!IMG_PLAYER_COLORS) return playerColor(p, i);
+          var idx = p && typeof p.colorIdx === "number" && p.colorIdx >= 0 ? p.colorIdx : (i || 0);
+          return IMG_PLAYER_COLORS[Math.abs(idx) % IMG_PLAYER_COLORS.length];
+        }
         function rr(x, y0, w, h, r) {
           ctx.beginPath();
           ctx.moveTo(x + r, y0);
@@ -3989,7 +4054,7 @@
           var segs = data.visCats.map(function (k) {
             return { color: CAT_HEX[k], text: CAT_META[k].name + " " + breakDisplay(r.p, r.s, k) };
           });
-          segs.push({ color: "#b58900", text: "コイン " + coinCount(r.p) + "枚" });
+          segs.push({ color: COIN_HEX, text: "コイン " + coinCount(r.p) + "枚" });
           return segs;
         }
         function layoutBreak(segs, maxW) {
@@ -4026,7 +4091,7 @@
           });
           return yy;
         }
-        ctx.fillStyle = "#f4f4f3";
+        ctx.fillStyle = BG;
         ctx.fillRect(0, 0, W, 12000);
         ctx.fillStyle = INK;
         ctx.textAlign = "left";
@@ -4053,12 +4118,12 @@
           var breakLines = layoutBreak(breakSegs(r), CW - 62);
           var headEndY = startY + Math.max(52, nameLines.length * 34) + 8;
           var sepY = headEndY + breakLines.length * 29 + 16;
-          drawCard(startY - 8, sepY - 6, rank === 0 ? FIRST_BG : PANEL, rank === 0 ? GOLD : LINE, [playerColor(r.p, r.i)]);
+          drawCard(startY - 8, sepY - 6, rank === 0 ? FIRST_BG : PANEL, rank === 0 ? GOLD : LINE, [imgPlayerColor(r.p, r.i)]);
           /* rank badge: gold for 1st, the screen's grey badge otherwise */
           ctx.save();
           ctx.beginPath();
           ctx.arc(M + 24, startY + 26, 23, 0, Math.PI * 2);
-          if (rank === 0) { ctx.fillStyle = GOLD; ctx.fill(); ctx.fillStyle = "#fff"; }
+          if (rank === 0) { ctx.fillStyle = GOLD; ctx.fill(); ctx.fillStyle = ON_GOLD; }
           else { ctx.fillStyle = PANEL2; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = LINE_STRONG; ctx.stroke(); ctx.fillStyle = SOFT; }
           ctx.font = '900 22px "Noto Serif JP", "Hiragino Mincho ProN", serif';
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -4109,8 +4174,8 @@
               /* pair card: the left band is split between the two
                  members' player colours; the winning pair takes the
                  teal tint of the on-screen team standings */
-              drawCard(imgPairFirstY - 30, imgSepY - 6, pr.rank === 1 ? "#e9f2f0" : PANEL, pr.rank === 1 ? SII : LINE,
-                [playerColor(players[pr.a], pr.a), playerColor(players[pr.b], pr.b)]);
+              drawCard(imgPairFirstY - 30, imgSepY - 6, pr.rank === 1 ? TEAM_FIRST_BG : PANEL, pr.rank === 1 ? SII : LINE,
+                [imgPlayerColor(players[pr.a], pr.a), imgPlayerColor(players[pr.b], pr.b)]);
               ctx.font = "700 24px " + NAME_FONT;
               ctx.fillStyle = INK;
               if (pr.rank === 1) drawCrownShape(ctx, M, imgPairFirstY - 24, 33, 29, GOLD);
@@ -4288,7 +4353,6 @@
           setPdfStatus("PDFデータの変換に失敗しました。もう一度お試しください。", inDialog);
         });
       }
-      el("siiPrintMain").addEventListener("click", function () { printViaSiiAgent(false); });
       el("siiPrint").addEventListener("click", function () { printViaSiiAgent(true); });
 
       /* ---------- jump navigation (fixed corner ↑ / ↓) ---------- */
