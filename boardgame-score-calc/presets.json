@@ -10,6 +10,28 @@
       "title": "フリーシート",
       "_comment": "この項目は変えないでください / Please do not change this entry"
     },
+        {
+      "items": [
+        {
+          "minus": true,
+          "name": ""
+        },
+        {
+          "minus": true,
+          "name": ""
+        },
+        {
+          "minus": true,
+          "name": ""
+        },
+        {
+          "minus": true,
+          "name": ""
+        }
+      ],
+      "subtitle": "Penalty Points",
+      "title": "失点制ゲーム"
+    },
     {
       "items": [
         {
