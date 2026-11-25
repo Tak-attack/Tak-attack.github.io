@@ -8,11 +8,11 @@
 
 https://tak-attack.github.io/7-wonder-score-app/
 
-世界の七不思議（第二版、指導者拡張、都市拡張）対応の得点計算アプリです。第一版でも適応できるはず。
+世界の七不思議（第二版、指導者拡張、都市拡張、チーム戦）対応の得点計算アプリです。第一版でも適応できるはず。
 
 科学（緑）の自動計算といった定番の機能から、市民建造物（青）の枚数だけボタンを押すと合計できる機能など、計算しやすさにこだわりました。
 
-<img width="30%" height="30%" alt="7wonders-result-20261125" src="https://github.com/user-attachments/assets/7ead8f9a-240f-4a20-8c3d-a92846136bb7" />
+<img width="480" height="" alt="7wonders-result-20261125" src="https://github.com/user-attachments/assets/7ead8f9a-240f-4a20-8c3d-a92846136bb7" />
 
 レシートプリンター（SII URL Print Agent対応機種）や画像共有機能もあります。
 
@@ -28,9 +28,9 @@ https://tak-attack.github.io/boardgame-score-calc/
 ボードゲームの得点計算のために設計した電卓＋得点表アプリ。
 A calculator + score sheet app designed for board game scoring.
 
-<img width="30%" height="30%" alt="Screenshot_20261125-161009" src="https://github.com/user-attachments/assets/df597995-a211-4a9f-a439-1df56446b48f" />
+<img width="30%" height="" alt="Screenshot_20261125-164833" src="https://github.com/user-attachments/assets/9293d112-74c7-40e3-8a03-a0e6b38c6d72" />
 
-特徴
+【特徴】
 
 -最大8人×20項目の得点表。名前・項目はタップで編集でき、プレイヤーの並び替えもできる
 
