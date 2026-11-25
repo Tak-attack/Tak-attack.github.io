@@ -921,7 +921,7 @@
       .receipt-paper .r-break { margin-top: 7px; }
       .receipt-paper .r-break-row { display: flex; align-items: baseline; gap: 6px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
       .receipt-paper .r-break-row .r-cat { flex: none; }
-      .receipt-paper .r-break-row .r-dots { flex: 1; border-bottom: 1.5px dotted #333; transform: translateY(-3px); min-width: 12px; }
+      .receipt-paper .r-break-row .r-dots { flex: 1; border-bottom: 1.7px dotted #333; transform: translateY(-3px); min-width: 12px; }
       .receipt-paper .r-break-row .r-val { flex: none; font-weight: 700; min-width: 2ch; text-align: right; }
       .receipt-paper .r-coin { margin-top: 6px; font-size: 12px; color: #222; }
       .receipt-paper .r-coin b { font-variant-numeric: tabular-nums; }
@@ -1397,7 +1397,7 @@
         tablet: tabletSvg(),
         wild: svgIcon('<path d="M12 3.5l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.4l-5.1 2.8L8 13.5l-4.3-4 5.8-.7z"/>')
       };
-      var CROWN = '<svg class="crown" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 18h18l-1.6-8.5L14 14l-2-6.5L10 14l-5.4-4.5L3 18zm0 2.2h18V21H3z"/></svg>';
+      var CROWN = '<svg class="crown" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true"><path d="M61.188,116.688c0,16.891-13.703,30.594-30.594,30.594C13.688,147.281,0,133.578,0,116.688s13.688-30.594,30.594-30.594C47.484,86.094,61.188,99.797,61.188,116.688z"/><path d="M512,116.688c0,16.891-13.688,30.594-30.594,30.594c-16.891,0-30.594-13.703-30.594-30.594s13.703-30.594,30.594-30.594C498.313,86.094,512,99.797,512,116.688z"/><path d="M286.594,65.438c0,16.891-13.703,30.578-30.594,30.578s-30.594-13.688-30.594-30.578c0-16.906,13.703-30.594,30.594-30.594S286.594,48.531,286.594,65.438z"/><polygon points="435.359,381.156 462.094,174.656 353.109,251.672 256,123.391 158.891,251.672 49.906,174.656 76.641,381.156"/><polygon points="80.781,413.156 89.063,477.156 256,477.156 422.938,477.156 431.219,413.156"/></svg>';
       /* Board-side marks, modelled on the icons printed on the real
          2nd-edition boards (photo from the shop's copy):
            sun (A面, e.g. GIZAH): a solid central disc with twelve
@@ -1427,7 +1427,7 @@
       }
       /* Receipt crown: the same crown shape as a solid black SVG, so a
          monochrome thermal printer renders it without any emoji font. */
-      var CROWN_RECEIPT = '<svg class="r-crown" viewBox="0 0 24 24" fill="#111" aria-hidden="true"><path d="M3 18h18l-1.6-8.5L14 14l-2-6.5L10 14l-5.4-4.5L3 18zm0 2.2h18V21H3z"/></svg> ';
+      var CROWN_RECEIPT = '<svg class="r-crown" viewBox="0 0 512 512" fill="#111" aria-hidden="true"><path d="M61.188,116.688c0,16.891-13.703,30.594-30.594,30.594C13.688,147.281,0,133.578,0,116.688s13.688-30.594,30.594-30.594C47.484,86.094,61.188,99.797,61.188,116.688z"/><path d="M512,116.688c0,16.891-13.688,30.594-30.594,30.594c-16.891,0-30.594-13.703-30.594-30.594s13.703-30.594,30.594-30.594C498.313,86.094,512,99.797,512,116.688z"/><path d="M286.594,65.438c0,16.891-13.703,30.578-30.594,30.578s-30.594-13.688-30.594-30.578c0-16.906,13.703-30.594,30.594-30.594S286.594,48.531,286.594,65.438z"/><polygon points="435.359,381.156 462.094,174.656 353.109,251.672 256,123.391 158.891,251.672 49.906,174.656 76.641,381.156"/><polygon points="80.781,413.156 89.063,477.156 256,477.156 422.938,477.156 431.219,413.156"/></svg> ';
       /* Treasury coins, drawn after the official 7 Wonders coins:
          one pile = a single gold "3" coin (segmented rim, laurel
          wreath ring, big 3 in the centre); a leftover coin = a single
@@ -3537,26 +3537,48 @@
         return lines;
       }
       /* Draws the winner's crown as a filled vector shape (the same
-         silhouette as the inline SVG used on screen and on the receipt)
+         silhouette as the inline SVG used on screen and on the receipt:
+         three ball-tipped spikes over a band, on a 512x512 design box)
          in a single colour — never an emoji glyph — so the PDF, the
          result PNG and a B/W thermal print all render it identically.
-         (x, y) is the top-left of the crown's 24x24 design box. */
+         The colour is the caller's: gold for the result image, black
+         for the receipt / PDF. (x, y) is the top-left of the crown's
+         design box. */
       function drawCrownShape(ctx, x, y, w, h, color) {
         ctx.save();
         ctx.translate(x, y);
-        ctx.scale(w / 24, h / 24);
+        ctx.scale(w / 512, h / 512);
         ctx.fillStyle = color;
+        /* three balls on the spike tips */
         ctx.beginPath();
-        ctx.moveTo(3, 18);
-        ctx.lineTo(21, 18);
-        ctx.lineTo(19.4, 9.5);
-        ctx.lineTo(14, 14);
-        ctx.lineTo(12, 7.5);
-        ctx.lineTo(10, 14);
-        ctx.lineTo(4.6, 9.5);
+        ctx.arc(30.594, 116.688, 30.594, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(481.406, 116.688, 30.594, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(256, 65.438, 30.594, 0, Math.PI * 2);
+        ctx.fill();
+        /* crown body */
+        ctx.beginPath();
+        ctx.moveTo(435.359, 381.156);
+        ctx.lineTo(462.094, 174.656);
+        ctx.lineTo(353.109, 251.672);
+        ctx.lineTo(256, 123.391);
+        ctx.lineTo(158.891, 251.672);
+        ctx.lineTo(49.906, 174.656);
+        ctx.lineTo(76.641, 381.156);
         ctx.closePath();
         ctx.fill();
-        ctx.fillRect(3, 20.2, 18, 0.8);
+        /* base band */
+        ctx.beginPath();
+        ctx.moveTo(80.781, 413.156);
+        ctx.lineTo(89.063, 477.156);
+        ctx.lineTo(256, 477.156);
+        ctx.lineTo(422.938, 477.156);
+        ctx.lineTo(431.219, 413.156);
+        ctx.closePath();
+        ctx.fill();
         ctx.restore();
       }
       /* Draws the receipt (same content and order as buildReceiptHtml)
@@ -3672,7 +3694,7 @@
             var valW = ctx.measureText(valText).width;
             ctx.fillText(valText, right - valW, y);
             ctx.save();
-            ctx.strokeStyle = "#111"; ctx.lineWidth = 1.5;
+            ctx.strokeStyle = "#111"; ctx.lineWidth = 1.7;
             ctx.lineCap = "round";
             ctx.setLineDash([0.01, 4.5]);
             ctx.beginPath();
