@@ -192,17 +192,6 @@
       #progressFill { height: 100%; width: 0%; border-radius: 999px; background: var(--accent); transition: width .25s ease; }
       .app-root[data-anim-color="false"] #progressFill { transition: none; }
       @media (prefers-reduced-motion: reduce) { #progressFill { transition: none; } }
-      /* current leader, shown small under the title row while scores
-         are being entered; hidden until someone actually leads (the
-         same condition that puts a crown on the totals row) */
-      #leaderBar {
-        margin-top: 3px; display: flex; align-items: center; gap: 5px;
-        font-size: 11px; line-height: 1.3; color: var(--dim);
-        white-space: nowrap; overflow: hidden;
-      }
-      #leaderBar .lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 800; color: var(--text); }
-      #leaderBar .lb-total { flex: none; font-family: "M PLUS Rounded 1c", sans-serif; font-weight: 800; color: var(--accent); }
-      #leaderBar .lb-more, #leaderBar .lb-note { flex: none; }
       .burger { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
       .burger span { display: block; height: 2px; width: 16px; border-radius: 999px; background: currentColor; }
 
@@ -661,7 +650,8 @@
       .key.op { background: var(--surface2); color: var(--accent); }
       .key.plus { background: var(--plus); color: var(--plus-text); font-size: 32px; grid-row: span 2; }
       .key.paren { font-size: 22px; font-weight: 700; }
-      .key.square { font-size: 20px; }
+      .key.sign { font-size: 24px; }
+      .key.sign:disabled { opacity: .35; cursor: default; }
       .key.zero { grid-column: span 2; touch-action: none; }
       .key.flick { touch-action: none; }
       .key { transition: background-color .12s ease, color .12s ease; }
@@ -794,7 +784,7 @@
         .key { font-size: 36px; }
         .key.plus { font-size: 42px; }
         .key.paren { font-size: 28px; }
-        .key.square { font-size: 24px; }
+        .key.sign { font-size: 28px; }
         .float-window { padding-left: 20px; padding-right: 20px; }
         .float-formula { min-height: 52px; font-size: 38px; }
         .float-placeholder { font-size: 26px; }
@@ -909,12 +899,12 @@
         html, body { height: auto; overflow: visible; background-color: #fff; }
         .app-root { position: static !important; height: auto !important; overflow: visible !important; background: #fff !important; }
         .app-root > *:not(.receipt-print) { display: none !important; }
-        .receipt-print { display: block; width: 100%; max-width: 72mm; margin: 0 auto; }
-        .receipt-print.w58 { max-width: 48mm; }
+        .receipt-print { display: block; width: 100%; max-width: 70mm; margin: 0 auto; }
+        .receipt-print.w58 { max-width: 46.5mm; }
       }
     </style>
     <!-- @page size for the receipt is switched between 58mm / 80mm by script (see applyReceiptWidth) -->
-    <style id="receiptPageStyle">@page { size: 58mm auto; margin: 2mm 5mm; }</style>
+    <style id="receiptPageStyle">@page { size: 58mm auto; margin: 4mm 6.5mm 6mm 5mm; }</style>
   </head>
   <body>
     <div id="loadingScreen" role="status" aria-label="読み込み中">
@@ -935,7 +925,6 @@
             <span aria-hidden="true" class="burger"><span></span><span></span><span></span></span>
           </button>
         </div>
-        <div id="leaderBar" hidden></div>
         <div id="progressTrack" aria-hidden="true"><div id="progressFill"></div></div>
       </div>
 
@@ -1369,7 +1358,7 @@
         "各項目のトップのセルに下線（同点は全員）。マイナス項目では減点が最も小さい値が対象"
       ]},
       { heading: "入力とテンキー", items: [
-        "四則演算・（）・x²が使える",
+        "四則演算・（）・±（符号の切り替え）が使える。±はマイナス項目では使えない（項目の符号は項目設定で決まる）",
         "フリック：⌫上＝AC（全消去）、0下＝小数点、「次へ」左＝前へ",
         "小数は表では切り捨て表示で合計に入らない（小数部分は薄く併記）。計算式ウィンドウには結果そのものを表示"
       ]},
@@ -1854,40 +1843,6 @@
       return html;
     }
 
-    /* compact current-standing line in the header: the leader's
-       name + total, so the standing is visible mid-entry. Shown
-       only while a crown would be awarded (computeRanking leaves
-       leaderIds empty when nothing has been scored yet); a
-       tiebreak-decided lead says so, and a shared lead is marked
-       同点1位. */
-    function renderLeaderBar(rank) {
-      var bar = $("leaderBar");
-      if (!bar) return;
-      var leaders = state.players.filter(function (p) { return rank.leaderIds[p.id]; });
-      if (!leaders.length) {
-        bar.hidden = true;
-        bar.innerHTML = "";
-        bar.removeAttribute("aria-label");
-        return;
-      }
-      var top = rank.totals[leaders[0].id] || 0;
-      var fullName = displayPlayerName(leaders[0], state.players.indexOf(leaders[0]));
-      var summary = "現在1位：" + fullName + " " + formatTableValue(top) + "点";
-      var html = crownSVG("crown", "12px") +
-        '<span class="lb-name">' + esc(shortPlayerName(leaders[0], state.players.indexOf(leaders[0]))) + "</span>" +
-        '<span class="lb-total">' + esc(formatTableValue(top)) + "点</span>";
-      if (leaders.length > 1) {
-        html += '<span class="lb-more">ほか' + (leaders.length - 1) + '名</span><span class="lb-note">同点1位</span>';
-        summary += "（ほか" + (leaders.length - 1) + "名と同点1位）";
-      } else if (rank.tiebreakDecided) {
-        html += '<span class="lb-note">タイブレークで1位</span>';
-        summary += "（タイブレークで1位）";
-      }
-      bar.innerHTML = html;
-      bar.setAttribute("aria-label", summary);
-      bar.hidden = false;
-    }
-
     function renderTable() {
       var rank = computeRanking(state.players, state.categories, state.cells);
       var cols = scoreGridCols(), minW = tableMinW();
@@ -1915,7 +1870,6 @@
       state.players.forEach(function (pp) { state.categories.forEach(function (cc) { if (evaluate(state.cells[pp.id + ":" + cc.id] || "") !== null) filledCells++; }); });
       var pf = $("progressFill");
       if (pf) pf.style.width = (totalCells > 0 ? Math.round(filledCells / totalCells * 100) : 0) + "%";
-      renderLeaderBar(rank);
       // category rows
       state.categories.forEach(function (c, cIdx) {
         var tops = rowTopIds(state.players, state.categories, state.cells, c);
@@ -2129,7 +2083,7 @@
         if (ri === 0) { var minus = makeKey("op", "引く（－）", "−"); minus.addEventListener("click", function () { pushOp("-"); }); grid.appendChild(minus); }
         if (ri === 1) { var plus = makeKey("op plus", "足す（＋）", "+"); plus.addEventListener("click", function () { pushOp("+"); }); grid.appendChild(plus); }
       });
-      // bottom row: wide 0, x², next player
+      // bottom row: wide 0, ±, next player
       // in quick mode the 0 key is a plain 0, same as normal mode (a
       // 0-score cell counts as entered); while a tens digit is pending
       // (2-digit entry) it is the ones digit (see updateHeldKey)
@@ -2148,9 +2102,10 @@
         onTap: function () { pushKeyDigit("0"); }, onFlick: pushDot
       });
       grid.appendChild(zero);
-      var sq = makeKey("square", "2乗", "x²");
-      sq.addEventListener("click", pushSquare);
-      grid.appendChild(sq);
+      var sign = makeKey("sign", "符号を切り替え（プラスマイナス）", "±");
+      sign.setAttribute("data-sign-key", "1");
+      sign.addEventListener("click", pushToggleSign);
+      grid.appendChild(sign);
       var wrap = document.createElement("div");
       wrap.className = "next-wrap";
       var nb = document.createElement("button");
@@ -2171,6 +2126,7 @@
       keypadBuiltSig = state.keypadLayout + "|" + state.quickMode;
       updateHeldKey();
       updateUndoKey();
+      updateSignKey();
     }
     function nextPlayerObj() {
       var i = (selIdx() + 1) % state.players.length;
@@ -2305,6 +2261,7 @@
         updateNextBtn();
         updateHeldKey();
         updateUndoKey();
+        updateSignKey();
       }
       var handle = $("kpHandle");
       var pct = Math.round((dragScale !== null ? dragScale : state.keypadScale) * 100);
@@ -2429,7 +2386,7 @@
       if (!f) { setFormula("("); return; }
       var last = f[f.length - 1];
       if ("+-×÷(".indexOf(last) >= 0) setFormula(f + "(");
-      else setFormula(f + "×(");
+      else setFormula(f + "+(");
     }
     function pushCloseParen() {
       var f = curFormula();
@@ -2449,11 +2406,51 @@
       if ("+-×÷(".indexOf(last) >= 0) setFormula(f + "0.");
       else if (last === ")" || last === "²") setFormula(f + "×0.");
     }
-    function pushSquare() {
+    /* ± : toggle the sign of the whole cell value. A plain number
+       just flips its leading minus; a compound expression is
+       wrapped as -( … ) so the whole value negates, and pressing
+       again unwraps it. An empty cell starts a negative entry
+       ("-"), and a lone "-" toggles back to empty. Incomplete
+       formulas (ending in an operator or "(") are left alone.
+       Minus items are integrated with this key: their sign is
+       decided only by the item setting, so ± is disabled there
+       (see updateSignKey) and this function also refuses. */
+    function pushToggleSign() {
+      var cat = selCategory();
+      if (cat && cat.negative) return;
+      if (pendingTens !== null) { buzz(); pendingTens = null; renderAll(); return; }
       var f = curFormula();
-      if (!f) return;
+      if (!f) { setFormula("-"); return; }
+      if (f === "-") { setFormula(""); return; }
       var last = f[f.length - 1];
-      if (/\d/.test(last) || last === ")" || last === "²") setFormula(f + "²");
+      if ("+-×÷(".indexOf(last) >= 0) return;
+      if (f.slice(0, 2) === "-(" && f[f.length - 1] === ")") {
+        var depth = 0, wraps = true;
+        for (var i = 1; i < f.length; i++) {
+          var ch = f[i];
+          if (ch === "(") depth++;
+          else if (ch === ")") { depth--; if (depth === 0 && i !== f.length - 1) { wraps = false; break; } }
+        }
+        if (wraps && depth === 0) { setFormula(f.slice(2, -1)); return; }
+      }
+      if (/^-?(\d+\.?\d*|\.\d+)$/.test(f)) {
+        setFormula(f[0] === "-" ? f.slice(1) : "-" + f);
+        return;
+      }
+      setFormula("-(" + f + ")");
+    }
+    /* the ± key is disabled on minus items: the item's sign comes
+       only from the item setting, never from the cell's formula */
+    function updateSignKey() {
+      var btn = $("kpGrid").querySelector("[data-sign-key]");
+      if (!btn) return;
+      var cat = selCategory();
+      var disabled = !!(cat && cat.negative);
+      btn.disabled = disabled;
+      btn.setAttribute("aria-disabled", String(disabled));
+      btn.setAttribute("aria-label", disabled
+        ? "符号を切り替え（マイナス項目では使えません）"
+        : "符号を切り替え（プラスマイナス）");
     }
     function backspace() {
       if (pendingTens !== null) { buzz(); pendingTens = null; renderAll(); return; }
@@ -3265,10 +3262,13 @@
       $("pvW58").setAttribute("aria-pressed", String(w === "58"));
       $("pvW80").classList.toggle("on", w === "80");
       $("pvW80").setAttribute("aria-pressed", String(w === "80"));
-      /* Side margins keep the content inside the thermal head's printable
-         band (58mm roll -> ~48mm, 80mm roll -> ~72mm, centered), otherwise
-         the rightmost player column is clipped on real printers. */
-      $("receiptPageStyle").textContent = "@page { size: " + w + "mm auto; margin: 2mm " + (w === "58" ? "5mm" : "4mm") + "; }";
+      /* Margins match the receipt PDF (generateReceiptPdf) and the
+         7 Wonders score app's receipt: top 4mm / bottom 6mm, sides
+         5mm on the 80mm roll and 5mm left / 6.5mm right on the 58mm
+         roll. The content still stays inside the thermal head's
+         printable band (58mm roll -> ~48mm, 80mm roll -> ~72mm,
+         centered), so the rightmost player column is not clipped. */
+      $("receiptPageStyle").textContent = "@page { size: " + w + "mm auto; margin: " + (w === "58" ? "4mm 6.5mm 6mm 5mm" : "4mm 5mm 6mm") + "; }";
     }
     function setReceiptWidth(w) {
       state.receiptWidth = w;
@@ -3360,19 +3360,22 @@
       var widthMm = w58 ? 58 : 80;
       var rank = computeRanking(entry.players, entry.categories, entry.cells);
       var W = Math.round(widthMm / 25.4 * 96); // design px at 96dpi
-      var padX = w58 ? 8 : 12, padTop = w58 ? 12 : 14, padBot = padTop;
-      /* Thermal print heads print narrower than the roll (58mm roll ->
-         about 48mm, 80mm roll -> about 72mm, centered on the paper).
-         Keep all content inside that printable band, otherwise the
-         rightmost player column falls off the edge of the printout. */
-      var printW = Math.round((w58 ? 48 : 72) / 25.4 * 96);
-      var left = Math.round((W - printW) / 2) + padX;
+      /* Margins match browser printing (@page in applyReceiptWidth)
+         and the 7 Wonders score app's receipt, in mm converted at
+         96dpi (1mm = 3.78px): top 4mm, bottom 6mm, sides 5mm on the
+         80mm roll and 5mm left / 6.5mm right on the 58mm roll. The
+         content still stays inside the thermal head's printable
+         band (58mm roll -> about 48mm, 80mm roll -> about 72mm,
+         centered on the paper), so the rightmost player column
+         does not fall off the edge of the printout. */
+      var padL = 19, padR = w58 ? 25 : 19, padTop = 15, padBot = 23;
+      var left = padL;
       var titleSize = w58 ? 16 : 20, metaSize = w58 ? 10 : 12;
       var headSize = w58 ? 11 : 13, catSize = w58 ? 10.5 : 12.5, valSize = w58 ? 12 : 14;
       var totalSize = w58 ? 13 : 16;
       var rowH = w58 ? 19 : 23, headH = w58 ? 20 : 24, totalH = w58 ? 24 : 28;
       var mono = 'ui-monospace, "Courier New", monospace';
-      var contentW = printW - padX * 2;
+      var contentW = W - padL - padR;
       var catW = contentW * 0.3;
       /* Long category names wrap onto extra lines instead of being
          truncated; each affected row grows by its extra lines, so the
@@ -4553,7 +4556,7 @@
     /* ---------------- keyboard support (PC) ----------------
        Physical-keyboard operation for desktop use.
        Main view: digits and operators feed the on-screen keypad
-       (0-9, + - * / ( ) . and ^ for x²), Enter is the "next player"
+       (0-9, + - * / ( ) .), Enter is the "next player"
        button (Shift+Enter goes back to the previous player), the
        arrow keys move the cell selection (Left / Right step through
        the cells in reading order, Up / Down move within the column),
@@ -4842,7 +4845,6 @@
       if (key === "." || key === "," || e.code === "NumpadDecimal") { e.preventDefault(); ensureEntering(); pushDot(); return; }
       if (key === "(") { e.preventDefault(); ensureEntering(); pushOpenParen(); return; }
       if (key === ")") { e.preventDefault(); ensureEntering(); pushCloseParen(); return; }
-      if (key === "^" || key === "²") { e.preventDefault(); ensureEntering(); pushSquare(); return; }
     });
 
     /* ---------------- boot ----------------

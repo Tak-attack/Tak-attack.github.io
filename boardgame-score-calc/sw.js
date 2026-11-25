@@ -3,7 +3,7 @@
    Strategy: stale-while-revalidate for the app shell and assets;
    presets.json is network-first so preset updates apply immediately.
    Bump CACHE_VERSION on each release. */
-var CACHE_VERSION = "boardgame-score-calc-v3";
+var CACHE_VERSION = "boardgame-score-calc-v4";
 var CORE_ASSETS = [
   "./",
   "./index.html",
