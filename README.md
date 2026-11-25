@@ -1,6 +1,10 @@
 # Tak-attack.github.io
 
 成果物置き場
+----
+<img width="180" height="180" alt="icon-180" src="https://github.com/user-attachments/assets/8ac7aba7-7828-451e-9e95-a77c2ea94403" />
+
+
 - 世界の七不思議 得点計算アプリ（7Wonder Score App）
 
 https://tak-attack.github.io/7-wonder-score-app/
@@ -10,6 +14,9 @@ https://tak-attack.github.io/7-wonder-score-app/
 科学（緑）の自動計算といった定番の機能から、市民建造物（青）の枚数だけボタンを押すと合計できる機能など、計算しやすさにこだわりました。
 
 英語対応、指導者＆都市以外の拡張は要望があれば追加します。
+
+----
+<img width="192" height="192" alt="icon-192" src="https://github.com/user-attachments/assets/db24bd71-9cbe-4c79-8276-6efa4dd0ef97" />
 
 - ボードゲーム専用電卓（Boardgame Score Calc）
 
